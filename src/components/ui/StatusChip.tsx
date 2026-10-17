@@ -29,7 +29,7 @@ export function StatusChip({ status, label, className }: StatusChipProps) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1.5 rounded-full border border-surface-border bg-surface px-2.5 py-1 text-xs font-medium',
+        'inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-pill/80 px-2.5 py-1 text-xs font-medium',
         textClass[status],
         className,
       )}

@@ -16,8 +16,8 @@ export function NavItem({ to, label, icon, iconOnly }: NavItemProps) {
       to={to}
       className={({ isActive }) =>
         clsx(
-          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200',
-          isActive ? 'bg-accent-muted text-text-primary' : 'text-text-muted hover:bg-surface hover:text-text-primary',
+          'flex items-center gap-3 rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-200',
+          isActive ? 'bg-white text-black shadow-[0_4px_14px_rgba(0,0,0,0.25)]' : 'text-text-muted hover:bg-surface-hover hover:text-text-primary',
         )
       }
     >

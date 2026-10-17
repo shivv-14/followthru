@@ -4,13 +4,15 @@
 // must be kept in sync by hand when a value here changes.
 
 export const color = {
-  bg: '#07060D',
-  surface: 'rgba(255, 255, 255, 0.04)',
-  surfaceHover: 'rgba(255, 255, 255, 0.07)',
-  surfaceBorder: 'rgba(255, 255, 255, 0.08)',
-  accent: '#8B6FFF',
-  accentMuted: 'rgba(124, 92, 255, 0.32)',
-  accentStrong: '#6A4BEF',
+  bg: '#000000',
+  surface: 'rgba(255, 255, 255, 0.045)',
+  surfaceHover: 'rgba(255, 255, 255, 0.09)',
+  surfaceBorder: 'rgba(255, 255, 255, 0.11)',
+  accent: '#C3BDFF',
+  accentMuted: 'rgba(195, 189, 255, 0.16)',
+  pill: '#28282A',
+  pillBorder: 'rgba(255, 255, 255, 0.28)',
+  pillText: '#C8C8C8',
   textPrimary: '#F5F4F8',
   textMuted: 'rgba(245, 244, 248, 0.64)',
   textFaint: 'rgba(245, 244, 248, 0.58)',
@@ -27,7 +29,8 @@ export const color = {
 export type StatusColorKey = keyof typeof color.status
 
 export const font = {
-  display: "'Space Grotesk Variable', 'Space Grotesk', sans-serif",
+  display: "'Inter Variable', 'Inter', sans-serif",
+  dot: "'BubbledotICG-FinePos', 'Geist Pixel Circle', monospace",
   body: "'Inter Variable', 'Inter', sans-serif",
 } as const
 
@@ -49,14 +52,14 @@ export const spacing = {
 export const radius = {
   sm: '6px',
   md: '10px',
-  lg: '16px',
-  xl: '24px',
+  lg: '20px',
+  xl: '28px',
   full: '9999px',
 } as const
 
 export const shadow = {
-  glass: '0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.36)',
-  glow: '0 0 0 1px rgba(124, 92, 255, 0.4), 0 0 24px rgba(124, 92, 255, 0.28)',
+  glass: '0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.45)',
+  glow: '0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 22px rgba(255, 255, 255, 0.28), 0 0 44px rgba(255, 255, 255, 0.1)',
 } as const
 
 export const focusRing = {

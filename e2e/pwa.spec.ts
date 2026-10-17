@@ -4,7 +4,7 @@ test('manifest has the fields PWABuilder needs and every icon loads', async ({ r
   const res = await request.get('/manifest.webmanifest')
   expect(res.status()).toBe(200)
   const m = await res.json()
-  expect(m).toMatchObject({ name: 'FollowThru - Chaser Draft Queue', short_name: 'FollowThru', start_url: '/dashboard', scope: '/', display: 'standalone', theme_color: '#07060D' })
+  expect(m).toMatchObject({ name: 'FollowThru - Chaser Draft Queue', short_name: 'FollowThru', start_url: '/dashboard', scope: '/', display: 'standalone', theme_color: '#000000' })
   expect(m.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']))
   expect(m.icons.some((i: { purpose?: string }) => i.purpose === 'maskable')).toBe(true)
   expect(m.shortcuts.map((s: { url: string }) => s.url)).toEqual(['/queue', '/dashboard', '/team'])
@@ -21,7 +21,7 @@ test('registers a service worker and reopens the app offline with local data', a
   await page.getByLabel('Your name').fill('Offline check')
   await page.getByRole('button', { name: 'Use synthetic demo data (not the challenge fixture)' }).click()
   await page.getByRole('button', { name: 'Load and continue' }).click()
-  await page.getByRole('button', { name: 'Continue as Priya' }).click()
+  await page.getByRole('button', { name: /^Sign in as Priya/ }).click()
   await expect(page.getByRole('heading', { name: 'What needs attention' })).toBeVisible()
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready

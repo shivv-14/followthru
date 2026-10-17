@@ -2,7 +2,7 @@ import { type SelectHTMLAttributes, type TextareaHTMLAttributes, forwardRef, use
 import clsx from 'clsx'
 
 const control =
-  'rounded-md border border-surface-border bg-surface px-3 text-sm text-text-primary placeholder:text-text-faint transition-colors duration-200 focus-visible:outline-none'
+  'rounded-xl border border-surface-border bg-white/[0.04] px-3.5 text-sm text-text-primary placeholder:text-text-faint transition-colors duration-200 hover:border-white/20 focus-visible:border-white/60 focus-visible:outline-none'
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string

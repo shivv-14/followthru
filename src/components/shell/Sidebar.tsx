@@ -1,4 +1,5 @@
 import { ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { NavItem } from '../ui'
 import { useEngine } from '../../store'
@@ -16,18 +17,23 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={clsx(
-        'glass-surface sticky top-0 hidden h-dvh flex-col gap-1 rounded-none border-y-0 border-l-0 p-3 transition-[width] duration-200 md:flex',
-        collapsed ? 'w-[72px]' : 'w-60',
+        'sticky top-0 hidden h-dvh flex-col gap-1 border-r border-surface-border bg-black/40 p-3 backdrop-blur-xl transition-[width] duration-200 md:flex',
+        collapsed ? 'w-[76px]' : 'w-60',
       )}
     >
-      <div className="mb-2 flex items-center justify-between px-1">
-        {!collapsed && <span className="font-display text-sm font-semibold text-text-primary">FollowThru</span>}
+      <div className={clsx('mb-4 flex items-center gap-2 px-1', collapsed ? 'flex-col' : 'justify-between')}>
+        <Link to="/" className="flex items-center gap-2.5" aria-label="FollowThru home">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white shadow-[0_4px_14px_rgba(0,0,0,0.25)]">
+            <img src="/logo.svg" alt="" width={28} height={28} className="rounded-[22%]" />
+          </span>
+          {!collapsed && <span className="text-sm font-semibold tracking-tight text-text-primary">FollowThru</span>}
+        </Link>
         <button
           type="button"
           onClick={onToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-expanded={!collapsed}
-          className="rounded-md p-1.5 text-text-muted hover:bg-surface-hover hover:text-text-primary"
+          className="grid size-8 place-items-center rounded-full text-text-muted hover:bg-surface-hover hover:text-text-primary"
         >
           {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
         </button>

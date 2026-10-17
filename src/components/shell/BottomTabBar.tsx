@@ -12,7 +12,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="glass-surface fixed inset-x-0 bottom-0 z-20 flex rounded-none border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-20 flex rounded-full border border-surface-border bg-[#0b0b0d]/85 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl md:hidden"
     >
       {items.map(({ to, short, icon: Icon, badge }) => (
         <NavLink
@@ -20,8 +20,8 @@ export function BottomTabBar() {
           to={to}
           className={({ isActive }) =>
             clsx(
-              'relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors duration-200',
-              isActive ? 'text-accent' : 'text-text-muted',
+              'relative flex flex-1 flex-col items-center gap-0.5 rounded-full py-1.5 text-[11px] font-medium transition-colors duration-200',
+              isActive ? 'bg-white text-black' : 'text-text-muted',
             )
           }
         >
