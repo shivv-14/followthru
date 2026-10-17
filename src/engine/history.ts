@@ -12,8 +12,9 @@ import type {
   ReviewReason,
 } from './types'
 import { parseDeadline } from './deadline'
-import { detectSignals, escapeRe, has, keywords, overlap, quote, titleFrom, type Signal } from './signals'
+import { escapeRe, has, keywords, overlap, quote, titleFrom, type Signal } from './signals'
 import { canDecide } from './permissions'
+import { rulesExtractor, type Extractor } from './extractor'
 
 // Linking thresholds: share of the commitment's keywords found in a message
 // from another thread. Strong links can change status; weak links only flag review.
@@ -37,6 +38,7 @@ interface Ctx {
   byMessage: Map<string, Working>
   open: Working[]
   messages: Map<string, Message>
+  extractor: Extractor
 }
 
 function tzOf(ctx: Ctx, personId: string | null | undefined): string {
@@ -119,7 +121,7 @@ function findTarget(ctx: Ctx, m: Message, signals: Signal[]): Target {
 
   // 3. Another thread: only for status-changing messages, by keyword similarity.
   // Authority is checked later, so a claim from someone else is flagged rather than ignored.
-  const statusSignal = signals.some((s) => ['done', 'cancel', 'defer', 'reschedule', 'delegate'].includes(s.kind))
+  const statusSignal = signals.some((s) => ['done', 'cancel', 'defer', 'reschedule', 'delegate', 'reopen'].includes(s.kind))
   const cross = statusSignal
     ? ctx.open
         .filter((w) => !w.c.threadIds.includes(m.threadId))
@@ -230,6 +232,24 @@ function applyUpdate(ctx: Ctx, w: Working, m: Message, signals: Signal[], linkRu
     }
   }
 
+  // Owner progress notes are evidence only: status never changes from them
+  const isActingOwner = isOwner || a === w.pendingDelegate
+  for (const kind of ['not_done', 'progress', 'blocker'] as const) {
+    const s = has(signals, kind)
+    if (!s || !isActingOwner) continue
+    addEvent(w, { type: kind, at: m.sentAt, by: a, evidence: evidence(m, rule(s)) })
+    if (kind === 'blocker') c.blockers = [...(c.blockers ?? []), { at: m.sentAt, by: a, text: quote(m.text), resolved: false }]
+  }
+
+  const reopen = has(signals, 'reopen')
+  if (reopen && c.status !== 'open') {
+    if (authority) setStatus(w, m, 'open', 'reopened', rule(reopen))
+    else {
+      w.reasons.add('conflicting_evidence')
+      addEvent(w, { type: 'review_flagged', at: m.sentAt, by: a, evidence: evidence(m, rule(reopen)) })
+    }
+  }
+
   const done = has(signals, 'done')
   const cancel = has(signals, 'cancel')
   const defer = has(signals, 'defer')
@@ -283,7 +303,7 @@ function restateDeadline(ctx: Ctx, w: Working, m: Message, d: Deadline, rule: st
 }
 
 function processMessage(ctx: Ctx, m: Message) {
-  const signals = detectSignals(m.text)
+  const signals = ctx.extractor.detect(m.text)
   const a = m.authorId
   const target = findTarget(ctx, m, signals)
 
@@ -303,7 +323,7 @@ function processMessage(ctx: Ctx, m: Message) {
   const strong = target && !('ambiguous' in target) ? target : null
   const request = has(signals, 'request')
   const commit = has(signals, 'commit')
-  const statusSignal = signals.some((s) => ['done', 'cancel', 'defer', 'reschedule', 'delegate', 'decline'].includes(s.kind))
+  const statusSignal = signals.some((s) => ['done', 'cancel', 'defer', 'reschedule', 'delegate', 'decline', 'reopen'].includes(s.kind))
 
   // A new request to someone opens a commitment unless it is about existing work
   const to = addressees(m, [...ctx.people.values()])
@@ -459,13 +479,20 @@ function manualCommitment(ctx: Ctx, t: ManualTask): Working {
  * Replays the whole history in time order and returns every commitment with
  * owner, deadline, status, response state and review flags resolved.
  */
-export function resolveCommitments(dataset: Dataset, now: IsoUtc, decisions: HumanDecision[] = [], manualTasks: ManualTask[] = []): Commitment[] {
+export function resolveCommitments(
+  dataset: Dataset,
+  now: IsoUtc,
+  decisions: HumanDecision[] = [],
+  manualTasks: ManualTask[] = [],
+  extractor: Extractor = rulesExtractor,
+): Commitment[] {
   const ctx: Ctx = {
     people: new Map(dataset.people.map((p) => [p.id, p])),
     coordinators: new Set(dataset.people.filter((p) => p.role === 'coordinator').map((p) => p.id)),
     byMessage: new Map(),
     open: [],
     messages: new Map(dataset.messages.map((m) => [m.id, m])),
+    extractor,
   }
   for (const m of dataset.messages) processMessage(ctx, m)
 

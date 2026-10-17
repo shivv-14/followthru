@@ -17,6 +17,9 @@ const EVENT_LABEL: Record<string, string> = {
   reopened: 'Reopened',
   review_flagged: 'Flagged for review',
   human_decision: 'Coordinator decision',
+  progress: 'Progress update',
+  not_done: 'Not done yet',
+  blocker: 'Blocker reported',
 }
 
 export default function CommitmentDetail() {

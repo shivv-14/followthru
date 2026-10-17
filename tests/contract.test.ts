@@ -48,6 +48,7 @@ describe('published contract', () => {
         'stepFor',
         'suppressDraft',
         'validateFlow',
+        'rulesExtractor',
       ].sort(),
     )
   })

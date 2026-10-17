@@ -1,5 +1,6 @@
 import type { EngineConfig, EngineFlags, EngineInput, EngineModeLabel, EngineResult, IsoUtc } from './types'
 import { resolveCommitments } from './history'
+import { rulesExtractor, type Extractor } from './extractor'
 import { buildDrafts } from './drafts'
 
 export const DEFAULT_FLAGS: EngineFlags = { staleSuppression: true, recipientReview: true, ai: false }
@@ -23,9 +24,9 @@ export function modeLabel(flags: EngineFlags): EngineModeLabel {
 }
 
 /** Pure engine run: same input and config always give the same result. */
-export function runEngine(input: EngineInput, config: EngineConfig): EngineResult {
+export function runEngine(input: EngineInput, config: EngineConfig, extractor: Extractor = rulesExtractor): EngineResult {
   const people = new Map(input.dataset.people.map((p) => [p.id, p]))
-  const commitments = resolveCommitments(input.dataset, config.now, input.decisions, input.manualTasks)
+  const commitments = resolveCommitments(input.dataset, config.now, input.decisions, input.manualTasks, extractor)
   const drafts = buildDrafts(commitments, input.previousDrafts ?? [], config, people)
   return { runAt: config.now, mode: modeLabel(config.flags), commitments, drafts, issues: [] }
 }

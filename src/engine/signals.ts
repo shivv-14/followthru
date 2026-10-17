@@ -1,7 +1,20 @@
 // Deterministic message signals. Each detector returns the rule name that
 // fired so every decision can be explained with evidence.
 
-export type SignalKind = 'request' | 'commit' | 'accept' | 'done' | 'cancel' | 'defer' | 'reschedule' | 'delegate' | 'decline'
+export type SignalKind =
+  | 'request'
+  | 'commit'
+  | 'accept'
+  | 'done'
+  | 'cancel'
+  | 'defer'
+  | 'reschedule'
+  | 'delegate'
+  | 'decline'
+  | 'not_done'
+  | 'blocker'
+  | 'progress'
+  | 'reopen'
 
 export interface Signal {
   kind: SignalKind
@@ -23,12 +36,23 @@ const DEFER =
   /\b(defer(red|ring)?|put (it |this |that )?on hold|on hold|park (it|this|that)|parking (it|this)|revisit (it |this )?later|push (it |this )?to next (quarter|month|sprint|cycle)|next quarter|not this (week|sprint|quarter)|after (the )?launch|backlog(ged)? (it|this)|later this year|postpone(d)? (it |this )?(indefinitely|for now))\b/i
 const RESCHEDULE =
   /\b(move|moving|moved|push|pushing|pushed|shift|shifting|extend|extending|extended|reschedul(e|ed|ing)|postpone|postponed|bump|delay(ed)?)\b[^.!?]{0,40}\b(to|until|till|by)\b|\bnew (deadline|date|due date)\b|\binstead\b|\bdeadline is now\b/i
+// Owner updates that never change status on their own
+const NOT_DONE = /\b(not yet|still working|running late|need more time|not done|not finished)\b/i
+const BLOCKER = /\b(blocked (?:by|on)|waiting on|waiting for|can'?t until|stuck on)\b/i
+const PROGRESS = /\b(making progress|half ?way|almost there|almost done|first draft ready|nearly done)\b/i
+// A completion taken back after the fact
+const REOPEN = /\b(not done after all|still broken|reopen(?:ing|ed)?|that was the wrong file|please redo|actually (?:it'?s )?not done)\b/i
+
 const DELEGATE =
   /\b(hand(ing|ed)? (it |this |that )?(over )?to|reassign(ing|ed)?( it| this| that)? to|pass(ing|ed)? (it |this |that )?(over )?to|delegat(e|ing|ed)( it| this| that)? to|(will|can) you take (this|it|that) over|take over\b|is taking (this|it) over|will (take|own|handle) (this|it|that)( over)?|owner is now)\b/i
 
 export function detectSignals(text: string): Signal[] {
   const t = text.trim()
   const out: Signal[] = []
+  if (REOPEN.test(t)) out.push({ kind: 'reopen', rule: 'REOPEN' })
+  if (NOT_DONE.test(t) && !REOPEN.test(t)) out.push({ kind: 'not_done', rule: 'NOT_DONE' })
+  if (BLOCKER.test(t)) out.push({ kind: 'blocker', rule: 'BLOCKER' })
+  if (PROGRESS.test(t)) out.push({ kind: 'progress', rule: 'PROGRESS' })
   if (CANCEL.test(t)) out.push({ kind: 'cancel', rule: 'CANCEL' })
   if (DEFER.test(t)) out.push({ kind: 'defer', rule: 'DEFER' })
   if (DELEGATE.test(t)) out.push({ kind: 'delegate', rule: 'DELEGATE' })

@@ -37,6 +37,10 @@ Removed as superseded: `src/mocks/engineResult.ts` (a static fake result, unused
 
 `src/engine/types.ts` gained optional `Commitment` fields (`source`, `teamId`, `progress`, `blockers`, `submissions`, `linkedMessageIds`) and optional `Draft` fields (`flowId`, `step`, `approvedBy`, `approvedAt`). It also gained new types: `Flow`, `FlowStep`, `HumanDecision`, `ManualTask`, `EngineInput`, `TaskProgress`, `Blocker` and `Submission`, plus a new review reason `unauthorised_status_claim`. No existing field changed.
 
+Later additive changes:
+- `CommitmentEventType` gained `progress`, `not_done` and `blocker` (owner updates recorded as evidence; they never change status).
+- New engine exports `rulesExtractor` and type `Extractor` (src/engine/extractor.ts). `runEngine` and `resolveCommitments` take an optional extractor that defaults to the rules.
+
 ## Still incomplete
 
 | Item | Why |

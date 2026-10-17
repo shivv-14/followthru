@@ -13,8 +13,9 @@ import {
   stepFor,
   validateFlow,
   DEFAULT_FLOW,
+  rulesExtractor,
 } from '../src/engine'
-import type { Dataset, EngineResult, HumanDecision, Message } from '../src/engine'
+import type { Dataset, EngineResult, Extractor, HumanDecision, Message } from '../src/engine'
 
 const demoData = validateDataset(demo).data!
 const NOW = demoData.referenceTime!
@@ -321,5 +322,64 @@ describe('evaluation', () => {
     const r = run()
     const bad = [...r.drafts, { ...r.drafts[0], id: 'd_x', commitmentId: 'c_m_03', idempotencyKey: 'c_m_03' }]
     expect(evaluate(r.commitments, bad, [], r.runAt).checks[1].pass).toBe(false)
+  })
+})
+
+describe('progress, not done, blockers and reopen', () => {
+  const base = run()
+  const reply = (id: string, authorId: string, text: string, sentAt = '2026-10-19T05:00:00.000Z', replyToId = 'm_21'): Message => ({
+    id,
+    threadId: 't_launch',
+    authorId,
+    sentAt,
+    text,
+    replyToId,
+  })
+
+  it('records "still working" after the deadline without changing status', () => {
+    const r = run(withMessages([reply('m_40', 'p_lena', 'Still working on it, need two more days.')]), { previous: base })
+    const c = byId(r, 'c_m_21')
+    expect(c).toMatchObject({ status: 'open', responseState: 'responded' })
+    expect(c.events.at(-1)).toMatchObject({ type: 'not_done', evidence: { messageId: 'm_40', rule: 'NOT_DONE' } })
+    expect(draftFor(r, 'c_m_21')?.state).toBe('pending_review')
+  })
+
+  it('adds a blocker from an owner message', () => {
+    const c = byId(run(withMessages([reply('m_41', 'p_lena', 'Blocked by the final logo from design.')])), 'c_m_21')
+    expect(c.blockers).toEqual([expect.objectContaining({ by: 'p_lena', resolved: false })])
+    expect(c.events.map((e) => e.type)).toContain('blocker')
+  })
+
+  it('treats "almost done" as progress, never completion', () => {
+    const c = byId(run(withMessages([reply('m_42', 'p_lena', 'Almost done with the launch press kit.')])), 'c_m_21')
+    expect(c.status).toBe('open')
+    expect(c.events.at(-1)?.type).toBe('progress')
+  })
+
+  it('reopens retracted work and reactivates the same draft with a new version', () => {
+    const doneMsg = { id: 'm_43', threadId: 't_status', authorId: 'p_lena', sentAt: '2026-10-19T04:00:00.000Z', text: 'Launch press kit sent to marketing.' }
+    const afterDone = run(withMessages([doneMsg]), { previous: base })
+    expect(draftFor(afterDone, 'c_m_21')).toMatchObject({ state: 'suppressed', version: 1 })
+    const reopened = run(withMessages([doneMsg, reply('m_44', 'p_priya', 'That was the wrong file, please redo the launch press kit.', '2026-10-19T05:10:00.000Z')]), {
+      previous: afterDone,
+    })
+    expect(byId(reopened, 'c_m_21').status).toBe('open')
+    expect(draftFor(reopened, 'c_m_21')).toMatchObject({ id: 'd_c_m_21', version: 2, state: 'pending_review' })
+    expect(draftFor(reopened, 'c_m_21')?.history.at(-1)?.cause).toBe('reactivated')
+    expect(reopened.drafts.filter((d) => d.commitmentId === 'c_m_21')).toHaveLength(1)
+  })
+
+  it('sends a reopen claim from an unrelated person to review', () => {
+    const doneMsg = { id: 'm_45', threadId: 't_status', authorId: 'p_lena', sentAt: '2026-10-19T04:00:00.000Z', text: 'Launch press kit sent to marketing.' }
+    const claim = { id: 'm_46', threadId: 't_eng', authorId: 'p_dev', sentAt: '2026-10-19T05:10:00.000Z', text: 'The launch press kit is still broken.' }
+    const c = byId(run(withMessages([doneMsg, claim])), 'c_m_21')
+    expect(c.status).toBe('done')
+    expect(c.reviewReasons).toContain('conflicting_evidence')
+  })
+
+  it('uses an injected extractor', () => {
+    const silent: Extractor = { name: 'rules', detect: () => [] }
+    expect(runEngine({ dataset: demoData }, makeConfig(NOW), silent).commitments).toEqual([])
+    expect(rulesExtractor.detect('Deck sent to the client.').map((s) => s.kind)).toContain('done')
   })
 })

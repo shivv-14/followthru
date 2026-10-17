@@ -14,6 +14,8 @@ export {
 } from './deadline'
 export type { DeadlineContext } from './deadline'
 export { detectSignals } from './signals'
+export { rulesExtractor } from './extractor'
+export type { Extractor } from './extractor'
 export type { Signal, SignalKind } from './signals'
 export { resolveCommitments, mentionedPeople } from './history'
 export { buildDrafts, blockingReviewReasons, composeBody } from './drafts'

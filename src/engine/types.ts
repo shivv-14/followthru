@@ -146,6 +146,9 @@ export type CommitmentEventType =
   | 'reopened'
   | 'review_flagged'
   | 'human_decision'
+  | 'progress'
+  | 'not_done'
+  | 'blocker'
 
 export interface CommitmentEvent {
   type: CommitmentEventType
