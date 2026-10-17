@@ -146,7 +146,7 @@ export function createActions(state: EngineState) {
     },
 
     async updateSettings(patch: Partial<AppSettings>): Promise<ActionResult> {
-      const coordinatorOnly: (keyof AppSettings)[] = ['flags', 'staleAfterHours']
+      const coordinatorOnly: (keyof AppSettings)[] = ['flags', 'staleAfterHours', 'aiApiKey']
       if (Object.keys(patch).some((k) => coordinatorOnly.includes(k as keyof AppSettings)) && role !== 'coordinator') {
         return fail('Only a coordinator can change engine settings')
       }

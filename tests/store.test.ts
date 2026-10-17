@@ -29,6 +29,7 @@ async function state(profileId: string | null): Promise<EngineState> {
   const people = new Map(data.people.map((p) => [p.id, p]))
   return {
     ready: true,
+    ai: { state: 'off' },
     dataset: dataset!,
     settings,
     now: NOW,

@@ -21,6 +21,8 @@ export interface AppSettings {
   customNow: IsoUtc | null
   flags: EngineFlags
   staleAfterHours: number
+  /** Gemini key for the optional AI pre-pass. Stays in this browser: never exported, never audited. */
+  aiApiKey?: string
 }
 
 export interface SettingRow {

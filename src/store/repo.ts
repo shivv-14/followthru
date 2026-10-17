@@ -37,8 +37,13 @@ export async function updateSettings(actorId: string, patch: Partial<AppSettings
   const before = await getSettings()
   const after = { ...before, ...patch }
   await db.settings.put({ key: 'app', value: after })
-  await audit({ actorId, action: 'settings.update', entity: 'settings', entityId: 'app', before: pick(before, patch), after: patch })
+  await audit({ actorId, action: 'settings.update', entity: 'settings', entityId: 'app', before: redact(pick(before, patch)), after: redact(patch) })
   return after
+}
+
+/** Secrets are recorded as set or cleared, never by value. */
+function redact<T extends object>(obj: T): T {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, isSecretSetting(k) ? (v ? '[set]' : '[cleared]') : v])) as T
 }
 
 function pick<T extends object>(obj: T, keys: Partial<T>): Partial<T> {

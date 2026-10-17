@@ -1,12 +1,17 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { evaluate, makeConfig, runEngine } from '../engine'
-import type { Commitment, Draft, EngineConfig, EngineResult, Flow, HumanDecision, ManualTask, Person, Scorecard } from '../engine/types'
+import type { AiSignal, Commitment, Draft, EngineConfig, EngineResult, Flow, HumanDecision, ManualTask, Person, Scorecard } from '../engine/types'
+import { fetchAiSignals } from '../ai/gemini'
 import { db, type AppSettings, type StoredDataset } from './db'
 import { DEFAULT_SETTINGS, getSettings, syncDrafts } from './repo'
 
+/** State of the optional AI pre-pass. Anything but 'ready' means the rules ran alone. */
+export type AiStatus = { state: 'off' } | { state: 'loading' } | { state: 'ready'; signals: AiSignal[]; model: string } | { state: 'failed'; reason: string }
+
 export interface EngineState {
   ready: boolean
+  ai: AiStatus
   dataset: StoredDataset | null
   settings: AppSettings
   now: string
@@ -62,10 +67,31 @@ export function EngineProvider({ children }: { children: ReactNode }) {
 
   const config = useMemo(() => makeConfig(now, { flags: s.flags, staleAfterHours: s.staleAfterHours, flows }), [now, s.flags, s.staleAfterHours, flows])
 
+  // Optional AI pre-pass: once per loaded dataset and key, never inside the engine itself
+  const [ai, setAi] = useState<AiStatus>({ state: 'off' })
+  const aiOn = s.flags.ai
+  const aiKey = aiOn ? (s.aiApiKey ?? '') : ''
+  const datasetKey = dataset ? `${dataset.name}|${dataset.loadedAt}` : ''
+  const datasetRef = useRef(dataset)
+  datasetRef.current = dataset
+  useEffect(() => {
+    const ds = datasetRef.current
+    if (!ready || !ds || !aiOn) return setAi({ state: 'off' })
+    if (!aiKey) return setAi({ state: 'failed', reason: 'No API key saved' })
+    const controller = new AbortController()
+    setAi({ state: 'loading' })
+    const people = new Map(ds.data.people.map((p) => [p.id, p]))
+    void fetchAiSignals(ds.data.messages, people, { apiKey: aiKey, signal: controller.signal }).then((r) => {
+      if (!controller.signal.aborted) setAi(r.ok ? { state: 'ready', signals: r.signals, model: r.model } : { state: 'failed', reason: r.reason })
+    })
+    return () => controller.abort()
+  }, [ready, datasetKey, aiOn, aiKey])
+  const aiSignals = ai.state === 'ready' ? ai.signals : undefined
+
   const result = useMemo(() => {
     if (!ready || !dataset) return { ...EMPTY_RESULT, runAt: now }
-    return runEngine({ dataset: dataset.data, decisions, manualTasks: tasks, previousDrafts: storedDrafts }, config)
-  }, [ready, dataset, decisions, tasks, storedDrafts, config, now])
+    return runEngine({ dataset: dataset.data, decisions, manualTasks: tasks, previousDrafts: storedDrafts, aiSignals }, config)
+  }, [ready, dataset, decisions, tasks, storedDrafts, config, now, aiSignals])
 
   useEffect(() => {
     if (!ready || !dataset) return
@@ -81,6 +107,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
     const drafts = new Map(result.drafts.map((d) => [d.commitmentId, d]))
     return {
       ready,
+      ai,
       dataset,
       settings: s,
       now,
@@ -95,7 +122,7 @@ export function EngineProvider({ children }: { children: ReactNode }) {
       commitment: (id) => byId.get(id),
       draftFor: (id) => drafts.get(id),
     }
-  }, [ready, dataset, s, now, config, result, flows, decisions, tasks])
+  }, [ready, ai, dataset, s, now, config, result, flows, decisions, tasks])
 
   return <EngineContext.Provider value={value}>{children}</EngineContext.Provider>
 }
