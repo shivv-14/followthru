@@ -21,3 +21,6 @@ test-results/
 *.tsbuildinfo
 .vscode/*
 !.vscode/extensions.json
+
+# Generated demo evidence (synthetic data, not challenge evidence)
+evidence/demo-*/
