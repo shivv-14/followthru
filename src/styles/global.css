@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #07060D;
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-surface-hover: rgba(255, 255, 255, 0.07);
+  --color-surface-border: rgba(255, 255, 255, 0.08);
+  --color-accent: #7C5CFF;
+  --color-accent-muted: rgba(124, 92, 255, 0.32);
+  --color-text-primary: #F5F4F8;
+  --color-text-muted: rgba(245, 244, 248, 0.64);
+  --color-text-faint: rgba(245, 244, 248, 0.38);
+
+  --color-status-done: #3EE6B0;
+  --color-status-overdue: #FF5D6C;
+  --color-status-tentative: #FFB547;
+  --color-status-deferred: #5CC8FF;
+  --color-status-cancelled: #8A8799;
+
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', sans-serif;
+  --font-body: 'Inter Variable', 'Inter', sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-glass: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.36);
+  --shadow-glow: 0 0 0 1px rgba(124, 92, 255, 0.4), 0 0 24px rgba(124, 92, 255, 0.28);
+
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-surface-border);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+
+/* Keyboard-only focus ring. Mouse/touch interaction never shows it. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.glass-surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
