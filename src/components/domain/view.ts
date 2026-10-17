@@ -22,6 +22,7 @@ export function draftStateView(d: Draft): StatusView {
   if (d.state === 'approved') return { key: 'done', label: 'Approved (shadow)' }
   if (d.state === 'pending_review') return { key: 'overdue', label: 'Needs review' }
   if (d.state === 'stale') return { key: 'tentative', label: 'Stale' }
+  if (d.state === 'rejected') return { key: 'cancelled', label: 'Rejected' }
   return { key: 'cancelled', label: 'Suppressed' }
 }
 

@@ -70,6 +70,27 @@ export function approveDraft(draft: Draft, by: string, at: IsoUtc): Draft {
   return { ...draft, state: 'approved', approvedBy: by, approvedAt: at }
 }
 
+export const MAX_DRAFT_BODY = 600
+
+/** Rejected drafts stay rejected until something changes and a new version is written. */
+export function rejectDraft(draft: Draft, by: string, at: IsoUtc, reason: string): Draft {
+  const why = reason.trim()
+  if (!why) throw new Error('Give a reason for rejecting the draft')
+  return { ...draft, state: 'rejected', rejectedBy: by, rejectedAt: at, rejectReason: why }
+}
+
+/** A coordinator's edit is kept until a new version replaces it. */
+export function editDraft(draft: Draft, by: string, at: IsoUtc, body: string): Draft {
+  const text = body.trim()
+  if (text.length < 1 || text.length > MAX_DRAFT_BODY) throw new Error(`Draft text must be 1 to ${MAX_DRAFT_BODY} characters`)
+  return { ...draft, editedBody: text, editedBy: by, editedAt: at }
+}
+
+/** The text that would be approved: the coordinator's edit when there is one. */
+export function draftText(draft: Draft): string {
+  return draft.editedBody ?? draft.body
+}
+
 export function suppressDraft(draft: Draft, reason: SuppressionReason, at: IsoUtc): Draft {
   return { ...draft, state: 'suppressed', suppression: { reason, at }, updatedAt: at }
 }

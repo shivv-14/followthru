@@ -52,6 +52,10 @@ describe('published contract', () => {
         'composeSubject',
         'expectedRecipient',
         'replyState',
+        'draftText',
+        'editDraft',
+        'MAX_DRAFT_BODY',
+        'rejectDraft',
       ].sort(),
     )
   })
@@ -65,7 +69,7 @@ describe('published contract', () => {
   it('keeps key type shapes', () => {
     expectTypeOf<Commitment['status']>().toEqualTypeOf<'open' | 'done' | 'cancelled' | 'deferred'>()
     expectTypeOf<Deadline['certainty']>().toEqualTypeOf<'firm' | 'tentative' | 'none'>()
-    expectTypeOf<Draft['state']>().toEqualTypeOf<'pending_review' | 'approved' | 'suppressed' | 'stale'>()
+    expectTypeOf<Draft['state']>().toEqualTypeOf<'pending_review' | 'approved' | 'suppressed' | 'stale' | 'rejected'>()
     expectTypeOf<EngineModeLabel>().toEqualTypeOf<'Rules' | 'Rules (fallback)' | 'AI assisted'>()
     expectTypeOf<EngineResult['drafts']>().toEqualTypeOf<Draft[]>()
     expectTypeOf<ValidationResult['ok']>().toEqualTypeOf<boolean>()

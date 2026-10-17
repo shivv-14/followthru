@@ -105,7 +105,7 @@ export async function putDraft(actorId: string, action: string, before: Draft, a
     entity: 'draft',
     entityId: after.id,
     before: { state: before.state, version: before.version, recipientConfirmed: before.recipientConfirmed },
-    after: { state: after.state, version: after.version, recipientConfirmed: after.recipientConfirmed, suppression: after.suppression?.reason },
+    after: { state: after.state, version: after.version, recipientConfirmed: after.recipientConfirmed, suppression: after.suppression?.reason, rejectReason: after.rejectReason, edited: after.editedBody !== undefined },
   })
 }
 

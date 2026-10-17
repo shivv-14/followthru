@@ -16,6 +16,9 @@ import {
   rulesExtractor,
   composeSubject,
   expectedRecipient,
+  draftText,
+  editDraft,
+  rejectDraft,
 } from '../src/engine'
 import type { Dataset, EngineResult, Extractor, HumanDecision, Message } from '../src/engine'
 
@@ -480,5 +483,44 @@ describe('product change flags', () => {
     const flags = { staleSuppression: true, recipientReview: false, ai: false }
     const r = runEngine({ dataset: demoData }, makeConfig(NOW, { flags }))
     expect(checkBeforeApproval(draftFor(r, 'c_m_18')!, byId(r, 'c_m_18'), makeConfig(NOW, { flags })).ok).toBe(true)
+  })
+})
+
+describe('reject and edit', () => {
+  const base = run()
+  const at = '2026-10-19T06:00:00.000Z'
+
+  it('keeps a rejected draft rejected across re-runs until a new version is written', () => {
+    const rejected = rejectDraft(draftFor(base, 'c_m_21')!, 'p_priya', at, 'Wrong tone')
+    const again = run(demoData, { previous: { ...base, drafts: base.drafts.map((d) => (d.id === rejected.id ? rejected : d)) } })
+    expect(draftFor(again, 'c_m_21')).toMatchObject({ state: 'rejected', rejectReason: 'Wrong tone', version: 1 })
+    const moved = withMessages([{ id: 'm_60', threadId: 't_launch', authorId: 'p_priya', sentAt: '2026-10-19T05:10:00.000Z', text: 'Lena, can we move the launch press kit to Oct 23 instead?', replyToId: 'm_21' }])
+    const later = run(moved, { previous: again, now: '2026-10-25T09:00:00.000Z' })
+    expect(draftFor(later, 'c_m_21')).toMatchObject({ state: 'pending_review', rejectReason: undefined })
+  })
+
+  it('preserves an edit until a new version replaces it, and notes that in history', () => {
+    const edited = editDraft(draftFor(base, 'c_m_18')!, 'p_priya', at, '  Hi Amir, any news on the mockups?  ')
+    expect(draftText(edited)).toBe('Hi Amir, any news on the mockups?')
+    const kept = run(demoData, { previous: { ...base, drafts: base.drafts.map((d) => (d.id === edited.id ? edited : d)) } })
+    expect(draftFor(kept, 'c_m_18')?.editedBody).toBe('Hi Amir, any news on the mockups?')
+    const next = run(demoData, { previous: kept, now: '2026-10-20T11:00:00+05:30' })
+    const d = draftFor(next, 'c_m_18')!
+    expect(d.editedBody).toBeUndefined()
+    expect(d.history.at(-1)?.cause).toBe('edit replaced by new version (step_changed)')
+  })
+
+  it('validates reasons and text length', () => {
+    const d = draftFor(base, 'c_m_18')!
+    expect(() => rejectDraft(d, 'p_priya', at, '  ')).toThrow('reason')
+    expect(() => editDraft(d, 'p_priya', at, '')).toThrow('1 to 600')
+    expect(() => editDraft(d, 'p_priya', at, 'x'.repeat(601))).toThrow('1 to 600')
+  })
+
+  it('never counts a rejected draft as an active reminder', () => {
+    const rejected = rejectDraft(draftFor(base, 'c_m_21')!, 'p_priya', at, 'no')
+    const closed = { ...byId(base, 'c_m_21'), status: 'done' as const }
+    const commitments = base.commitments.map((c) => (c.id === closed.id ? closed : c))
+    expect(evaluate(commitments, [rejected], [], NOW).checks[1].pass).toBe(true)
   })
 })

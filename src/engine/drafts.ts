@@ -160,6 +160,8 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
                     : null
       if (cause) {
         const version = p.version + 1
+        // A new version returns to review; a coordinator's edit or rejection applied to the old text
+        const note = p.editedBody ? `edit replaced by new version (${cause})` : cause
         out.push({
           ...p,
           ...fields,
@@ -170,7 +172,13 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
           suppression: undefined,
           approvedBy: undefined,
           approvedAt: undefined,
-          history: [...p.history, { version, at: now, dueAt: c.deadline.dueAt, recipientId, body, subject, cause }],
+          rejectedBy: undefined,
+          rejectedAt: undefined,
+          rejectReason: undefined,
+          editedBody: undefined,
+          editedBy: undefined,
+          editedAt: undefined,
+          history: [...p.history, { version, at: now, dueAt: c.deadline.dueAt, recipientId, body, subject, cause: note }],
         })
         continue
       }

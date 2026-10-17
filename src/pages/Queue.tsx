@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card, EmptyState, StatusChip, Tabs } from '../components/ui'
+import { Button, Card, Dialog, EmptyState, StatusChip, Tabs, Textarea } from '../components/ui'
 import { Notice, PageHeader, useActionNotice } from '../components/domain/parts'
 import { SUPPRESSION_LABEL, draftStateView, personName, shortTime } from '../components/domain/view'
-import { checkBeforeApproval, recipientWarnings } from '../engine/approval'
+import { checkBeforeApproval, draftText, MAX_DRAFT_BODY, recipientWarnings } from '../engine/approval'
 import type { Draft } from '../engine/types'
 import { useActions, useEngine } from '../store'
 
@@ -13,6 +13,10 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
   const { commitment, people, config, dataset, now, user, flows } = useEngine()
   const actions = useActions()
   const [showHistory, setShowHistory] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(draftText(draft))
+  const [rejecting, setRejecting] = useState(false)
+  const [reason, setReason] = useState('')
   const c = commitment(draft.commitmentId)
   const check = checkBeforeApproval(draft, c, config, people)
   const warnings = dataset ? recipientWarnings(draft, c, dataset.data, now) : []
@@ -43,15 +47,53 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
       <div className="mb-3 rounded-md border border-surface-border bg-surface p-3">
         <p className="mb-1 text-xs text-text-faint">
           To: <span className="text-text-primary">{recipient ? `${recipient.name} (${recipient.timezone})` : 'Unknown'}</span>
+          {draft.recipientRole && draft.recipientRole !== 'owner' ? ` · escalation to ${draft.recipientRole}` : ''}
         </p>
         {draft.subject ? <p className="mb-1 text-sm font-medium text-text-primary">{draft.subject}</p> : null}
-        <p className="text-sm text-text-muted">{draft.body}</p>
+        {editing ? (
+          <div className="flex flex-col gap-2">
+            <Textarea label="Draft text" value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_DRAFT_BODY} hint={`${text.trim().length} of ${MAX_DRAFT_BODY} characters`} />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                disabled={!text.trim() || notice.busy}
+                onClick={() =>
+                  notice.run(async () => {
+                    const res = await actions.edit(draft.id, text)
+                    if (res.ok) setEditing(false)
+                    return res
+                  })
+                }
+              >
+                Save text
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setText(draftText(draft))
+                  setEditing(false)
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted">{draftText(draft)}</p>
+        )}
+        {draft.editedBody && !editing ? <p className="mt-1 text-xs text-status-tentative">Edited by {personName(people, draft.editedBy)}</p> : null}
       </div>
 
       {draft.suppression ? (
         <p className="mb-2 text-sm text-status-deferred">
           Suppressed: {SUPPRESSION_LABEL[draft.suppression.reason]}
           {draft.suppression.evidence?.messageId ? ` (evidence ${draft.suppression.evidence.messageId}: "${draft.suppression.evidence.quote}")` : ''}
+        </p>
+      ) : null}
+      {draft.state === 'rejected' ? (
+        <p className="mb-2 text-sm text-status-cancelled">
+          Rejected by {personName(people, draft.rejectedBy)}: {draft.rejectReason}
         </p>
       ) : null}
 
@@ -85,7 +127,18 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
             <Button size="sm" disabled={!isCoordinator || (!check.ok && !check.suppressWith) || notice.busy} onClick={() => notice.run(() => actions.approve(draft.id))}>
               {check.suppressWith ? 'Re-check and suppress' : 'Approve (shadow, not sent)'}
             </Button>
-            {!isCoordinator ? <span className="self-center text-xs text-text-faint">Only a coordinator can approve</span> : null}
+            {isCoordinator ? (
+              <>
+                <Button size="sm" variant="secondary" disabled={editing} onClick={() => setEditing(true)}>
+                  Edit
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setRejecting(true)}>
+                  Reject
+                </Button>
+              </>
+            ) : (
+              <span className="self-center text-xs text-text-faint">Only a coordinator can approve</span>
+            )}
           </div>
         </>
       ) : null}
@@ -107,6 +160,33 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
           ))}
         </ol>
       ) : null}
+
+      <Dialog open={rejecting} onClose={() => setRejecting(false)} title="Reject this draft" variant="modal">
+        <div className="flex flex-col gap-3">
+          <Textarea label="Reason (kept in the audit log)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: wrong tone for this client" />
+          <div className="flex gap-2">
+            <Button
+              variant="danger"
+              disabled={!reason.trim() || notice.busy}
+              onClick={() =>
+                notice.run(async () => {
+                  const res = await actions.reject(draft.id, reason)
+                  if (res.ok) {
+                    setRejecting(false)
+                    setReason('')
+                  }
+                  return res
+                })
+              }
+            >
+              Reject draft
+            </Button>
+            <Button variant="ghost" onClick={() => setRejecting(false)}>
+              Keep it
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </Card>
   )
 }
@@ -123,10 +203,14 @@ function Lane({ drafts, empty, notice }: { drafts: Draft[]; empty: string; notic
 }
 
 export default function Queue() {
-  const { result, user } = useEngine()
+  const { result, user, scorecard } = useEngine()
   const notice = useActionNotice()
   const visible = user?.role === 'coordinator' ? result.drafts : result.drafts.filter((d) => d.recipientId === user?.id)
-  const by = (states: Draft['state'][]) => visible.filter((d) => states.includes(d.state))
+  const by = (states: Draft['state'][], kind?: Draft['kind']) => visible.filter((d) => states.includes(d.state) && (!kind || d.kind === kind))
+  const reminders = by(['pending_review'], 'reminder')
+  const clarify = by(['pending_review'], 'clarify')
+  const closedCheck = scorecard.checks.find((c) => c.name === 'zero_wrong_reminders')
+  const activeOnClosed = closedCheck?.pass ? 0 : Number(/^(\d+)/.exec(closedCheck?.detail ?? '')?.[1] ?? 0)
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -134,15 +218,20 @@ export default function Queue() {
         title="Draft queue"
         description="One draft per commitment. Deadline or owner changes update the same draft as a new version. Approving re-checks freshness first. Shadow mode: nothing is ever sent."
       />
+      <p className={activeOnClosed === 0 ? 'mb-3 text-sm text-status-done' : 'mb-3 text-sm text-status-overdue'}>
+        {activeOnClosed} active reminders for completed, cancelled or deferred work
+      </p>
       <div className="mb-3" aria-live="polite">
         <Notice result={notice.result} />
       </div>
       <Tabs
         items={[
-          { value: 'review', label: `Needs review (${by(['pending_review']).length})`, content: <Lane drafts={by(['pending_review'])} empty="No drafts waiting for review" notice={notice} /> },
+          { value: 'review', label: `Needs review (${reminders.length})`, content: <Lane drafts={reminders} empty="No reminders waiting for review" notice={notice} /> },
+          { value: 'clarify', label: `Needs clarification (${clarify.length})`, content: <Lane drafts={clarify} empty="No tentative deadlines to confirm" notice={notice} /> },
           { value: 'approved', label: `Approved (${by(['approved']).length})`, content: <Lane drafts={by(['approved'])} empty="Nothing approved yet" notice={notice} /> },
           { value: 'stale', label: `Stale (${by(['stale']).length})`, content: <Lane drafts={by(['stale'])} empty="No stale drafts" notice={notice} /> },
           { value: 'suppressed', label: `Suppressed (${by(['suppressed']).length})`, content: <Lane drafts={by(['suppressed'])} empty="Nothing suppressed" notice={notice} /> },
+          { value: 'rejected', label: `Rejected (${by(['rejected']).length})`, content: <Lane drafts={by(['rejected'])} empty="Nothing rejected" notice={notice} /> },
         ]}
       />
     </div>

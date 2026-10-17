@@ -225,7 +225,7 @@ export interface Commitment {
 export type DraftKind = 'reminder' | 'clarify'
 
 /** pending_review: waiting for a coordinator. approved: approved in shadow mode, nothing is sent. */
-export type DraftState = 'pending_review' | 'approved' | 'suppressed' | 'stale'
+export type DraftState = 'pending_review' | 'approved' | 'suppressed' | 'stale' | 'rejected'
 
 export type SuppressionReason =
   | 'completed'
@@ -287,6 +287,13 @@ export interface Draft {
   recipientRole?: RecipientRole
   /** Owner reply state the wording was written for */
   replyState?: ReplyState
+  rejectedBy?: string
+  rejectedAt?: IsoUtc
+  rejectReason?: string
+  /** Coordinator's edited text; kept until a new version replaces it */
+  editedBody?: string
+  editedBy?: string
+  editedAt?: IsoUtc
 }
 
 // ---------------------------------------------------------------------------

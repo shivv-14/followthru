@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { approveDraft, canDecide, canDo, checkBeforeApproval, suppressDraft, validateFlow } from '../engine'
+import { approveDraft, canDecide, canDo, checkBeforeApproval, editDraft, rejectDraft, suppressDraft, validateFlow } from '../engine'
 import type { DecisionType, Flow, HumanDecision, IsoUtc, ManualTask, TaskProgress, ValidationResult } from '../engine/types'
 import { db, type AppSettings, type DataSource } from './db'
 import * as repo from './repo'
@@ -69,6 +69,28 @@ export function createActions(state: EngineState) {
       if (!check.ok) return fail(check.blockers.map((b) => b.message).join('. '))
       await repo.putDraft(actor.id, 'draft.approve', draft, approveDraft(draft, actor.id, state.now))
       return ok('Approved in shadow mode. Nothing was sent.')
+    },
+
+    async reject(draftId: string, reason: string): Promise<ActionResult> {
+      if (!actor || !canDo(role, 'approve_draft')) return fail('Only a coordinator can reject drafts')
+      if (!reason.trim()) return fail('Give a reason for rejecting the draft')
+      const draft = await db.drafts.get(draftId)
+      if (!draft) return fail('Draft not found')
+      if (draft.state !== 'pending_review') return fail(`Draft is ${draft.state.replace('_', ' ')}, not waiting for review`)
+      await repo.putDraft(actor.id, 'draft.reject', draft, rejectDraft(draft, actor.id, state.now, reason))
+      return ok('Draft rejected')
+    },
+
+    async edit(draftId: string, body: string): Promise<ActionResult> {
+      if (!actor || !canDo(role, 'approve_draft')) return fail('Only a coordinator can edit drafts')
+      const draft = await db.drafts.get(draftId)
+      if (!draft) return fail('Draft not found')
+      try {
+        await repo.putDraft(actor.id, 'draft.edit', draft, editDraft(draft, actor.id, state.now, body))
+        return ok('Draft text saved')
+      } catch (e) {
+        return fail((e as Error).message)
+      }
     },
 
     async createTasks(input: NewTaskInput): Promise<ActionResult> {

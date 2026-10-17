@@ -55,6 +55,25 @@ test('coordinator journey: setup, dashboard, approve, evidence', async ({ page }
   expect(errors).toEqual([])
 })
 
+test('coordinator edits then rejects a draft', async ({ page }) => {
+  const errors = trackErrors(page)
+  await loadDemoAs(page, 'Priya')
+  await page.goto('/queue')
+  const card = page.locator('[id="d_c_m_21"]')
+  await card.getByRole('button', { name: 'Edit' }).click()
+  await card.getByLabel('Draft text').fill('Hi Lena, could you send the press kit today?')
+  await card.getByRole('button', { name: 'Save text' }).click()
+  await expect(card.getByText('Hi Lena, could you send the press kit today?')).toBeVisible()
+  await page.reload()
+  await expect(page.locator('[id="d_c_m_21"]').getByText('Edited by Priya Sharma')).toBeVisible()
+  await page.locator('[id="d_c_m_21"]').getByRole('button', { name: 'Reject' }).click()
+  await page.getByLabel('Reason (kept in the audit log)').fill('Client asked us to wait')
+  await page.getByRole('button', { name: 'Reject draft' }).click()
+  await page.getByRole('tab', { name: /Rejected \(1\)/ }).click()
+  await expect(page.getByText(/Client asked us to wait/)).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('member sees only their work and cannot approve', async ({ page }) => {
   const errors = trackErrors(page)
   await loadDemoAs(page, 'Lena')

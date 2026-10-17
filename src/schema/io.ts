@@ -138,7 +138,7 @@ export function draftsToCsv(drafts: Draft[]): string {
     version: d.version,
     suppressionReason: d.suppression?.reason ?? '',
     updatedAt: d.updatedAt,
-    body: d.body,
+    body: d.editedBody ?? d.body,
   }))
   return toCsv(rows, ['id', 'commitmentId', 'kind', 'recipientId', 'recipientConfirmed', 'state', 'version', 'suppressionReason', 'updatedAt', 'body'])
 }

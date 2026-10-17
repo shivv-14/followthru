@@ -134,3 +134,22 @@ describe('actions', () => {
     expect((await actions.saveFlow({ ...def, id: 'f_custom', name: 'Fast', isDefault: false, steps: [{ afterHours: 1, tone: 'firm' }] })).ok).toBe(true)
   })
 })
+
+describe('reject and edit actions', () => {
+  it('lets a coordinator reject with a reason and edit text, both audited', async () => {
+    const actions = createActions(await state('p_priya'))
+    expect((await actions.reject('d_c_m_21', '  ')).ok).toBe(false)
+    expect((await actions.reject('d_c_m_21', 'Wrong recipient tone')).ok).toBe(true)
+    expect(await db.drafts.get('d_c_m_21')).toMatchObject({ state: 'rejected', rejectReason: 'Wrong recipient tone' })
+    expect((await actions.edit('d_c_m_18', 'Hi Amir, any news?')).ok).toBe(true)
+    expect((await db.drafts.get('d_c_m_18'))?.editedBody).toBe('Hi Amir, any news?')
+    const actionsLogged = (await db.audit.toArray()).map((a) => a.action)
+    expect(actionsLogged).toEqual(expect.arrayContaining(['draft.reject', 'draft.edit']))
+  })
+
+  it('does not let a member reject or edit', async () => {
+    const member = createActions(await state('p_lena'))
+    expect((await member.reject('d_c_m_21', 'no')).ok).toBe(false)
+    expect((await member.edit('d_c_m_21', 'text')).ok).toBe(false)
+  })
+})

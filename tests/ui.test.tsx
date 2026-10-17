@@ -81,6 +81,19 @@ describe('app with real engine data', () => {
     await waitFor(async () => expect((await db.drafts.get('d_c_m_18'))?.state).toBe('approved'))
   }, 15_000)
 
+  it('rejects a draft with a reason and moves it to the Rejected lane', async () => {
+    await seed('p_priya')
+    at('/queue')
+    const card = (await screen.findByText('Share the homepage mockups')).closest('[id]') as HTMLElement
+    fireEvent.click(within(card).getByRole('button', { name: 'Reject' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText('Reason (kept in the audit log)'), { target: { value: 'Tone is too firm' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Reject draft' }))
+    expect(await screen.findByText('Draft rejected', undefined, { timeout: 5000 })).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('tab', { name: /Rejected \(1\)/ }, { timeout: 5000 }))
+    expect(await screen.findByText(/Tone is too firm/)).toBeInTheDocument()
+  }, 15_000)
+
   it('shows a member only their own work and no approval controls', async () => {
     await seed('p_lena')
     at('/team')
