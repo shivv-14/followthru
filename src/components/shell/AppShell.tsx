@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -31,7 +31,9 @@ export function AppShell() {
         <OfflineBanner />
         <TopBar onOpenMobileNav={() => setMobileNavOpen(true)} />
         <main id="main-content" className="flex-1 px-3 pb-20 pt-4 sm:px-6 md:pb-6">
-          <Outlet />
+          <Suspense fallback={<LoadingState label="Loading page" />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <BottomTabBar />
