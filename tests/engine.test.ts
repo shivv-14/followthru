@@ -574,3 +574,17 @@ describe('decision order', () => {
     expect(c.events.slice(-2).map((e) => e.type)).toEqual(['extension_requested', 'deadline_changed'])
   })
 })
+
+describe('second promise from the same owner in a thread', () => {
+  it('opens a new commitment when it names its own task, leaving the first one alone', () => {
+    const r = run(withMessages([{ id: 'm_80', threadId: 't_eng', authorId: 'p_dev', sentAt: '2026-10-15T06:00:00.000Z', text: "I'll write the onboarding guide by Thursday." }]))
+    expect(byId(r, 'c_m_80')).toMatchObject({ ownerId: 'p_dev', title: 'Write the onboarding guide', status: 'open' })
+    expect(byId(r, 'c_m_05').deadline).toMatchObject({ certainty: 'tentative', phrase: 'maybe Friday' })
+  })
+
+  it('still treats "I\'ll have it Monday instead" as an update to the existing commitment', () => {
+    const r = run(withMessages([{ id: 'm_81', threadId: 't_eng', authorId: 'p_dev', sentAt: '2026-10-14T07:00:00.000Z', text: "I'll have it Monday instead." }]))
+    expect(r.commitments.find((c) => c.id === 'c_m_81')).toBeUndefined()
+    expect(byId(r, 'c_m_05').events.at(-1)).toMatchObject({ type: 'deadline_changed', evidence: { messageId: 'm_81' } })
+  })
+})

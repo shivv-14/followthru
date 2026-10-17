@@ -336,8 +336,17 @@ function processMessage(ctx: Ctx, m: Message) {
   }
 
   if (strong) {
+    // A promise that names its own task ("I'll write the release notes") is new work,
+    // even from the same owner; "I'll have it Monday instead" names no task and updates.
+    const names = [...ctx.people.values()].flatMap((p) => [p.name, p.name.split(/\s+/)[0]])
+    const ownTask = keywords(titleFrom(m.text, names))
+    const namesOtherTask = ownTask.length >= 2 && overlap(strong.w.words, ownTask) === 0
     const isNewPromise =
-      commit && !statusSignal && !has(signals, 'accept') && strong.w.c.ownerId !== a && strong.w.pendingDelegate !== a && strong.rule !== 'LINK_REPLY'
+      commit &&
+      !statusSignal &&
+      !has(signals, 'accept') &&
+      strong.rule !== 'LINK_REPLY' &&
+      ((strong.w.c.ownerId !== a && strong.w.pendingDelegate !== a) || namesOtherTask)
     if (!isNewPromise) {
       applyUpdate(ctx, strong.w, m, signals, strong.rule)
       return
