@@ -111,6 +111,24 @@ test('member asks for more time, coordinator approves it', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('commitment detail explains itself, replays history and shows the thread', async ({ page }) => {
+  const errors = trackErrors(page)
+  await loadDemoAs(page, 'Priya')
+  await page.goto('/commitments/c_m_03')
+  await expect(page.getByTestId('plain-why')).toContainText('no reminder will ever be drafted')
+  const slider = page.getByRole('slider')
+  await slider.focus()
+  await page.keyboard.press('Home')
+  await expect(page.getByTestId('replay-frame')).toContainText('Open')
+  await page.keyboard.press('End')
+  await expect(page.getByTestId('replay-frame')).toContainText('Done')
+  await page.getByRole('button', { name: /View thread/ }).click()
+  await expect(page.getByRole('dialog').getByText('used as evidence').first()).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(errors).toEqual([])
+})
+
 test('works at phone width', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 })
   await loadDemoAs(page, 'Priya')

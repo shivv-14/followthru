@@ -5,6 +5,7 @@ import { CommitmentStatus, DeadlineText, Notice, PageHeader, useActionNotice, vi
 import { PROGRESS_LABEL, REVIEW_LABEL, SUPPRESSION_LABEL, draftStateView, personName, shortTime } from '../components/domain/view'
 import type { DecisionType, TaskProgress } from '../engine/types'
 import { useActions, useEngine, useEvidenceFiles } from '../store'
+import { PlainWhy, ReplaySlider, ThreadSheet } from '../components/domain/HistoryTools'
 
 const EVENT_LABEL: Record<string, string> = {
   created: 'Created',
@@ -82,7 +83,12 @@ export default function CommitmentDetail() {
       <PageHeader
         title={c.title}
         description={`${c.source === 'manual' ? 'Assigned task' : `Opened by message ${c.sourceMessageId}`} · requested by ${personName(people, c.requesterId)}`}
-        actions={<CommitmentStatus c={c} now={now} />}
+        actions={
+          <span className="flex items-center gap-2">
+            <ThreadSheet c={c} />
+            <CommitmentStatus c={c} now={now} />
+          </span>
+        }
       />
 
       {c.extensionRequest ? (
@@ -129,6 +135,10 @@ export default function CommitmentDetail() {
               </div>
             </dl>
           </Card>
+
+          <PlainWhy c={c} draft={draft} tz={tz} />
+
+          <ReplaySlider c={c} tz={tz} />
 
           <Card>
             <CardHeader>
