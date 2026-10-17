@@ -139,3 +139,90 @@ describe('formatting', () => {
     expect(r.sameZone).toBe(false)
   })
 })
+
+describe('explicit timezones in the phrase', () => {
+  it('uses Pacific for "by Monday 10am PT" said by an IST speaker', () => {
+    const d = parseDeadline('Can you send it by Monday 10am PT', { saidAt: WED_MORNING_IST, tz: IST })
+    expect(d).toMatchObject({ dueAt: '2026-10-19T17:00:00.000Z', interpretedTz: PT, phrase: 'Monday 10am PT' })
+  })
+
+  it('moves a bare time with a zone to the next day when it has passed', () => {
+    // Tue 22:00 PDT: 5pm IST on Tuesday is already past, so Wednesday 5pm IST
+    expect(parseDeadline('done by 5pm IST', { saidAt: WED_MORNING_IST, tz: PT })?.dueAt).toBe('2026-10-14T11:30:00.000Z')
+  })
+
+  it.each([
+    ['14:00 UTC tomorrow', '2026-10-15T14:00:00.000Z', 'UTC'],
+    ['10am GMT Friday', '2026-10-16T10:00:00.000Z', 'UTC'],
+    ['6pm BST on Oct 20', '2026-10-20T17:00:00.000Z', 'Europe/London'],
+    ['9am ET Oct 20', '2026-10-20T13:00:00.000Z', 'America/New_York'],
+    ['4pm CET Oct 20', '2026-10-20T14:00:00.000Z', 'Europe/Paris'],
+    ['11am SGT Oct 20', '2026-10-20T03:00:00.000Z', 'Asia/Singapore'],
+  ])('reads "%s"', (text, dueAt, zone) => {
+    expect(parseDeadline(text, { saidAt: WED_MORNING_IST, tz: IST })).toMatchObject({ dueAt, interpretedTz: zone })
+  })
+
+  it('keeps the speaker zone when no zone is written', () => {
+    expect(parseDeadline('Friday 6pm', { saidAt: WED_MORNING_IST, tz: IST })?.interpretedTz).toBe(IST)
+  })
+})
+
+describe('relative durations and weeks', () => {
+  it.each([
+    ['in 2 days', '2026-10-16T18:29:00.000Z'],
+    ['within a week', '2026-10-21T18:29:00.000Z'],
+    ['in a week', '2026-10-21T18:29:00.000Z'],
+    ['in 3 hours', '2026-10-14T08:00:00.000Z'],
+    ['within 48 hours', '2026-10-16T05:00:00.000Z'],
+    ['next week', '2026-10-19T18:29:00.000Z'],
+    ['by end of next week', '2026-10-23T12:30:00.000Z'],
+  ])('reads "%s" from Wednesday morning IST', (text, dueAt) => {
+    expect(parseDeadline(text, { saidAt: WED_MORNING_IST, tz: IST })?.dueAt).toBe(dueAt)
+  })
+
+  it('reads "next week" said on a Monday as the following Monday', () => {
+    expect(parseDeadline('next week', { saidAt: '2026-10-19T04:30:00.000Z', tz: IST })?.dueAt).toBe('2026-10-26T18:29:00.000Z')
+  })
+
+  it('counts "in 2 days" in calendar days across the Pacific DST change', () => {
+    // Fri 30 Oct 10:00 PDT + 2 days = Sun 1 Nov, end of day in PST
+    expect(parseDeadline('in 2 days', { saidAt: '2026-10-30T17:00:00.000Z', tz: PT })?.dueAt).toBe('2026-11-02T07:59:00.000Z')
+  })
+})
+
+describe('numeric dates', () => {
+  it.each([
+    ['due 12/10', '2026-10-12T18:29:00.000Z'],
+    ['due 13/10', '2026-10-13T18:29:00.000Z'],
+    ['due 10/13', '2026-10-13T18:29:00.000Z'],
+    ['due 12/10/2026', '2026-10-12T18:29:00.000Z'],
+    ['due 12-10-2026', '2026-10-12T18:29:00.000Z'],
+    ['due 25/12/26', '2026-12-25T18:29:00.000Z'],
+  ])('reads "%s" as day/month unless impossible', (text, dueAt) => {
+    expect(parseDeadline(text, { saidAt: WED_MORNING_IST, tz: IST })?.dueAt).toBe(dueAt)
+  })
+})
+
+describe('more hedges and firm negatives', () => {
+  it.each(['I think Friday works', 'around Oct 20', 'roughly by Friday', 'approx Oct 20', 'approximately Friday', 'Friday?', 'by Friday?'])(
+    'marks "%s" tentative',
+    (text) => {
+      expect(parseDeadline(text, { saidAt: WED_MORNING_IST, tz: IST })?.certainty).toBe('tentative')
+    },
+  )
+
+  it.each(['by Friday at the latest', 'by Friday sharp', 'Can we push the API rate limit docs to Oct 21?'])('keeps "%s" firm', (text) => {
+    expect(parseDeadline(text, { saidAt: WED_MORNING_IST, tz: IST })?.certainty).toBe('firm')
+  })
+})
+
+describe('day boundaries', () => {
+  it('reads "today" in IST when it is still Thursday in UTC', () => {
+    // 20:00Z Thu is 01:30 Fri in IST
+    expect(parseDeadline('today 5pm', { saidAt: '2026-10-15T20:00:00.000Z', tz: IST })?.dueAt).toBe('2026-10-16T11:30:00.000Z')
+  })
+
+  it('reads "tomorrow EOD" across a month end', () => {
+    expect(parseDeadline('tomorrow EOD', { saidAt: '2026-10-31T04:30:00.000Z', tz: IST })?.dueAt).toBe('2026-11-01T12:30:00.000Z')
+  })
+})

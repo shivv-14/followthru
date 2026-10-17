@@ -96,6 +96,30 @@ export function addDays(w: WallTime, days: number): WallTime {
   return { ...w, year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() }
 }
 
+/**
+ * Timezone abbreviations people write after a time ("5pm IST").
+ * IST is read as India Standard Time, not Irish or Israel time.
+ */
+export const ZONE_ABBREVIATIONS: Record<string, TimeZoneId> = {
+  IST: 'Asia/Kolkata',
+  PT: 'America/Los_Angeles',
+  PST: 'America/Los_Angeles',
+  PDT: 'America/Los_Angeles',
+  ET: 'America/New_York',
+  EST: 'America/New_York',
+  EDT: 'America/New_York',
+  UTC: 'UTC',
+  GMT: 'UTC',
+  BST: 'Europe/London',
+  CET: 'Europe/Paris',
+  CEST: 'Europe/Paris',
+  SGT: 'Asia/Singapore',
+}
+
+export function zoneFromAbbreviation(abbr: string): TimeZoneId | undefined {
+  return ZONE_ABBREVIATIONS[abbr.toUpperCase()]
+}
+
 /** Parses an ISO timestamp that carries Z or an explicit offset. Returns null otherwise. */
 export function parseIsoWithOffset(value: string): IsoUtc | null {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/.test(value)) return null

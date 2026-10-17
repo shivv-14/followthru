@@ -1,5 +1,5 @@
 import type { CommitmentStatus, Deadline, DeadlineState, IsoUtc, TimeZoneId } from './types'
-import { addDays, toWallTime, wallTimeToUtcMs, type WallTime } from './time'
+import { addDays, toWallTime, wallTimeToUtcMs, zoneFromAbbreviation, ZONE_ABBREVIATIONS, type WallTime } from './time'
 
 // Default times, read in the speaker's timezone. Date-only deadlines get the
 // end of the day so nobody is chased before the day is over.
@@ -9,7 +9,7 @@ const MORNING_TIME = { hour: 12, minute: 0 }
 const AFTERNOON_TIME = { hour: 17, minute: 0 }
 
 const HEDGE_RE =
-  /\b(maybe|perhaps|possibly|probably|hopefully|might|tentative(?:ly)?|not sure|no promises|if possible|if all goes well|or so|should be able to|(?:will |i'?ll )?try (?:to|and)|aim(?:ing)? (?:for|to)|ish|(?:\d{1,2}(?::\d{2})?(?:am|pm)?|(?:mon|tues|wednes|thurs|fri|satur|sun)day)-?ish)\b/i
+  /\b(maybe|perhaps|possibly|probably|hopefully|might|tentative(?:ly)?|not sure|no promises|if possible|if all goes well|or so|should be able to|(?:will |i'?ll )?try (?:to|and)|aim(?:ing)? (?:for|to)|i think|around|roughly|approx(?:imately)?|ish|(?:\d{1,2}(?::\d{2})?(?:am|pm)?|(?:mon|tues|wednes|thurs|fri|satur|sun)day)-?ish)\b/i
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const MONTH_RE = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)'
@@ -30,6 +30,16 @@ interface DatePart extends Match {
 interface TimePart extends Match {
   hour: number
   minute: number
+  /** Explicit zone written after the time ("5pm IST") */
+  zone?: TimeZoneId
+}
+
+const ZONE_RE = new RegExp(`^\\s*(${Object.keys(ZONE_ABBREVIATIONS).join('|')})\\b`, 'i')
+const NUMBER_WORDS: Record<string, number> = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 }
+const COUNT_RE = '(\\d+|an?|one|two|three|four|five|six|seven|eight|nine|ten)'
+
+function toNumber(word: string): number {
+  return NUMBER_WORDS[word.toLowerCase()] ?? Number(word)
 }
 
 export interface DeadlineContext {
@@ -76,6 +86,28 @@ function findDate(text: string, today: WallTime & { weekday: number }): DatePart
     }
   }
 
+  // Numeric dates are day/month (India and UK); month/day only when day/month is impossible.
+  m = /\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{4}|\d{2}))?\b/.exec(text)
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])]
+    const [day, month] = b <= 12 ? [a, b] : [b, a]
+    const year = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : closestYear(month, day, today)
+    if (isRealDate(year, month, day)) return { start: m.index, end: m.index + m[0].length, date: { year, month, day, hour: 0, minute: 0 } }
+  }
+
+  // "in 2 days", "within a week": calendar days, end of that local day
+  m = new RegExp(`\\b(?:in|within)\\s+${COUNT_RE}\\s+(days?|weeks?)\\b`, 'i').exec(text)
+  if (m) {
+    const n = toNumber(m[1]) * (m[2].toLowerCase().startsWith('week') ? 7 : 1)
+    return { start: m.index, end: m.index + m[0].length, date: addDays(today, n) }
+  }
+
+  const toNextMonday = (1 - today.weekday + 7) % 7 || 7
+  m = /\bend of next week\b/i.exec(text)
+  if (m) return { start: m.index, end: m.index + m[0].length, date: addDays(today, toNextMonday + 4), impliedTime: END_OF_DAY_TIME }
+  m = /\bnext week\b/i.exec(text)
+  if (m) return { start: m.index, end: m.index + m[0].length, date: addDays(today, toNextMonday) }
+
   m = /\b(day after tomorrow|tomorrow|tmrw|tonight|today|end of (?:the )?day|eod|cob|close of business|end of (?:the )?week|eow)\b/i.exec(text)
   if (m) {
     const word = m[1].toLowerCase()
@@ -102,12 +134,19 @@ function findDate(text: string, today: WallTime & { weekday: number }): DatePart
   return null
 }
 
+/** Adds an explicit zone written right after a clock time ("5pm IST"). */
+function withZone(text: string, t: TimePart): TimePart {
+  const z = ZONE_RE.exec(text.slice(t.end))
+  if (!z) return t
+  return { ...t, end: t.end + z[0].length, zone: zoneFromAbbreviation(z[1]) }
+}
+
 function findTime(text: string): TimePart | null {
   let m = /\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i.exec(text)
   if (m) {
     let hour = Number(m[1]) % 12
     if (m[3].toLowerCase() === 'pm') hour += 12
-    return { start: m.index, end: m.index + m[0].length, hour, minute: Number(m[2] ?? 0) }
+    return withZone(text, { start: m.index, end: m.index + m[0].length, hour, minute: Number(m[2] ?? 0) })
   }
   // "5ish" with no am/pm: 1 to 7 read as pm, 8 to 12 as am or noon (working hours).
   m = /\b(1[0-2]|0?[1-9])-?ish\b/i.exec(text)
@@ -116,7 +155,7 @@ function findTime(text: string): TimePart | null {
     return { start: m.index, end: m.index + m[0].length, hour: h <= 7 ? h + 12 : h, minute: 0 }
   }
   m = /\b([01]?\d|2[0-3]):([0-5]\d)\b/.exec(text)
-  if (m) return { start: m.index, end: m.index + m[0].length, hour: Number(m[1]), minute: Number(m[2]) }
+  if (m) return withZone(text, { start: m.index, end: m.index + m[0].length, hour: Number(m[1]), minute: Number(m[2]) })
   m = /\b(eod|cob|end of (?:the )?day|close of business)\b/i.exec(text)
   if (m) return { start: m.index, end: m.index + m[0].length, ...END_OF_DAY_TIME }
   m = /\b(noon|midday|midnight|morning|afternoon|evening)\b/i.exec(text)
@@ -140,28 +179,49 @@ function findTime(text: string): TimePart | null {
  * Returns null when the text has no deadline phrase.
  * Hedged phrases ("maybe Friday") come back with certainty 'tentative'.
  */
+/** A "?" right after a short date question ("Friday?", "by Friday?") makes it tentative. A full proposal sentence stays firm. */
+function isShortDateQuestion(text: string, start: number, end: number): boolean {
+  if (!/^\s*\?/.test(text.slice(end))) return false
+  const sentenceStart = Math.max(text.lastIndexOf('.', start), text.lastIndexOf('!', start), text.lastIndexOf('?', start - 1), text.lastIndexOf('\n', start)) + 1
+  return text.slice(sentenceStart, end).trim().split(/\s+/).length <= 4
+}
+
 export function parseDeadline(text: string, ctx: DeadlineContext): Deadline | null {
   const saidMs = Date.parse(ctx.saidAt)
   const today = toWallTime(saidMs, ctx.tz)
+
+  // "in 3 hours", "within 48 hours": an exact duration from when it was said
+  const hours = new RegExp(`\\b(?:in|within)\\s+${COUNT_RE}\\s+hours?\\b`, 'i').exec(text)
+  if (hours) {
+    return {
+      dueAt: new Date(saidMs + toNumber(hours[1]) * 3_600_000).toISOString(),
+      certainty: isHedged(text) ? 'tentative' : 'firm',
+      phrase: hours[0],
+      interpretedTz: ctx.tz,
+    }
+  }
+
   const datePart = findDate(text, today)
   const timePart = findTime(text)
   if (!datePart && !timePart) return null
 
+  // The calendar day comes from the speaker's "today"; an explicit zone then applies to the time.
+  const tz = timePart?.zone ?? ctx.tz
   let date: WallTime = datePart?.date ?? today
   const time = timePart ?? datePart?.impliedTime ?? DATE_ONLY_TIME
-  let dueMs = wallTimeToUtcMs({ ...date, hour: time.hour, minute: time.minute, second: 0 }, ctx.tz)
+  let dueMs = wallTimeToUtcMs({ ...date, hour: time.hour, minute: time.minute, second: 0 }, tz)
 
   // A bare time or bare weekday that has already passed today means the next one.
   const relativeOnly = !datePart || /^(sun|mon|tue|wed|thu|fri|sat)/i.test(text.slice(datePart.start, datePart.end).replace(/^(this|coming)\s+/i, ''))
   if (dueMs <= saidMs && relativeOnly) {
     date = addDays(date, datePart ? 7 : 1)
-    dueMs = wallTimeToUtcMs({ ...date, hour: time.hour, minute: time.minute, second: 0 }, ctx.tz)
+    dueMs = wallTimeToUtcMs({ ...date, hour: time.hour, minute: time.minute, second: 0 }, tz)
   }
 
   const spans = [datePart, timePart].filter((p): p is DatePart | TimePart => p !== null)
   const start = Math.min(...spans.map((s) => s.start))
   const end = Math.max(...spans.map((s) => s.end))
-  const hedged = isHedged(text)
+  const hedged = isHedged(text) || isShortDateQuestion(text, start, end)
   const hedge = HEDGE_RE.exec(text)
   let phrase = text.slice(start, end).trim()
   if (hedge && hedge.index < start) {
@@ -174,7 +234,7 @@ export function parseDeadline(text: string, ctx: DeadlineContext): Deadline | nu
     dueAt: new Date(dueMs).toISOString(),
     certainty: hedged ? 'tentative' : 'firm',
     phrase,
-    interpretedTz: ctx.tz,
+    interpretedTz: tz,
   }
 }
 

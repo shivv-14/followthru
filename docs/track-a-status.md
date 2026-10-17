@@ -62,6 +62,13 @@ Scaffold: the earlier local setup was reused, as chosen by the owner. Brought in
 | DST gap (time does not exist) | Moves forward (02:30 becomes 03:30) |
 | DST overlap (time happens twice) | Takes the later instant |
 | Overdue | Only `open` + `firm` + strictly after `dueAt`. Exactly at `dueAt` is not overdue |
+| Explicit zone after a time ("5pm IST", "9am PT", "14:00 UTC") | That zone is used and returned as `interpretedTz`. The calendar day (weekday, today, tomorrow) still comes from the speaker's "today". IST = India; PT/PST/PDT = Los Angeles; ET/EST/EDT = New York; UTC/GMT = UTC; BST = London; CET/CEST = Paris; SGT = Singapore |
+| "in 3 hours", "within 48 hours" | Exact duration from when it was said |
+| "in 2 days", "within a week" | Calendar days in the speaker's zone, end of that day (23:59) |
+| "next week" / "end of next week" | Monday of next week 23:59 / Friday of next week 18:00 |
+| Numeric dates ("12/10", "12/10/2026", "12-10-2026") | Day/month (India and UK). Month/day only when day/month is impossible ("10/13") |
+| More hedges | "I think", "around", "roughly", "approx", "approximately" make it tentative |
+| "?" after a date | Tentative only for a short date question ("Friday?", "by Friday?"). A full proposal sentence ("Can we push it to Oct 21?") stays firm |
 
 Branch naming follows the team instruction (`back-a-pN`). The Track A plan document mentions a single branch `track-a-engine-backend`, but that name is not used here.
 
