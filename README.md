@@ -37,7 +37,7 @@ Open http://localhost:5173. Choose **Open app**, load data, then pick a profile:
 | Validation and I/O | `src/schema/` | Zod schemas, stable issue codes, CSV/JSON with formula-injection escaping |
 | Store | `src/store/` | Dexie (IndexedDB) repositories, an audited action layer with role checks, and the `EngineProvider` hook |
 | UI | `src/pages/`, `src/components/` | Dashboard, commitments, detail ("Why?" evidence timeline), queue, flows, team, evidence |
-| API | `api/` | Vercel functions `GET /api/health`, `POST /api/process` |
+| API | `api/` | Vercel functions `GET /api/health`, `POST /api/process`, `GET /api/evidence` (see `docs/api.md`) |
 
 Rules the engine enforces:
 - Silence never changes status.
