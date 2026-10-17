@@ -2,7 +2,7 @@ import type { Commitment, Draft, Person } from '../../engine/types'
 import { deadlineState } from '../../engine/deadline'
 import { REVIEW_LABEL, SUPPRESSION_LABEL, personName, shortTime } from './view'
 
-const CLOSE_VERB = { done: 'marked done', cancelled: 'cancelled', deferred: 'deferred' } as const
+const CLOSE_VERB = { done: 'marked it done', cancelled: 'cancelled it', deferred: 'deferred it' } as const
 
 /**
  * Plain-English answer to "why is this item in this state?", built only from the
@@ -21,7 +21,7 @@ export function explainCommitment(c: Commitment, draft: Draft | undefined, peopl
 
   if (c.status !== 'open') {
     const closing = [...c.events].reverse().find((e) => e.type === (c.status === 'done' ? 'completed' : c.status) || (e.type === 'human_decision' && e.to === c.status))
-    out.push(`${closing ? name(closing.by) : 'Someone'} ${CLOSE_VERB[c.status]} it${closing ? ` on ${shortTime(closing.at, tz)}` : ''}, so no reminder will ever be drafted for it.`)
+    out.push(`${closing ? name(closing.by) : 'Someone'} ${CLOSE_VERB[c.status]}${closing ? ` on ${shortTime(closing.at, tz)}` : ''}, so no reminder will ever be drafted for it.`)
   } else {
     const state = deadlineState(c.deadline, now)
     const due = c.deadline.dueAt ? shortTime(c.deadline.dueAt, tz) : ''
