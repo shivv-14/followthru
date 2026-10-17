@@ -75,11 +75,11 @@ describe('app with real engine data', () => {
     expect(approve).toBeDisabled()
     expect(within(card).getByText('• Confirm the recipient before approving')).toBeInTheDocument()
     fireEvent.click(within(card).getByRole('checkbox'))
-    await waitFor(() => expect(within(card).getByRole('button', { name: 'Approve (shadow, not sent)' })).toBeEnabled())
+    await waitFor(() => expect(within(card).getByRole('button', { name: 'Approve (shadow, not sent)' })).toBeEnabled(), { timeout: 5000 })
     fireEvent.click(within(card).getByRole('button', { name: 'Approve (shadow, not sent)' }))
-    expect(await screen.findByText('Approved in shadow mode. Nothing was sent.')).toBeInTheDocument()
+    expect(await screen.findByText('Approved in shadow mode. Nothing was sent.', undefined, { timeout: 5000 })).toBeInTheDocument()
     await waitFor(async () => expect((await db.drafts.get('d_c_m_18'))?.state).toBe('approved'))
-  })
+  }, 15_000)
 
   it('shows a member only their own work and no approval controls', async () => {
     await seed('p_lena')

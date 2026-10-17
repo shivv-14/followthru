@@ -1,7 +1,7 @@
 import Papa from 'papaparse'
 import { describe, expect, it } from 'vitest'
 import type { Commitment, Draft, EngineResult, Message } from '../src/engine/types'
-import { commitmentsToCsv, draftsToCsv, escapeCsvCell, messagesFromCsv, messagesToCsv, resultsToJson, unescapeCsvCell } from '../src/schema/io'
+import { commitmentsToCsv, draftsToCsv, escapeCsvCell, messagesFromCsv, messagesToCsv, resultsToJson, suppressionsToCsv, unescapeCsvCell } from '../src/schema/io'
 
 const messages: Message[] = [
   { id: 'm_1', threadId: 't_1', authorId: 'p_a', sentAt: '2026-10-14T05:00:00.000Z', text: 'Send the deck, "v2" please\nthanks', mentionIds: ['p_b', 'p_c'] },
@@ -108,5 +108,15 @@ describe('report exports', () => {
   it('round-trips results JSON', () => {
     const result: EngineResult = { runAt: '2026-10-17T06:30:00.000Z', mode: 'Rules', commitments: [commitment], drafts: [draft], issues: [] }
     expect(JSON.parse(resultsToJson(result))).toEqual(result)
+  })
+})
+
+describe('suppressions export', () => {
+  it('lists suppressed drafts with reason and evidence, formula-escaped', () => {
+    const withEvidence = { ...draft, suppression: { reason: 'completed' as const, at: '2026-10-16T14:00:00.000Z', evidence: { messageId: '=m_1', threadId: 't_1', at: '2026-10-16T14:00:00.000Z', quote: 'q', rule: 'DONE' } } }
+    const active = { ...draft, id: 'd_c_m_2', commitmentId: 'c_m_2', state: 'pending_review' as const, suppression: undefined }
+    const [header, ...rows] = Papa.parse<string[]>(suppressionsToCsv([withEvidence, active]), { skipEmptyLines: true }).data
+    expect(header).toEqual(['draftId', 'commitmentId', 'reason', 'at', 'evidenceMessageId'])
+    expect(rows).toEqual([['d_c_m_1', 'c_m_1', 'completed', '2026-10-16T14:00:00.000Z', "'=m_1"]])
   })
 })

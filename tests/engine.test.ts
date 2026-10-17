@@ -446,3 +446,39 @@ describe('draft wording, subjects and escalation', () => {
     expect(validateFlow({ name: 'x', steps: [{ afterHours: 0, tone: 'gentle', recipient: 'boss' as never }] })).toEqual(['Step 1: unknown recipient'])
   })
 })
+
+describe('product change flags', () => {
+  const cutoff = '2026-10-16T14:00:00.000Z'
+  const early = validateDataset({ ...demo, messages: demo.messages.filter((m) => Date.parse(m.sentAt) <= Date.parse(cutoff)) }).data!
+
+  function simulate(flagsOn: boolean) {
+    const flags = { staleSuppression: flagsOn, recipientReview: flagsOn, ai: false }
+    const first = runEngine({ dataset: early }, makeConfig(cutoff, { flags }))
+    const second = runEngine({ dataset: demoData, previousDrafts: first.drafts }, makeConfig(NOW, { flags }))
+    return { first, second, config: makeConfig(NOW, { flags }) }
+  }
+
+  it('without stale suppression a draft written before the completion stays pending (the baseline problem)', () => {
+    const { first, second, config } = simulate(false)
+    expect(draftFor(first, 'c_m_03')).toMatchObject({ state: 'pending_review' })
+    expect(byId(second, 'c_m_03').status).toBe('done')
+    expect(draftFor(second, 'c_m_03')).toMatchObject({ state: 'pending_review', version: 1 })
+    // ...and approval does not catch it
+    expect(checkBeforeApproval(draftFor(second, 'c_m_03')!, byId(second, 'c_m_03'), config).ok).toBe(true)
+    expect(evaluate(second.commitments, second.drafts, [], NOW).checks[1].pass).toBe(false)
+  })
+
+  it('with stale suppression the same draft is suppressed with the completion evidence', () => {
+    const { second, config } = simulate(true)
+    expect(draftFor(second, 'c_m_03')).toMatchObject({ state: 'suppressed', suppression: { reason: 'completed', evidence: { messageId: 'm_10' } } })
+    const confirmed = { ...draftFor(second, 'c_m_03')!, state: 'pending_review' as const, recipientConfirmed: true }
+    expect(checkBeforeApproval(confirmed, byId(second, 'c_m_03'), config).suppressWith).toBe('completed')
+    expect(evaluate(second.commitments, second.drafts, [], NOW).checks[1].pass).toBe(true)
+  })
+
+  it('without recipient review approval does not need a confirmed recipient', () => {
+    const flags = { staleSuppression: true, recipientReview: false, ai: false }
+    const r = runEngine({ dataset: demoData }, makeConfig(NOW, { flags }))
+    expect(checkBeforeApproval(draftFor(r, 'c_m_18')!, byId(r, 'c_m_18'), makeConfig(NOW, { flags })).ok).toBe(true)
+  })
+})

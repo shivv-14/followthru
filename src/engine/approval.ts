@@ -27,6 +27,12 @@ export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, con
   if (!c) {
     return { ok: false, blockers: [{ code: 'superseded', message: 'The commitment no longer exists in the current data' }], suppressWith: 'superseded' }
   }
+  if (!config.flags.staleSuppression) {
+    // Baseline without the product change: no freshness re-check at all.
+    if (draft.state !== 'pending_review') blockers.push({ code: 'not_pending', message: `Draft is ${draft.state.replace('_', ' ')}, not waiting for review` })
+    if (config.flags.recipientReview && !draft.recipientConfirmed) blockers.push({ code: 'recipient_unconfirmed', message: 'Confirm the recipient before approving' })
+    return { ok: blockers.length === 0, blockers }
+  }
   const terminal = TERMINAL[c.status]
   if (terminal) {
     blockers.push({ code: terminal, message: `The commitment is now ${c.status}; this reminder is no longer needed` })

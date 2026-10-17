@@ -143,6 +143,28 @@ export function draftsToCsv(drafts: Draft[]): string {
   return toCsv(rows, ['id', 'commitmentId', 'kind', 'recipientId', 'recipientConfirmed', 'state', 'version', 'suppressionReason', 'updatedAt', 'body'])
 }
 
+export interface SuppressionCsvRow {
+  draftId: string
+  commitmentId: string
+  reason: string
+  at: string
+  evidenceMessageId: string
+}
+
+/** One row per suppressed or stale draft, with the evidence message when there is one. */
+export function suppressionsToCsv(drafts: Draft[]): string {
+  const rows: SuppressionCsvRow[] = drafts
+    .filter((d) => d.suppression)
+    .map((d) => ({
+      draftId: d.id,
+      commitmentId: d.commitmentId,
+      reason: d.suppression!.reason,
+      at: d.suppression!.at,
+      evidenceMessageId: d.suppression!.evidence?.messageId ?? '',
+    }))
+  return toCsv(rows, ['draftId', 'commitmentId', 'reason', 'at', 'evidenceMessageId'])
+}
+
 /** Engine results as pretty JSON with a stable key order. */
 export function resultsToJson(result: EngineResult): string {
   const { runAt, mode, commitments, drafts, issues } = result

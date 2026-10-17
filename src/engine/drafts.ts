@@ -116,6 +116,11 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
   for (const c of commitments) {
     const p = prevByKey.get(c.id)
     prevByKey.delete(c.id)
+    // Baseline without stale suppression: an existing draft is never revisited when the situation changes.
+    if (p && !config.flags.staleSuppression) {
+      out.push(p)
+      continue
+    }
     const want = desiredDraft(c, config, people)
 
     if (want.active) {
@@ -195,6 +200,10 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
 
   // Drafts whose commitment disappeared (for example after a data change) are kept, suppressed.
   for (const p of prevByKey.values()) {
+    if (!config.flags.staleSuppression) {
+      out.push(p)
+      continue
+    }
     out.push(p.state === 'suppressed' && p.suppression?.reason === 'superseded' ? p : { ...p, state: 'suppressed', suppression: { reason: 'superseded', at: now }, updatedAt: now })
   }
   return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
