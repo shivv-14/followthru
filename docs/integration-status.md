@@ -44,6 +44,13 @@ Later additive changes:
 - `DecisionType` gained `request_extension` and `decline_extension`; `CommitmentEventType` gained `extension_requested`; `Commitment` gained optional `extensionRequest` (new type `ExtensionRequest`); `HumanDecision` gained optional `recordedAt`, used to order decisions made at the same evaluation time. A pending extension request never changes the deadline; approving it is a coordinator `change_deadline`.
 - New engine exports `rulesExtractor` and type `Extractor` (src/engine/extractor.ts). `runEngine` and `resolveCommitments` take an optional extractor that defaults to the rules.
 
+No engine contract change came with the explain and replay tools: `src/components/domain/explain.ts` and `timeTravel.ts` only read engine output, and replay re-runs `runEngine` on a filtered copy of the data.
+
+## Tooling fixes
+
+- Windows drive letter: opening the repo as `d:ollowthru` (lower case) made Vitest load setup files twice and fail. `npm test` now goes through `scripts/vitest.cjs`, which upper-cases the drive letter before starting Vitest. `npm run test:drive-case` checks both spellings.
+- Accessibility: `e2e/a11y.spec.ts` runs axe (WCAG 2 A and AA, serious and critical only) on the landing and seven app pages, checks for horizontal scroll at 360, 390, 768, 1024 and 1440 px, and checks the reduced-motion landing. The first run found faint-text contrast (3.4:1), white on accent buttons (4.3:1), landing nav links (2.9:1), queue tabs overflowing at phone width and a date input overflowing at 1024 px. All are fixed; the text-faint token is now 58% white and solid buttons use `accent-strong`.
+
 ## Still incomplete
 
 | Item | Why |
@@ -53,4 +60,4 @@ Later additive changes:
 | AI extraction | No provider or key is configured. The flag exists and is labelled "Rules (fallback)" |
 | Real sending | Out of scope by design (shadow mode) |
 | Growth experiment and MBA deliverables | Not software. Not started here |
-| Landing scroll story | The 3D stage is a minimal placeholder scene from the frontend phase |
+| Landing media | The hero, scroll story and footer videos stream from a third-party CDN. Offline, the landing shows the poster or a plain background; the app itself works offline |
