@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../src/App'
+
+afterEach(() => cleanup())
 
 describe('App', () => {
   it('renders the landing page tagline and CTA', () => {
