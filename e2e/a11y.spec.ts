@@ -25,7 +25,7 @@ test.describe('accessibility', () => {
     expect(await scan(page)).toEqual([])
   })
 
-  for (const path of ['/dashboard', '/queue', '/commitments', '/commitments/c_m_03', '/team', '/evidence', '/settings']) {
+  for (const path of ['/dashboard', '/queue', '/commitments', '/commitments/c_m_03', '/team', '/evidence', '/flows']) {
     test(`app page ${path} has no serious WCAG A/AA problems`, async ({ page }) => {
       await loadDemoAs(page, 'Priya')
       await page.goto(path)

@@ -5,6 +5,7 @@ import { downloadText, personName, shortTime } from '../components/domain/view'
 import { commitmentsToCsv, draftsToCsv, resultsToJson } from '../schema/io'
 import { buildEvidencePack, changedKeys, sha256Hex, useActions, useAuditLog, useEngine, useEvidenceFiles, useRuns, type AuditFilter } from '../store'
 import { validateBackupJson, type BackupValidation } from '../schema/backup'
+import { GEMINI_MODEL } from '../ai/gemini'
 
 function ScorecardTab() {
   const { scorecard, dataset, result } = useEngine()
@@ -341,6 +342,62 @@ function AuditTab() {
   )
 }
 
+function AiKeyField({ disabled }: { disabled: boolean }) {
+  const { settings, ai } = useEngine()
+  const actions = useActions()
+  const notice = useActionNotice()
+  const [key, setKey] = useState('')
+  const saved = Boolean(settings.aiApiKey)
+  const status =
+    ai.state === 'ready'
+      ? `AI assisted: ${ai.model} read ${ai.signals.length} messages.`
+      : ai.state === 'loading'
+        ? 'Asking the AI for a second opinion…'
+        : ai.state === 'failed'
+          ? `Rules (fallback): ${ai.reason}.`
+          : 'Rules only.'
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-surface-border p-3">
+      <form
+        className="flex items-end gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!key.trim()) return
+          void notice.run(async () => {
+            const r = await actions.updateSettings({ aiApiKey: key.trim() })
+            if (r.ok) setKey('')
+            return r
+          })
+        }}
+      >
+        <div className="min-w-0 flex-1">
+          <Input
+            label={saved ? 'Gemini API key (saved)' : 'Gemini API key'}
+            type="password"
+            autoComplete="off"
+            value={key}
+            disabled={disabled}
+            placeholder={saved ? '••••••••' : 'Paste a key from Google AI Studio'}
+            onChange={(e) => setKey(e.target.value)}
+          />
+        </div>
+        <Button size="sm" type="submit" disabled={disabled || !key.trim()}>
+          Save
+        </Button>
+        {saved ? (
+          <Button size="sm" type="button" variant="secondary" disabled={disabled} onClick={() => notice.run(() => actions.updateSettings({ aiApiKey: '' }))}>
+            Clear
+          </Button>
+        ) : null}
+      </form>
+      <p className="text-xs text-text-faint" role="status">
+        {status} Model {GEMINI_MODEL}. The key stays in this browser: it is never exported in a backup or written to the audit log.
+      </p>
+      <Notice result={notice.result} />
+    </div>
+  )
+}
+
 function DataTab() {
   const { dataset, settings, user } = useEngine()
   const actions = useActions()
@@ -372,7 +429,8 @@ function DataTab() {
         <div className="flex flex-col gap-3">
           {flag('staleSuppression', 'Stale-message suppression', 'Suppress drafts when work closes, and mark unapproved drafts stale after the window below.')}
           {flag('recipientReview', 'Recipient review', 'A coordinator must confirm the recipient before approving.')}
-          {flag('ai', 'AI-assisted extraction', 'No AI provider is configured in this build, so this falls back to the rules and is labelled "Rules (fallback)".')}
+          {flag('ai', 'AI second opinion (Gemini)', 'Off by default. The rules still decide; the AI can only send an item to human review when it reads a message differently. Message text is sent to Google when this is on.')}
+          {settings.flags.ai ? <AiKeyField disabled={!isCoordinator} /> : null}
           <Input
             label="Stale window (hours)"
             type="number"

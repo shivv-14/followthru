@@ -44,6 +44,8 @@ Later additive changes:
 - `DecisionType` gained `request_extension` and `decline_extension`; `CommitmentEventType` gained `extension_requested`; `Commitment` gained optional `extensionRequest` (new type `ExtensionRequest`); `HumanDecision` gained optional `recordedAt`, used to order decisions made at the same evaluation time. A pending extension request never changes the deadline; approving it is a coordinator `change_deadline`.
 - New engine exports `rulesExtractor` and type `Extractor` (src/engine/extractor.ts). `runEngine` and `resolveCommitments` take an optional extractor that defaults to the rules.
 
+- AI second opinion (optional, off by default): `EngineInput` gained optional `aiSignals`; new types `AiSignal` and `AiSignalKind`; `ReviewReason` gained `ai_disagreement`. New exports `applyAiSignals` and `AI_MIN_CONFIDENCE` (0.7). `modeLabel(flags, aiUsed?)` now returns 'AI assisted' only when signals were actually passed in with the flag on. A confident disagreement on a linked message adds `ai_disagreement` and a `review_flagged` event; it never changes status, owner or deadline. The network call lives outside the engine in `src/ai/gemini.ts` (model `gemini-3.5-flash-lite`, key sent in the `x-goog-api-key` header). `AppSettings` gained optional `aiApiKey`; it is coordinator-only, excluded from backups and recorded in the audit log only as `[set]` or `[cleared]`.
+
 No engine contract change came with the explain and replay tools: `src/components/domain/explain.ts` and `timeTravel.ts` only read engine output, and replay re-runs `runEngine` on a filtered copy of the data.
 
 ## Tooling fixes
@@ -57,7 +59,7 @@ No engine contract change came with the explain and replay tools: `src/component
 |---|---|
 | Scoring the 10 labelled commitments | `Starter_Data/C14/fixture.json` is not in the repo or on this laptop. Accuracy has not been measured, and the app shows "Not scored" |
 | Mapping the real fixture | Its field names are unknown. If they differ from the canonical format, a small adapter is needed |
-| AI extraction | No provider or key is configured. The flag exists and is labelled "Rules (fallback)" |
+| AI second opinion | Built and tested against a mocked Gemini endpoint only. No real key was used, so its agreement rate with the rules on real data has not been measured |
 | Real sending | Out of scope by design (shadow mode) |
 | Growth experiment and MBA deliverables | Not software. Not started here |
 | Landing media | The hero, scroll story and footer videos stream from a third-party CDN. Offline, the landing shows the poster or a plain background; the app itself works offline |

@@ -33,7 +33,8 @@ test('coordinator journey: setup, dashboard, approve, evidence', async ({ page }
   await page.getByRole('navigation', { name: 'Primary' }).first().getByRole('link', { name: 'Queue' }).click()
   const card = page.locator('[id="d_c_m_18"]')
   await expect(card.getByRole('button', { name: 'Approve (shadow, not sent)' })).toBeDisabled()
-  await card.getByRole('checkbox').check()
+  await card.getByRole('checkbox').click()
+  await expect(card.getByRole('checkbox')).toBeChecked()
   await card.getByRole('button', { name: 'Approve (shadow, not sent)' }).click()
   await expect(page.getByText('Approved in shadow mode. Nothing was sent.')).toBeVisible()
   await page.getByRole('tab', { name: /Approved \(1\)/ }).click()
@@ -127,6 +128,41 @@ test('commitment detail explains itself, replays history and shows the thread', 
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(errors).toEqual([])
+})
+
+test('optional AI second opinion flags a disagreement and falls back honestly', async ({ page }) => {
+  // The Gemini endpoint is mocked: no real key or network call is used in this check
+  let calls = 0
+  let refuse = false
+  await page.route('https://generativelanguage.googleapis.com/**', async (route) => {
+    calls++
+    expect(route.request().url()).not.toContain('test-key')
+    expect(route.request().headers()['x-goog-api-key']).toBe('test-key')
+    if (refuse) return route.fulfill({ status: 403, body: '{}' })
+    const text = JSON.stringify({ signals: [{ messageId: 'm_18', kind: 'completion', confidence: 0.92 }] })
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }) })
+  })
+  await loadDemoAs(page, 'Priya')
+  await page.goto('/evidence')
+  await page.getByRole('tab', { name: 'Data & settings' }).click()
+  await page.getByLabel(/AI second opinion/).click()
+  await expect(page.getByLabel(/AI second opinion/)).toBeChecked()
+  await expect(page.getByText(/Rules \(fallback\): No API key saved/)).toBeVisible()
+  await page.getByLabel('Gemini API key').fill('test-key')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByText(/AI assisted: .* read 1 messages/)).toBeVisible()
+  expect(calls).toBeGreaterThan(0)
+
+  await page.goto('/commitments/c_m_18')
+  await expect(page.getByText('The AI read a message differently from the rules').first()).toBeVisible()
+
+  refuse = true
+  await page.goto('/evidence')
+  await page.getByRole('tab', { name: 'Data & settings' }).click()
+  await page.getByRole('button', { name: 'Clear' }).click()
+  await page.getByLabel('Gemini API key').fill('test-key')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByText(/Rules \(fallback\): The AI service refused the request \(HTTP 403\)/)).toBeVisible()
 })
 
 test('works at phone width', async ({ page }) => {
