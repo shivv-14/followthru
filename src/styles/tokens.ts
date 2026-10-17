@@ -19,6 +19,7 @@ export const color = {
     tentative: '#FFB547',
     deferred: '#5CC8FF',
     cancelled: '#8A8799',
+    open: '#F5F4F8',
   },
 } as const
 

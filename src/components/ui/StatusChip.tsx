@@ -13,6 +13,7 @@ const dotClass: Record<StatusColorKey, string> = {
   tentative: 'bg-status-tentative',
   deferred: 'bg-status-deferred',
   cancelled: 'bg-status-cancelled',
+  open: 'bg-status-open',
 }
 
 const textClass: Record<StatusColorKey, string> = {
@@ -21,6 +22,7 @@ const textClass: Record<StatusColorKey, string> = {
   tentative: 'text-status-tentative',
   deferred: 'text-status-deferred',
   cancelled: 'text-status-cancelled',
+  open: 'text-status-open',
 }
 
 export function StatusChip({ status, label, className }: StatusChipProps) {
