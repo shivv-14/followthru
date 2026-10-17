@@ -24,3 +24,6 @@ test-results/
 
 # Generated demo evidence (synthetic data, not challenge evidence)
 evidence/demo-*/
+
+# Vitest cache
+.vitest/

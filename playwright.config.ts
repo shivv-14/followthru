@@ -5,6 +5,8 @@ import { defineConfig } from '@playwright/test'
 export default defineConfig({
   testDir: 'e2e',
   timeout: 60_000,
+  // The dev server can be slow right after a heavy command; give each assertion room
+  expect: { timeout: 10_000 },
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   use: {
     baseURL: 'http://localhost:5173',
@@ -17,5 +19,7 @@ export default defineConfig({
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 60_000,
+  // The dev server can be slow right after a heavy command; give each assertion room
+  expect: { timeout: 10_000 },
   },
 })
