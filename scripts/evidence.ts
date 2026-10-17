@@ -79,7 +79,7 @@ function git(cmd: string): string {
   }
 }
 const commit = git('git rev-parse --short HEAD')
-const dirty = git('git status --porcelain') !== ''
+const dirty = git('git status --porcelain --untracked-files=no') !== ''
 
 function staleReport(): string {
   if (!first) return ''
