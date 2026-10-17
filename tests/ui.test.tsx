@@ -30,16 +30,21 @@ beforeEach(async () => {
 afterEach(() => cleanup())
 
 describe('app with real engine data', () => {
-  it('sends a first-time visitor to setup', async () => {
+  it('sends a first-time visitor to sign in, which offers to load data', async () => {
     at('/dashboard')
-    expect(await screen.findByRole('heading', { name: 'Set up FollowThru' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'No data loaded yet' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload a file' })).toBeInTheDocument()
   })
 
-  it('asks for a profile once data is loaded', async () => {
+  it('asks who you are once data is loaded, coordinators first', async () => {
     await seed(null)
     at('/dashboard')
-    expect(await screen.findByRole('heading', { name: 'Choose a profile' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Continue as Priya' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^Sign in as Priya/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Sign in as Amir/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: /member/i }))
+    expect(await screen.findByRole('button', { name: /^Sign in as Amir/ })).toBeInTheDocument()
   })
 
   it('shows the coordinator dashboard with engine results', async () => {

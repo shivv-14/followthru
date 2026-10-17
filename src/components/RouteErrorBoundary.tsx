@@ -23,7 +23,7 @@ function ErrorScreen({ error }: { error: Error }) {
             variant="danger"
             onClick={async () => {
               await actions.resetAll()
-              window.location.assign('/setup')
+              window.location.assign('/login')
             }}
           >
             Reset

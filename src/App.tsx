@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { AppShell } from './components/shell/AppShell'
 import { EngineProvider } from './store'
 import { RequireRole } from './components/shell/RequireRole'
@@ -10,7 +10,7 @@ import NotFound from './pages/NotFound'
 
 // Landing stays in the main bundle so the first screen paints at once; every other page loads on demand.
 const Setup = lazy(() => import('./pages/Setup'))
-const ProfilePicker = lazy(() => import('./pages/ProfilePicker'))
+const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Commitments = lazy(() => import('./pages/Commitments'))
 const CommitmentDetail = lazy(() => import('./pages/CommitmentDetail'))
@@ -37,7 +37,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/setup" element={<Setup />} />
-            <Route path="/profiles" element={<ProfilePicker />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profiles" element={<Navigate to="/login" replace />} />
             <Route path="/styleguide" element={<Styleguide />} />
 
             <Route element={<AppShell />}>

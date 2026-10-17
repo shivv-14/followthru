@@ -7,7 +7,8 @@ async function loadDemoAs(page: Page, person: string) {
   await page.getByRole('button', { name: 'Use synthetic demo data (not the challenge fixture)' }).click()
   await expect(page.getByText('Ready to load')).toBeVisible()
   await page.getByRole('button', { name: 'Load and continue' }).click()
-  await page.getByRole('button', { name: `Continue as ${person}` }).click()
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+  await page.getByRole('button', { name: new RegExp(`^Sign in as ${person}`) }).click()
   await expect(page.getByRole('heading', { name: 'What needs attention' })).toBeVisible()
 }
 

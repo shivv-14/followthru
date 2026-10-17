@@ -145,7 +145,7 @@ function Header({ appHref }: { appHref: string }) {
         ))}
       </nav>
       <Link className="lh-signin" to={appHref}>
-        Launch
+        {appHref === '/login' ? 'Sign in' : 'Launch'}
       </Link>
       <button type="button" className={`lh-burger${open ? ' is-open' : ''}`} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="lh-menu" onClick={() => setOpen((v) => !v)}>
         <span />
@@ -160,7 +160,7 @@ function Header({ appHref }: { appHref: string }) {
           </a>
         ))}
         <Link className="lh-menu__signin" to={appHref} onClick={() => setOpen(false)}>
-          Launch
+          {appHref === '/login' ? 'Sign in' : 'Launch'}
         </Link>
       </div>
     </header>
@@ -169,7 +169,7 @@ function Header({ appHref }: { appHref: string }) {
 
 export function Hero() {
   const { dataset, user } = useEngine()
-  const appHref = dataset && user ? '/dashboard' : '/setup'
+  const appHref = dataset && user ? '/dashboard' : '/login'
   const reduced = prefersReducedMotion()
   const video = useRef<HTMLVideoElement>(null)
 

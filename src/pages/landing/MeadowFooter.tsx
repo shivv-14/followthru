@@ -28,6 +28,7 @@ const COLUMNS = [
     title: 'Project',
     links: [
       { label: 'Source code', href: REPO_URL },
+      { label: 'Sign in', to: '/login' },
       { label: 'Set up data', to: '/setup' },
       { label: 'Style guide', to: '/styleguide' },
     ],
@@ -36,7 +37,7 @@ const COLUMNS = [
 
 export function MeadowFooter() {
   const { dataset, user } = useEngine()
-  const appHref = dataset && user ? '/dashboard' : '/setup'
+  const appHref = dataset && user ? '/dashboard' : '/login'
   const ref = useRef<HTMLElement>(null)
   const clip = useRef<HTMLVideoElement>(null)
   const [nearby, setNearby] = useState(false)

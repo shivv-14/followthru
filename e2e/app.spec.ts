@@ -15,8 +15,15 @@ async function loadDemoAs(page: Page, person: string) {
   await page.getByRole('button', { name: 'Use synthetic demo data (not the challenge fixture)' }).click()
   await expect(page.getByText('Ready to load')).toBeVisible()
   await page.getByRole('button', { name: 'Load and continue' }).click()
-  await expect(page.getByRole('heading', { name: 'Choose a profile' })).toBeVisible()
-  await page.getByRole('button', { name: `Continue as ${person}` }).click()
+  await signInAs(page, person)
+}
+
+/** Local sign-in page: switch to the member list when the person is not a coordinator. */
+async function signInAs(page: Page, person: string) {
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+  const button = page.getByRole('button', { name: new RegExp(`^Sign in as ${person}`) })
+  if (!(await button.isVisible())) await page.getByRole('radio', { name: /member/i }).click()
+  await button.click()
 }
 
 test('coordinator journey: setup, dashboard, approve, evidence', async ({ page }) => {
@@ -100,7 +107,9 @@ test('member asks for more time, coordinator approves it', async ({ page }) => {
   await page.getByLabel('Why do you need more time?').fill('Waiting on the final logo')
   await page.getByRole('button', { name: 'Ask for more time' }).click()
   await expect(page.getByText(/More time requested by Lena Ortiz/)).toBeVisible()
-  await page.getByLabel('Profile').selectOption('p_priya')
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await signInAs(page, 'Priya')
+  await expect(page).toHaveURL(/\/commitments\/c_m_21$/)
   await expect(page.getByRole('button', { name: 'Approve new date' })).toBeVisible()
   await page.getByRole('button', { name: 'Approve new date' }).click()
   await expect(page.getByText(/More time approved by Lena Ortiz/)).toBeVisible()

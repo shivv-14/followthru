@@ -17,7 +17,7 @@ const PANELS = [
     eyebrow: ['How it works', 'Step 1'],
     title: ['Every promise,', 'tracked.'],
     sub: 'FollowThru reads requests, promises and replies across every thread, and keeps owner, deadline and status right through the whole history.',
-    cta: { to: '/setup', label: 'Load the demo' },
+    cta: { to: '/login', label: 'Sign in and try it' },
   },
   {
     eyebrow: ['Silence is not done'],

@@ -1,5 +1,5 @@
 import { Suspense, useState } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { BottomTabBar } from './BottomTabBar'
@@ -12,6 +12,7 @@ export function AppShell() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { ready, dataset, user } = useEngine()
+  const location = useLocation()
 
   if (!ready) {
     return (
@@ -20,17 +21,18 @@ export function AppShell() {
       </div>
     )
   }
-  if (!dataset) return <Navigate to="/setup" replace />
-  if (!user) return <Navigate to="/profiles" replace />
+  // No data or nobody signed in: the login page handles both and returns here afterwards
+  if (!dataset || !user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
 
   return (
     <div className="flex min-h-dvh">
+      <div className="app-backdrop" aria-hidden />
       <SkipLink />
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <OfflineBanner />
         <TopBar onOpenMobileNav={() => setMobileNavOpen(true)} />
-        <main id="main-content" className="flex-1 px-3 pb-20 pt-4 sm:px-6 md:pb-6">
+        <main id="main-content" key={location.pathname} className="app-enter flex-1 px-3 pb-24 pt-5 sm:px-6 md:pb-8">
           <Suspense fallback={<LoadingState label="Loading page" />}>
             <Outlet />
           </Suspense>
