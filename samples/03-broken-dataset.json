@@ -1,0 +1,16 @@
+{
+  "_about": "Deliberately broken sample. Import it to see the validation table; loading must be blocked.",
+  "referenceTime": "next friday",
+  "people": [
+    { "id": "p_maya", "name": "Maya Rao", "timezone": "Asia/Kolkata", "role": "coordinator" },
+    { "id": "p_maya", "name": "Maya again", "timezone": "Mars/Olympus" },
+    { "id": "p_omar", "name": "Omar Haddad" }
+  ],
+  "threads": [{ "id": "t_client" }],
+  "messages": [
+    { "id": "b1", "threadId": "t_client", "authorId": "p_maya", "sentAt": "2026-10-19 09:00", "text": "Omar, send the quote Friday" },
+    { "id": "b1", "threadId": "t_missing", "authorId": "p_ghost", "sentAt": "2026-10-19T10:00:00Z", "text": "   ", "replyToId": "b404" },
+    { "id": "b3", "threadId": "t_client", "authorId": "p_omar", "text": "Sure" }
+  ],
+  "labels": [{ "sourceMessageId": "b999", "ownerId": "p_ghost", "dueAt": "Friday", "status": "finished" }]
+}

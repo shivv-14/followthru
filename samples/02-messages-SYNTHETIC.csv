@@ -1,0 +1,7 @@
+id,threadId,authorId,sentAt,text,replyToId,mentionIds
+c01,t_build,p_maya,2026-10-21T09:00:00+05:30,"Kate, can you update the deploy checklist by Oct 22 6pm?",,
+c02,t_build,p_kate,2026-10-21T00:30:00-04:00,"Sure, will do.",c01,
+c03,t_q4,p_sofia,2026-10-21T10:00:00+02:00,I'll share the new icon set by Thursday.,,
+c04,t_q4,p_sofia,2026-10-22T17:00:00+02:00,"New icon set shared in the design folder.",,
+c05,t_client,p_maya,2026-10-21T14:00:00+05:30,"Omar, please confirm the Acme budget figures (=SUM of Q3 lines) by Oct 22.",,p_omar
+c06,t_newthread,p_ravi,2026-10-22T11:00:00+05:30,I can maybe review the pricing page tomorrow.,,
