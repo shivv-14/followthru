@@ -53,6 +53,8 @@ describe('published contract', () => {
         'expectedRecipient',
         'replyState',
         'draftText',
+        'AI_MIN_CONFIDENCE',
+        'applyAiSignals',
         'editDraft',
         'MAX_DRAFT_BODY',
         'rejectDraft',

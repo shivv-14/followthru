@@ -172,6 +172,10 @@ export type ReviewReason =
   | 'conflicting_evidence'
   | 'weak_cross_thread_link'
   | 'missing_deadline'
+  /** The optional AI pre-pass read a linked message differently from the rules */
+  | 'ai_disagreement'
+  /** The optional AI pre-pass read a linked message differently from the rules */
+  | 'ai_disagreement'
 
 /** not_started to submitted is the member's own progress report. Status still changes only through evidence or a coordinator decision. */
 export type TaskProgress = 'not_started' | 'in_progress' | 'blocked' | 'submitted'
@@ -387,6 +391,18 @@ export interface EngineInput {
   manualTasks?: ManualTask[]
   /** Drafts from the previous run, so updates keep the same draft and bump its version */
   previousDrafts?: Draft[]
+  /** Optional AI reading of messages. Used only when flags.ai is on; it can flag work for review, never change status. */
+  aiSignals?: AiSignal[]
+}
+
+export type AiSignalKind = 'commitment' | 'completion' | 'cancellation' | 'deferral' | 'other'
+
+/** What an AI model thought one message was. Produced outside the engine and passed in. */
+export interface AiSignal {
+  messageId: string
+  kind: AiSignalKind
+  /** 0 to 1 */
+  confidence: number
 }
 
 // ---------------------------------------------------------------------------

@@ -35,6 +35,7 @@ export const REVIEW_LABEL: Record<ReviewReason, string> = {
   conflicting_evidence: 'Messages conflict (for example the owner tried to cancel)',
   weak_cross_thread_link: 'A message in another thread may be about this',
   missing_deadline: 'No deadline given',
+  ai_disagreement: 'The AI read a message differently from the rules',
 }
 
 export const SUPPRESSION_LABEL: Record<SuppressionReason, string> = {
