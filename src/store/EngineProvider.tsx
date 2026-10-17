@@ -70,10 +70,10 @@ export function EngineProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !dataset) return
     // A reset or a closing tab can close the database while this write is in flight; nothing to save then.
-    syncDrafts(result.drafts).catch((e: unknown) => {
+    syncDrafts(result.drafts, storedDrafts).catch((e: unknown) => {
       if ((e as { name?: string })?.name !== 'DatabaseClosedError') throw e
     })
-  }, [ready, dataset, result])
+  }, [ready, dataset, result, storedDrafts])
 
   const value = useMemo<EngineState>(() => {
     const people = new Map((dataset?.data.people ?? []).map((p) => [p.id, p]))

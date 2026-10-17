@@ -221,3 +221,15 @@ describe('backup, restore and evidence', () => {
     expect(pack.scorecard.checks).toHaveLength(3)
   })
 })
+
+describe('draft sync concurrency', () => {
+  it('does not overwrite a human change made after the engine took its snapshot', async () => {
+    await state('p_priya')
+    const basis = await db.drafts.toArray()
+    // Engine output computed from `basis`, then a coordinator confirms a recipient
+    const stale = runEngine({ dataset: data, previousDrafts: basis }, makeConfig(NOW)).drafts.map((d) => (d.id === 'd_c_m_18' ? { ...d, body: 'engine text' } : d))
+    await createActions(await state('p_priya')).confirmRecipient('d_c_m_18', true)
+    expect(await repo.syncDrafts(stale, basis)).toBe(false)
+    expect((await db.drafts.get('d_c_m_18'))?.recipientConfirmed).toBe(true)
+  })
+})

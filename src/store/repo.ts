@@ -85,17 +85,26 @@ export async function addTasks(actorId: string, tasks: ManualTask[]): Promise<vo
   for (const t of tasks) await audit({ actorId, action: 'task.create', entity: 'task', entityId: t.id, after: t })
 }
 
-/** Saves the engine's drafts when they differ from what is stored (same ids are updated in place). */
-export async function syncDrafts(drafts: Draft[]): Promise<boolean> {
-  const stored = await db.drafts.toArray()
-  const sortById = (a: Draft, b: Draft) => (a.id < b.id ? -1 : 1)
-  if (JSON.stringify([...stored].sort(sortById)) === JSON.stringify([...drafts].sort(sortById))) return false
-  await db.transaction('rw', db.drafts, async () => {
+const byId = (a: Draft, b: Draft) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+const snapshot = (drafts: Draft[]) => JSON.stringify([...drafts].sort(byId))
+
+/**
+ * Saves the engine's drafts when they differ from what is stored (same ids are updated in place).
+ * `basis` is the stored drafts the engine computed from. If the stored drafts changed since
+ * (for example a coordinator confirmed a recipient a moment ago), nothing is written: the next
+ * engine run includes that change instead of this write undoing it.
+ */
+export async function syncDrafts(drafts: Draft[], basis?: Draft[]): Promise<boolean> {
+  return db.transaction('rw', db.drafts, async () => {
+    const stored = await db.drafts.toArray()
+    const now = snapshot(stored)
+    if (now === snapshot(drafts)) return false
+    if (basis && now !== snapshot(basis)) return false
     const keep = new Set(drafts.map((d) => d.id))
     await db.drafts.bulkDelete(stored.filter((d) => !keep.has(d.id)).map((d) => d.id))
     await db.drafts.bulkPut(drafts)
+    return true
   })
-  return true
 }
 
 export async function putDraft(actorId: string, action: string, before: Draft, after: Draft): Promise<void> {
