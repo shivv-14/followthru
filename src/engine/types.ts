@@ -160,6 +160,7 @@ export interface CommitmentEvent {
 }
 
 export type ReviewReason =
+  | 'unauthorised_status_claim'
   | 'ambiguous_completion'
   | 'tentative_deadline'
   | 'unclear_owner'
@@ -168,11 +169,41 @@ export type ReviewReason =
   | 'weak_cross_thread_link'
   | 'missing_deadline'
 
+/** not_started to submitted is the member's own progress report. Status still changes only through evidence or a coordinator decision. */
+export type TaskProgress = 'not_started' | 'in_progress' | 'blocked' | 'submitted'
+
+export interface Blocker {
+  at: IsoUtc
+  by: string
+  text: string
+  resolved: boolean
+}
+
+export interface Submission {
+  id: string
+  at: IsoUtc
+  by: string
+  note: string
+  fileIds: string[]
+  state: 'pending' | 'approved' | 'rejected'
+  decidedBy?: string
+  decidedAt?: IsoUtc
+}
+
 export interface Commitment {
-  /** 'c_' + source message id */
+  /** 'c_' + source message id, or 'c_' + task id for manual tasks */
   id: string
   title: string
+  /** Empty string for manual tasks */
   sourceMessageId: string
+  /** Where the commitment came from. Missing means 'message'. */
+  source?: 'message' | 'manual'
+  teamId?: string
+  progress?: TaskProgress
+  blockers?: Blocker[]
+  submissions?: Submission[]
+  /** Every message linked to this commitment, in time order */
+  linkedMessageIds?: string[]
   requesterId: string | null
   ownerId: string | null
   deadline: Deadline
@@ -235,6 +266,86 @@ export interface Draft {
   updatedAt: IsoUtc
   suppression?: Suppression
   history: DraftVersion[]
+  /** Follow-up flow and step that produced this draft */
+  flowId?: string
+  step?: number
+  approvedBy?: string
+  approvedAt?: IsoUtc
+}
+
+// ---------------------------------------------------------------------------
+// Follow-up flows
+// ---------------------------------------------------------------------------
+
+export type FlowTone = 'gentle' | 'firm' | 'escalate'
+
+export interface FlowStep {
+  /** Hours after the deadline before this step's reminder is drafted */
+  afterHours: number
+  tone: FlowTone
+}
+
+export interface Flow {
+  id: string
+  name: string
+  /** Default flows are locked; copy them to change */
+  isDefault: boolean
+  /** 'all', or a team id */
+  appliesTo: string
+  /** Sorted by afterHours ascending */
+  steps: FlowStep[]
+  skipWeekends: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Human decisions and manual tasks (engine inputs next to messages)
+// ---------------------------------------------------------------------------
+
+export type DecisionType =
+  | 'mark_done'
+  | 'cancel'
+  | 'defer'
+  | 'reopen'
+  | 'reassign'
+  | 'change_deadline'
+  | 'resolve_review'
+  | 'set_progress'
+  | 'report_blocker'
+  | 'resolve_blocker'
+  | 'submit_work'
+  | 'approve_submission'
+  | 'reject_submission'
+
+export interface HumanDecision {
+  id: string
+  commitmentId: string
+  type: DecisionType
+  at: IsoUtc
+  by: string
+  note?: string
+  ownerId?: string
+  dueAt?: IsoUtc | null
+  progress?: TaskProgress
+  submissionId?: string
+  fileIds?: string[]
+}
+
+export interface ManualTask {
+  id: string
+  title: string
+  ownerId: string
+  requesterId: string
+  teamId?: string
+  dueAt: IsoUtc | null
+  createdAt: IsoUtc
+}
+
+export interface EngineInput {
+  dataset: Dataset
+  decisions?: HumanDecision[]
+  manualTasks?: ManualTask[]
+  /** Drafts from the previous run, so updates keep the same draft and bump its version */
+  previousDrafts?: Draft[]
 }
 
 // ---------------------------------------------------------------------------
@@ -257,6 +368,8 @@ export interface EngineConfig {
   flags: EngineFlags
   /** Unapproved drafts older than this become stale */
   staleAfterHours: number
+  /** Active follow-up flows. Missing means the built-in default flow. */
+  flows?: Flow[]
 }
 
 export interface EngineResult {
