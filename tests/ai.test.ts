@@ -129,7 +129,7 @@ describe('AI key stays local', () => {
     expect((await repo.getSettings()).aiApiKey).toBe('AIza-very-secret')
     const audit = await db.audit.toArray()
     expect(JSON.stringify(audit)).not.toContain('AIza-very-secret')
-    expect(audit.at(-1)!.after).toEqual({ aiApiKey: '[set]' })
+    expect(audit.find((a) => a.action === 'settings.update')!.after).toEqual({ aiApiKey: '[set]' })
 
     const backup = await repo.exportBackup(coordinator.id)
     expect(backup).not.toContain('AIza-very-secret')
