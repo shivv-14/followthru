@@ -159,16 +159,21 @@ export function parseDeadline(text: string, ctx: DeadlineContext): Deadline | nu
   }
 
   const spans = [datePart, timePart].filter((p): p is DatePart | TimePart => p !== null)
-  let start = Math.min(...spans.map((s) => s.start))
+  const start = Math.min(...spans.map((s) => s.start))
   const end = Math.max(...spans.map((s) => s.end))
   const hedged = isHedged(text)
   const hedge = HEDGE_RE.exec(text)
-  if (hedge && hedge.index < start && start - hedge.index <= 25) start = hedge.index
+  let phrase = text.slice(start, end).trim()
+  if (hedge && hedge.index < start) {
+    // Keep the hedge visible: "maybe Friday", even when other words sit between them
+    if (start - hedge.index <= 25) phrase = text.slice(hedge.index, end).trim()
+    else phrase = `${hedge[0]} ${phrase}`
+  }
 
   return {
     dueAt: new Date(dueMs).toISOString(),
     certainty: hedged ? 'tentative' : 'firm',
-    phrase: text.slice(start, end).trim(),
+    phrase,
     interpretedTz: ctx.tz,
   }
 }
