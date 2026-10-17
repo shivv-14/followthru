@@ -39,6 +39,7 @@ Removed as superseded: `src/mocks/engineResult.ts` (a static fake result, unused
 
 Later additive changes:
 - `CommitmentEventType` gained `progress`, `not_done` and `blocker` (owner updates recorded as evidence; they never change status).
+- `Draft` gained optional `subject`, `recipientRole` and `replyState`; `DraftVersion` gained optional `subject`; `FlowStep` gained optional `recipient` (`owner`, `requester`, `coordinator`); new types `RecipientRole` and `ReplyState`. New exports `composeSubject`, `expectedRecipient`, `replyState`. A change in the owner's reply state is a new draft version with cause `reply_changed`. `checkBeforeApproval` takes an optional `people` map.
 - New engine exports `rulesExtractor` and type `Extractor` (src/engine/extractor.ts). `runEngine` and `resolveCommitments` take an optional extractor that defaults to the rules.
 
 ## Still incomplete

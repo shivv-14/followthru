@@ -14,7 +14,7 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
   const actions = useActions()
   const [showHistory, setShowHistory] = useState(false)
   const c = commitment(draft.commitmentId)
-  const check = checkBeforeApproval(draft, c, config)
+  const check = checkBeforeApproval(draft, c, config, people)
   const warnings = dataset ? recipientWarnings(draft, c, dataset.data, now) : []
   const isCoordinator = user?.role === 'coordinator'
   const view = draftStateView(draft)
@@ -44,6 +44,7 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
         <p className="mb-1 text-xs text-text-faint">
           To: <span className="text-text-primary">{recipient ? `${recipient.name} (${recipient.timezone})` : 'Unknown'}</span>
         </p>
+        {draft.subject ? <p className="mb-1 text-sm font-medium text-text-primary">{draft.subject}</p> : null}
         <p className="text-sm text-text-muted">{draft.body}</p>
       </div>
 

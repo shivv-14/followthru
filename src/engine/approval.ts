@@ -1,5 +1,5 @@
-import type { Commitment, Dataset, Draft, EngineConfig, IsoUtc, SuppressionReason } from './types'
-import { blockingReviewReasons } from './drafts'
+import type { Commitment, Dataset, Draft, EngineConfig, IsoUtc, Person, SuppressionReason } from './types'
+import { blockingReviewReasons, expectedRecipient } from './drafts'
 import { isOverdue } from './deadline'
 import { toWallTime } from './time'
 
@@ -21,7 +21,7 @@ const TERMINAL: Partial<Record<Commitment['status'], SuppressionReason>> = { don
  * Freshness and recipient check run right before approval, against the
  * latest commitment state. Anything outdated is suppressed with a visible reason.
  */
-export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, config: EngineConfig): ApprovalCheck {
+export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, config: EngineConfig, people?: Map<string, Person>): ApprovalCheck {
   const blockers: ApprovalBlocker[] = []
   let suppressWith: SuppressionReason | undefined
   if (!c) {
@@ -39,8 +39,11 @@ export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, con
     blockers.push({ code: 'stale', message: 'The deadline changed after this draft was written' })
     suppressWith ??= 'stale'
   }
-  if (draft.recipientId !== c.ownerId) {
-    blockers.push({ code: 'stale', message: 'The owner changed after this draft was written' })
+  // Owner-addressed drafts go stale when the owner changes; escalation drafts check their own recipient.
+  const role = draft.recipientRole ?? 'owner'
+  const expected = people ? expectedRecipient(c, role, people) : role === 'owner' ? c.ownerId : role === 'requester' && c.requesterId ? c.requesterId : draft.recipientId
+  if (draft.recipientId !== expected) {
+    blockers.push({ code: 'stale', message: role === 'owner' ? 'The owner changed after this draft was written' : 'The escalation recipient changed after this draft was written' })
     suppressWith ??= 'stale'
   }
   if (draft.kind === 'reminder' && !terminal && !isOverdue(c.deadline, c.status, config.now)) {

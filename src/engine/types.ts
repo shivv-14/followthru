@@ -249,9 +249,16 @@ export interface DraftVersion {
   dueAt: IsoUtc | null
   recipientId: string | null
   body: string
+  subject?: string
   /** Why this version was written, for example 'created' or 'deadline_changed' */
   cause: string
 }
+
+/** Who a flow step writes to. Missing means the owner. */
+export type RecipientRole = 'owner' | 'requester' | 'coordinator'
+
+/** What the owner has said since the deadline: nothing, something, or "not yet" with a progress note. */
+export type ReplyState = 'pending' | 'responded' | 'not_done'
 
 export interface Draft {
   /** 'd_' + commitment id */
@@ -274,6 +281,12 @@ export interface Draft {
   step?: number
   approvedBy?: string
   approvedAt?: IsoUtc
+  /** Short subject line, under 60 characters */
+  subject?: string
+  /** Role of the recipient for this draft's flow step */
+  recipientRole?: RecipientRole
+  /** Owner reply state the wording was written for */
+  replyState?: ReplyState
 }
 
 // ---------------------------------------------------------------------------
@@ -286,6 +299,8 @@ export interface FlowStep {
   /** Hours after the deadline before this step's reminder is drafted */
   afterHours: number
   tone: FlowTone
+  /** Who receives this step's draft. Missing means the owner. */
+  recipient?: RecipientRole
 }
 
 export interface Flow {

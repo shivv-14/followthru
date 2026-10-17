@@ -61,7 +61,7 @@ export function createActions(state: EngineState) {
       if (!actor || !canDo(role, 'approve_draft')) return fail('Only a coordinator can approve drafts')
       const draft = await db.drafts.get(draftId)
       if (!draft) return fail('Draft not found')
-      const check = checkBeforeApproval(draft, state.commitment(draft.commitmentId), state.config)
+      const check = checkBeforeApproval(draft, state.commitment(draft.commitmentId), state.config, state.people)
       if (check.suppressWith) {
         await repo.putDraft(actor.id, 'draft.suppress_on_approval', draft, suppressDraft(draft, check.suppressWith, state.now))
         return fail(`Suppressed instead of approved: ${check.blockers[0].message}`)

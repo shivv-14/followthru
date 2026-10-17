@@ -68,6 +68,7 @@ export function validateFlow(flow: Pick<Flow, 'name' | 'steps'>): string[] {
   flow.steps.forEach((s, i) => {
     if (!Number.isFinite(s.afterHours) || s.afterHours < 0) errors.push(`Step ${i + 1}: hours must be 0 or more`)
     if (i > 0 && s.afterHours <= flow.steps[i - 1].afterHours) errors.push(`Step ${i + 1}: must come after step ${i}`)
+    if (s.recipient !== undefined && !['owner', 'requester', 'coordinator'].includes(s.recipient)) errors.push(`Step ${i + 1}: unknown recipient`)
   })
   return errors
 }

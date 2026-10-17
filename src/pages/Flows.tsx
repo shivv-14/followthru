@@ -3,7 +3,8 @@ import { Button, Card, CardHeader, CardTitle, Input, Select } from '../component
 import { Notice, PageHeader, useActionNotice } from '../components/domain/parts'
 import { DEFAULT_FLOW, elapsedHours, flowFor, stepFor, validateFlow } from '../engine/flows'
 import { deadlineState } from '../engine/deadline'
-import type { Flow, FlowStep, FlowTone } from '../engine/types'
+import { expectedRecipient } from '../engine/drafts'
+import type { Flow, FlowStep, FlowTone, RecipientRole } from '../engine/types'
 import { useActions, useEngine } from '../store'
 
 const TONES: FlowTone[] = ['gentle', 'firm', 'escalate']
@@ -42,6 +43,11 @@ function FlowEditor({ initial, onDone }: { initial: Flow; onDone: () => void }) 
           {flow.steps.map((s, i) => (
             <div key={i} className="flex items-end gap-2">
               <Input label={`Step ${i + 1}: hours after deadline`} type="number" min={0} value={s.afterHours} onChange={(e) => setStep(i, { afterHours: Number(e.target.value) })} />
+              <Select label="To" value={s.recipient ?? 'owner'} onChange={(e) => setStep(i, { recipient: e.target.value as RecipientRole })}>
+                <option value="owner">Owner</option>
+                <option value="requester">Requester (or coordinator)</option>
+                <option value="coordinator">Coordinator</option>
+              </Select>
               <Select label="Tone" value={s.tone} onChange={(e) => setStep(i, { tone: e.target.value as FlowTone })}>
                 {TONES.map((t) => (
                   <option key={t} value={t}>
@@ -168,7 +174,8 @@ export default function Flows() {
                     {c.title} <span className="text-text-faint">· {people.get(c.ownerId ?? '')?.name}</span>
                   </span>
                   <span className="text-text-muted">
-                    {flow.name}: {step < 0 ? `waiting until ${flow.steps[0].afterHours} h` : `step ${step + 1} (${flow.steps[step].tone})`} · {Math.floor(hours)} h overdue{flow.skipWeekends ? ' (working hours)' : ''}
+                    {flow.name}: {step < 0 ? `waiting until ${flow.steps[0].afterHours} h` : `step ${step + 1} (${flow.steps[step].tone}, to ${people.get(expectedRecipient(c, flow.steps[step].recipient, people) ?? '')?.name ?? 'nobody'})`}
+                    {step >= 0 && flow.steps[step].recipient === 'requester' && !c.requesterId ? ' · no requester, goes to the coordinator' : ''} · {Math.floor(hours)} h overdue{flow.skipWeekends ? ' (working hours)' : ''}
                   </span>
                 </li>
               )

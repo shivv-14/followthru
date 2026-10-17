@@ -14,6 +14,8 @@ import {
   validateFlow,
   DEFAULT_FLOW,
   rulesExtractor,
+  composeSubject,
+  expectedRecipient,
 } from '../src/engine'
 import type { Dataset, EngineResult, Extractor, HumanDecision, Message } from '../src/engine'
 
@@ -381,5 +383,66 @@ describe('progress, not done, blockers and reopen', () => {
     const silent: Extractor = { name: 'rules', detect: () => [] }
     expect(runEngine({ dataset: demoData }, makeConfig(NOW), silent).commitments).toEqual([])
     expect(rulesExtractor.detect('Deck sent to the client.').map((s) => s.kind)).toContain('done')
+  })
+})
+
+describe('draft wording, subjects and escalation', () => {
+  const base = run()
+
+  it('words a reminder differently for no reply and for "not yet"', () => {
+    const pending = draftFor(base, 'c_m_21')!
+    expect(pending).toMatchObject({ replyState: 'pending', subject: 'Overdue: Send the launch press kit to marketing'.replace('Overdue', 'Quick check') })
+    expect(pending.body).toContain("I haven't heard back yet")
+    const notYet = run(
+      withMessages([{ id: 'm_50', threadId: 't_launch', authorId: 'p_lena', sentAt: '2026-10-19T05:00:00.000Z', text: 'Not yet, still working on the final version.', replyToId: 'm_21' }]),
+      { previous: base },
+    )
+    const d = draftFor(notYet, 'c_m_21')!
+    expect(d).toMatchObject({ id: pending.id, version: 2, replyState: 'not_done', subject: 'New date for: Send the launch press kit to marketing' })
+    expect(d.body).toContain('realistic new date')
+    expect(d.history.at(-1)?.cause).toBe('reply_changed')
+  })
+
+  it('keeps subjects under 60 characters and bodies under 70 words', () => {
+    for (const d of base.drafts) {
+      expect(d.subject!.length).toBeLessThan(60)
+      expect(d.body.split(/\s+/).length).toBeLessThan(70)
+    }
+    const long = { ...byId(base, 'c_m_21'), title: 'A very long task title that keeps going well past any sensible subject length limit' }
+    expect(composeSubject(long, 'reminder', 'owner', 'pending').length).toBeLessThan(60)
+  })
+
+  it('writes the deadline in the recipient timezone', () => {
+    // Lena is in London: 14:00 IST on 15 Oct is 09:30 BST
+    expect(draftFor(base, 'c_m_21')!.body).toContain('09:30')
+  })
+
+  it('escalates to the coordinator as a new version of the same draft, approvable after confirmation', () => {
+    const flows = [{ id: 'f_esc', name: 'Escalate', isDefault: false, appliesTo: 'all', skipWeekends: false, steps: [{ afterHours: 0, tone: 'gentle' as const }, { afterHours: 24, tone: 'firm' as const, recipient: 'coordinator' as const }] }]
+    const early = runEngine({ dataset: demoData }, makeConfig('2026-10-17T04:30:00.000Z', { flows }))
+    expect(draftFor(early, 'c_m_18')).toMatchObject({ recipientId: 'p_amir', recipientRole: 'owner', version: 1 })
+    const later = runEngine({ dataset: demoData, previousDrafts: early.drafts }, makeConfig(NOW, { flows }))
+    const d = draftFor(later, 'c_m_18')!
+    expect(d).toMatchObject({ id: 'd_c_m_18', version: 2, recipientId: 'p_priya', recipientRole: 'coordinator', recipientConfirmed: false })
+    expect(d.history.at(-1)?.cause).toBe('recipient_changed')
+    expect(d.body).toContain('owned by Amir Khan')
+    expect(later.drafts.filter((x) => x.commitmentId === 'c_m_18')).toHaveLength(1)
+    const people = new Map(demoData.people.map((p) => [p.id, p]))
+    const config = makeConfig(NOW, { flows })
+    expect(checkBeforeApproval({ ...d, recipientConfirmed: true }, byId(later, 'c_m_18'), config, people).ok).toBe(true)
+    expect(checkBeforeApproval({ ...d, recipientConfirmed: true }, byId(later, 'c_m_18'), config).ok).toBe(true)
+  })
+
+  it('falls back to the coordinator when a requester step has no requester', () => {
+    const c = byId(base, 'c_m_18')
+    const people = new Map(demoData.people.map((p) => [p.id, p]))
+    expect(c.requesterId).toBeNull()
+    expect(expectedRecipient(c, 'requester', people)).toBe('p_priya')
+    expect(expectedRecipient(byId(base, 'c_m_21'), 'requester', people)).toBe('p_priya')
+    expect(expectedRecipient(c, undefined, people)).toBe('p_amir')
+  })
+
+  it('rejects an unknown flow recipient', () => {
+    expect(validateFlow({ name: 'x', steps: [{ afterHours: 0, tone: 'gentle', recipient: 'boss' as never }] })).toEqual(['Step 1: unknown recipient'])
   })
 })
