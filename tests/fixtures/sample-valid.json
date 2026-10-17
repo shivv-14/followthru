@@ -1,0 +1,23 @@
+{
+  "_about": "Synthetic sample for format tests only. This is not the C14 challenge fixture and its labels are not scoring data.",
+  "referenceTime": "2026-10-17T12:00:00+05:30",
+  "people": [
+    { "id": "p_asha", "name": "Asha", "timezone": "Asia/Kolkata", "role": "coordinator" },
+    { "id": "p_ben", "name": "Ben", "timezone": "America/Los_Angeles", "role": "member" },
+    { "id": "p_chen", "name": "Chen", "timezone": "Asia/Kolkata", "role": "member" }
+  ],
+  "threads": [
+    { "id": "t_launch", "title": "Launch prep", "participantIds": ["p_asha", "p_ben", "p_chen"] },
+    { "id": "t_status", "title": "Weekly status" }
+  ],
+  "messages": [
+    { "id": "m_1", "threadId": "t_launch", "authorId": "p_asha", "sentAt": "2026-10-14T10:30:00+05:30", "text": "Ben, can you send the revised deck by Friday 6pm?" },
+    { "id": "m_2", "threadId": "t_launch", "authorId": "p_ben", "sentAt": "2026-10-13T22:05:00-07:00", "text": "Sure, will send it Friday.", "replyToId": "m_1" },
+    { "id": "m_3", "threadId": "t_launch", "authorId": "p_chen", "sentAt": "2026-10-14T11:00:00+05:30", "text": "I can maybe do the pricing page Friday.", "mentionIds": ["p_asha"] },
+    { "id": "m_4", "threadId": "t_status", "authorId": "p_ben", "sentAt": "2026-10-16T16:00:00Z", "text": "Deck sent to the client." }
+  ],
+  "labels": [
+    { "sourceMessageId": "m_1", "ownerId": "p_ben", "dueAt": "2026-10-16T12:30:00Z", "status": "done" },
+    { "sourceMessageId": "m_3", "ownerId": "p_chen", "dueAt": null, "status": "open", "note": "tentative" }
+  ]
+}
