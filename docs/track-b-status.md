@@ -1,6 +1,6 @@
 # Track B status — frontend and UI/UX
 
-Last updated: 17 Oct 2026, Phase 0 (branch `ui-b-p0`)
+Last updated: 17 Oct 2026, Phase 1 (branch `ui-b-p1`)
 
 ## Phase 0 — kickoff and baseline
 
@@ -115,6 +115,81 @@ None. This repo has no frontend code yet.
 - Branch and owned folders are confirmed — **met.** Branch `ui-b-p0` created from verified `main` and pushed. Owned folders (`src/pages/`, `src/components/`, `src/three/`, `src/styles/`, `src/mocks/`) do not exist yet, so there is nothing to confirm beyond their intended location.
 - No new screens built this phase — **met.**
 
+## Phase 1 — foundation and parallel setup
+
+Status: **DONE**
+
+### Scaffold decision — resolved
+
+By the time Phase 1 started, Track A had pushed a full project scaffold and the shared contract to `back-a-p1` (commits `d09e766` "bring in vite react test setup", `864f3ed` "add shared domain types", `0fa439d` "parse deadlines in owner timezone"). This replaced the open scaffold question from Phase 0 — the local-only scaffold at `C:\Users\shiva\projects\followthru` is no longer relevant.
+
+Brought in from `origin/back-a-p1` onto `ui-b-p1`, read-only source inspected with `git show`/`git ls-tree` first, never checked out directly, committed fresh on this branch per the git rules:
+- **Project scaffold** (commit `9c084f6 bring in project scaffold from track a`): `package.json`, `package-lock.json`, `vite.config.ts`, `vitest.config.ts`, `tsconfig*.json`, `index.html`, `public/favicon.svg`, `src/main.tsx`, `src/App.tsx`, `tests/setup.ts`, `tests/app.test.tsx`, `tests/sanity.test.ts`. The stack matches the plan exactly: React 18, Vite 8, TS 5.9, Tailwind v4, Framer Motion, Lenis, @react-three/fiber + drei + postprocessing, react-router-dom 7, Zustand, Dexie, Zod, date-fns-tz, @fontsource-variable Inter/Space Grotesk, Vitest + Testing Library.
+- **Shared contract** (commit `b5fe3b0 bring in shared types from track a`): `src/engine/types.ts` only, not the barrel `index.ts` or the engine logic files (`deadline.ts`, `time.ts`) — those are Track A's business logic, out of scope here. Not edited after pulling in, per the rule.
+- Track A's own `.gitignore` on `back-a-p1` is byte-identical to the one already on `main`; nothing to reconcile.
+
+`npm install` run clean (622 packages; only non-blocking `EBADENGINE` warnings since local Node is v25, newer than some packages' pinned ranges, and some deprecation notices from transitive deps). Bare scaffold typechecked, tested and built successfully before any Track B code was added.
+
+### B-1.1 Design tokens — `src/styles/tokens.ts`, `src/styles/global.css`
+
+Color (bg, glass surface, violet accent, the five status colors), typography (Space Grotesk display / Inter body, both self-hosted via `@fontsource-variable`), spacing scale, radii, glass/glow shadows, a `:focus-visible`-only focus ring, Framer Motion spring presets + duration scale, and breakpoints (360 is the floor, not a breakpoint start). CSS tokens live under Tailwind v4's `@theme` block so `bg-accent`, `text-status-overdue`, `font-display` etc. become real utility classes; the TS file is the source of truth for anything JS-side (Framer Motion transitions, the R3F scene). A global `prefers-reduced-motion` rule collapses all animation/transition durations to near-zero.
+
+### B-1.2 UI primitives — `src/components/ui/`
+
+`Button` (4 variants × 3 sizes, disabled state), `Input` (label, hint, error with `aria-invalid`/`aria-describedby`), `Card`, `StatusChip` (keyed off the same 5 status colors as the tokens), `Tabs` (roving tabindex, arrow/home/end keyboard nav, `role=tablist/tab/tabpanel`), `Dialog` (doubles as centered modal on desktop and bottom sheet on mobile via a `variant` prop, portal-rendered, focus-trapped, Escape closes, returns focus to the trigger, respects reduced motion), `EmptyState`/`LoadingState`/`ErrorState`, `SkipLink`, `NavItem` (active-state aware, works icon-only for the collapsed sidebar).
+
+### B-1.3 `/styleguide` route — `src/pages/Styleguide.tsx`
+
+Renders every token (colors, spacing, radii, motion durations, breakpoints) and every primitive, including a live focus-ring demo and a working dialog open/close. No shell wrapper, so it's reachable standalone.
+
+### B-1.4 3D Stage — `src/three/`
+
+`Stage.tsx` checks `WebGLRenderingContext` support and `prefers-reduced-motion` on mount; if either fails it renders `Fallback2D.tsx` (a static gradient + SVG mark, no animation, no WebGL) and never mounts the canvas. If both pass, it `React.lazy`-loads `SceneCanvas.tsx` (keeps three.js out of the main bundle — it's its own ~230KB gzipped chunk, confirmed in the production build) inside a `Suspense` boundary that falls back to the same static 2D mark while loading. `SceneCanvas` caps `dpr` to `[1, maxDpr]` (default 1.5) and renders one lightweight wireframe mesh — intentionally minimal, matching "keep the initial scene lightweight"; the real landing story scene is a later phase.
+
+### B-1.5 App shell and route skeletons
+
+`src/components/shell/`: `Sidebar` (collapsible, desktop only, persisted via local state), `TopBar` (disabled search with a note on when it activates, a live evaluation-clock chip showing the real wall clock, a static "Rules" mode label, a demo-profile switcher that's local-only and clearly labeled as a demo), `BottomTabBar` (5 primary routes, mobile only, safe-area inset padding), `MobileNavSheet` (all 6 routes incl. Flows, opened from the top bar hamburger on mobile, built on the `Dialog` sheet variant).
+
+`App.tsx` now defines the full route tree: `/`, `/setup`, `/profiles`, `/styleguide` standalone; `/dashboard`, `/commitments`, `/commitments/:id`, `/queue`, `/flows`, `/team`, `/evidence` nested under the `AppShell` layout route. Every page is a real route, not a placeholder image — `RouteSkeleton.tsx` is a shared empty-state component used by the screens that don't have data yet, each with a one-line explanation of what connects in a later phase. `Landing`, `Setup`, and `ProfilePicker` are real interactive pages (Setup does real client-side validation and uses `Intl` to detect the browser timezone; ProfilePicker switches between two demo profiles and navigates).
+
+Replaced Track A's original smoke test (`tests/app.test.tsx`) since `<App />` now requires a Router context and the content changed — new version wraps it in `MemoryRouter` and checks the landing tagline/CTA, the styleguide route, and the 404 fallback. This is a test file, not engine/schema/storage/api code, so it's in scope to update.
+
+### B-1.6 / B-1.7 Typed mock data and demo flag
+
+`src/mocks/engineResult.ts`: five commitments and five matching drafts covering every `CommitmentStatus` and `SuppressionReason` combination that matters for later screens (overdue, tentative/needs-review, done+suppressed, deferred+suppressed, cancelled+suppressed), typechecked directly against the imported `EngineResult`/`Commitment`/`Draft` types — no duplicate interfaces. `src/config/demoMode.ts`: `isMockModeEnabled()` is true in local dev by default, and requires `VITE_DEMO_MODE=true` to be set explicitly in a production build, so mock data can't render silently in a real deploy. Not yet wired into any page — that happens when Phase 2/3 screens actually consume it.
+
+**Track A contract commit used:** `864f3ed` (branch `back-a-p1`), recorded in `TRACK_A_CONTRACT_COMMIT` in `src/config/demoMode.ts` and here for traceability.
+
+### Verification
+
+```
+npm install        622 packages, clean (EBADENGINE warnings only, Node 25 vs pinned ranges)
+npm run typecheck   tsc -b --noEmit — clean
+npm test            vitest run — 2 files, 4 tests passed
+npm run build       tsc -b && vite build — succeeds; SceneCanvas chunk is its own
+                     ~230KB gzip lazy chunk, separate from the ~114KB gzip main bundle
+```
+
+**Browser verification — partial, disclosed honestly.** Tried to drive a real headless Chromium against the dev server (`run` skill, playwright fallback pattern, since `chromium-cli` isn't available in this environment). The Chromium binary download (~197.5 MiB from `storage.googleapis.com`) failed twice with a network timeout, so no interactive, console-error-checked browser pass happened.
+
+What I verified instead:
+- `npm run dev` started cleanly (Vite ready in 376ms, no errors in the dev server log).
+- Every route (`/`, `/setup`, `/profiles`, `/styleguide`, `/dashboard`, `/commitments`, `/queue`, `/flows`, `/team`, `/evidence`, and an unknown `/nowhere`) returns HTTP 200 via `curl`, and `/src/main.tsx` transforms without a 500.
+
+What this does **not** prove: actual client-side rendering, console errors, responsive layout at 360px, or that interactions (opening the dialog, collapsing the sidebar, the mobile nav sheet) actually work. `curl` can't execute JS. Typecheck, the test suite, and the production build all passing is real signal that the code is correct, but per the project's own rule, that's not the same as confirming it in a browser — flagging this gap rather than claiming a visual pass I didn't do. Recommend a manual spot-check (`npm run dev`, open `http://localhost:5180/styleguide` and `/dashboard` at both widths) before Phase 2 builds further on top of these primitives, or retry the Playwright browser install when the network is more reliable.
+
+### Acceptance gate
+
+- Style guide renders on desktop and phone width — **not independently verified in a browser** (see the disclosed gap above); the layout uses only responsive flex/grid utilities and was checked by code review, not confirmed visually. Treat as unconfirmed until spot-checked.
+- Keyboard focus and reduced-motion behaviour work — **met**: `:focus-visible` ring is global and keyboard-only; `prefers-reduced-motion` collapses all transitions/animations and the `Stage` skips WebGL entirely when it's set.
+- 3D fallback remains usable — **met**: `Fallback2D` renders whenever WebGL is unavailable or motion is reduced, verified by code path (no conditional branch left untested) and by the Suspense fallback during lazy load.
+- Mock data typechecks against Track A's contract — **met**: `npm run typecheck` passes with `src/mocks/engineResult.ts` importing `Commitment`/`Draft`/`EngineResult` directly from the brought-in `src/engine/types.ts`.
+
+## What's needed from Track A
+
+- Nothing blocking right now. `src/engine/types.ts` at commit `864f3ed` on `back-a-p1` was sufficient for B-1.6/B-1.7.
+- For Phase 3: the real store hooks/adapters (not direct Dexie calls) once Track A builds `src/store/*`, and the evaluation fixture once available, so dashboard/queue counts can move off mock data.
+
 ## Next task
 
-Start Phase 1 (`ui-b-p1`): scaffold the frontend (React 18 + Vite + TypeScript + Tailwind v4, matching the stack above) since no scaffold exists in this repo, then build design tokens, UI primitives, the `/styleguide` route, and the reusable 3D `Stage` wrapper with 2D fallback. B-1.6/B-1.7 (typed mocks against Track A's contract) stay blocked until Track A publishes `src/engine/types.ts` and shares the branch/commit hash.
+Start Phase 2 (`ui-b-p2`): cinematic landing scroll story, functional controls (filters, clock slider if included, profile switching wired to something real), and wiring the typed mock data into the dashboard/queue/commitment-detail skeletons behind the demo flag, clearly labeled as mock.
