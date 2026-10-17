@@ -5,6 +5,7 @@ import { TopBar } from './TopBar'
 import { BottomTabBar } from './BottomTabBar'
 import { MobileNavSheet } from './MobileNavSheet'
 import { LoadingState, SkipLink } from '../ui'
+import { OfflineBanner } from './OfflineBanner'
 import { useEngine } from '../../store'
 
 export function AppShell() {
@@ -27,6 +28,7 @@ export function AppShell() {
       <SkipLink />
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
       <div className="flex min-w-0 flex-1 flex-col">
+        <OfflineBanner />
         <TopBar onOpenMobileNav={() => setMobileNavOpen(true)} />
         <main id="main-content" className="flex-1 px-3 pb-20 pt-4 sm:px-6 md:pb-6">
           <Outlet />

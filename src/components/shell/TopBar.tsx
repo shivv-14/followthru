@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Dialog } from '../ui'
 import { useActions, useEngine, type ClockMode } from '../../store'
 import { shortTime } from '../domain/view'
+import { InstallButton } from './InstallButton'
 
 export interface TopBarProps {
   onOpenMobileNav?: () => void
@@ -59,6 +60,7 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
       </form>
 
       <div className="ml-auto flex items-center gap-2">
+        <InstallButton className="hidden sm:inline-flex" label="Install" />
         <button
           type="button"
           onClick={() => {
