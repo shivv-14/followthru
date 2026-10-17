@@ -1,15 +1,8 @@
-import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight } from 'lucide-react'
 import clsx from 'clsx'
 import { NavItem } from '../ui'
-
-const items = [
-  { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-  { to: '/commitments', label: 'Commitments', icon: <ListChecks size={18} /> },
-  { to: '/queue', label: 'Queue', icon: <Inbox size={18} /> },
-  { to: '/flows', label: 'Flows', icon: <Workflow size={18} /> },
-  { to: '/team', label: 'Team / Me', icon: <Users size={18} /> },
-  { to: '/evidence', label: 'Evidence', icon: <FileCheck2 size={18} /> },
-]
+import { useEngine } from '../../store'
+import { navFor } from './nav'
 
 export interface SidebarProps {
   collapsed: boolean
@@ -17,6 +10,9 @@ export interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const { user, result } = useEngine()
+  const pending = result.drafts.filter((d) => d.state === 'pending_review').length
+
   return (
     <aside
       className={clsx(
@@ -37,8 +33,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </button>
       </div>
       <nav aria-label="Primary" className="flex flex-col gap-1">
-        {items.map((item) => (
-          <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} iconOnly={collapsed} />
+        {navFor(user?.role).map(({ to, label, icon: Icon, badge }) => (
+          <NavItem
+            key={to}
+            to={to}
+            label={badge === 'pending_drafts' && pending > 0 ? `${label} (${pending})` : label}
+            icon={<Icon size={18} />}
+            iconOnly={collapsed}
+          />
         ))}
       </nav>
     </aside>

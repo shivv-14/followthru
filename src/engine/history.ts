@@ -389,7 +389,19 @@ function applyDecision(ctx: Ctx, w: Working, d: HumanDecision) {
         w.reasons.delete('unclear_owner')
       }
       return
+    case 'request_extension':
+      if (!d.dueAt) return
+      c.extensionRequest = { dueAt: d.dueAt, by: d.by, at: d.at, note: d.note ?? '', state: 'pending' }
+      c.events.push(ev('extension_requested', c.deadline.dueAt, d.dueAt))
+      if (d.by === c.ownerId) w.lastOwnerMsgAt = Date.parse(d.at)
+      return
+    case 'decline_extension':
+      if (c.extensionRequest?.state !== 'pending') return
+      c.extensionRequest = { ...c.extensionRequest, state: 'declined' }
+      c.events.push(ev('human_decision', 'extension requested', 'extension declined'))
+      return
     case 'change_deadline':
+      if (c.extensionRequest?.state === 'pending') c.extensionRequest = { ...c.extensionRequest, state: 'approved' }
       c.events.push(ev('deadline_changed', c.deadline.dueAt, d.dueAt ?? null))
       c.deadline = {
         dueAt: d.dueAt ?? null,
@@ -499,7 +511,9 @@ export function resolveCommitments(
   const tasks = [...manualTasks].sort((a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1))
   const all = [...ctx.open, ...tasks.map((t) => manualCommitment(ctx, t))]
   const byId = new Map(all.map((w) => [w.c.id, w]))
-  const sorted = [...decisions].sort((a, b) => (a.at === b.at ? (a.id < b.id ? -1 : 1) : a.at < b.at ? -1 : 1))
+  // Decisions made at the same evaluation time replay in the order they were recorded
+  const order = (d: HumanDecision) => `${d.at}|${d.recordedAt ?? ''}|${d.id}`
+  const sorted = [...decisions].sort((a, b) => (order(a) < order(b) ? -1 : order(a) > order(b) ? 1 : 0))
   for (const d of sorted) {
     const w = byId.get(d.commitmentId)
     if (w) applyDecision(ctx, w, d)

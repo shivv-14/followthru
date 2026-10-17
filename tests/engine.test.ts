@@ -19,6 +19,7 @@ import {
   draftText,
   editDraft,
   rejectDraft,
+  canDecide,
 } from '../src/engine'
 import type { Dataset, EngineResult, Extractor, HumanDecision, Message } from '../src/engine'
 
@@ -522,5 +523,54 @@ describe('reject and edit', () => {
     const closed = { ...byId(base, 'c_m_21'), status: 'done' as const }
     const commitments = base.commitments.map((c) => (c.id === closed.id ? closed : c))
     expect(evaluate(commitments, [rejected], [], NOW).checks[1].pass).toBe(true)
+  })
+})
+
+describe('extension requests', () => {
+  const base = run()
+  const ask: HumanDecision = { id: 'x1', commitmentId: 'c_m_21', type: 'request_extension', at: '2026-10-19T05:00:00.000Z', by: 'p_lena', dueAt: '2026-10-22T12:00:00.000Z', note: 'Waiting on the logo' }
+
+  it('records a request without changing the deadline or stopping reminders', () => {
+    const r = run(demoData, { decisions: [ask], previous: base })
+    const c = byId(r, 'c_m_21')
+    expect(c.extensionRequest).toMatchObject({ state: 'pending', dueAt: '2026-10-22T12:00:00.000Z', by: 'p_lena' })
+    expect(c.deadline.dueAt).toBe(byId(base, 'c_m_21').deadline.dueAt)
+    expect(c.events.at(-1)?.type).toBe('extension_requested')
+    expect(draftFor(r, 'c_m_21')?.state).not.toBe('suppressed')
+  })
+
+  it('approving changes the deadline and updates the same draft', () => {
+    const approve: HumanDecision = { id: 'x2', commitmentId: 'c_m_21', type: 'change_deadline', at: '2026-10-19T05:10:00.000Z', by: 'p_priya', dueAt: '2026-10-22T12:00:00.000Z' }
+    const r = run(demoData, { decisions: [ask, approve], previous: base })
+    const c = byId(r, 'c_m_21')
+    expect(c).toMatchObject({ deadline: { dueAt: '2026-10-22T12:00:00.000Z' }, extensionRequest: { state: 'approved' } })
+    expect(draftFor(r, 'c_m_21')).toMatchObject({ id: 'd_c_m_21', version: 2, state: 'suppressed', suppression: { reason: 'not_overdue' } })
+  })
+
+  it('only a coordinator can decline, and only the owner can ask', () => {
+    const memberDecline: HumanDecision = { id: 'x3', commitmentId: 'c_m_21', type: 'decline_extension', at: '2026-10-19T05:10:00.000Z', by: 'p_lena' }
+    expect(byId(run(demoData, { decisions: [ask, memberDecline] }), 'c_m_21').extensionRequest?.state).toBe('pending')
+    const coordDecline = { ...memberDecline, by: 'p_priya' }
+    expect(byId(run(demoData, { decisions: [ask, coordDecline] }), 'c_m_21').extensionRequest?.state).toBe('declined')
+    const notOwner = { ...ask, by: 'p_dev' }
+    expect(byId(run(demoData, { decisions: [notOwner] }), 'c_m_21').extensionRequest).toBeUndefined()
+  })
+
+  it('permissions match the roles', () => {
+    expect(canDecide('member', 'request_extension', true)).toBe(true)
+    expect(canDecide('member', 'request_extension', false)).toBe(false)
+    expect(canDecide('member', 'decline_extension', true)).toBe(false)
+    expect(canDecide('coordinator', 'decline_extension', false)).toBe(true)
+  })
+})
+
+describe('decision order', () => {
+  it('replays decisions made at the same evaluation time in the order they were recorded', () => {
+    const at = '2026-10-19T05:30:00.000Z'
+    const ask: HumanDecision = { id: 'h_z', commitmentId: 'c_m_21', type: 'request_extension', at, recordedAt: '2026-10-18T10:00:00.000Z', by: 'p_lena', dueAt: '2026-10-23T06:30:00.000Z', note: 'logo' }
+    const approve: HumanDecision = { id: 'h_a', commitmentId: 'c_m_21', type: 'change_deadline', at, recordedAt: '2026-10-18T10:05:00.000Z', by: 'p_priya', dueAt: '2026-10-23T06:30:00.000Z' }
+    const c = byId(run(demoData, { decisions: [approve, ask] }), 'c_m_21')
+    expect(c.extensionRequest?.state).toBe('approved')
+    expect(c.events.slice(-2).map((e) => e.type)).toEqual(['extension_requested', 'deadline_changed'])
   })
 })

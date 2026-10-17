@@ -102,6 +102,23 @@ describe('app with real engine data', () => {
     expect(screen.queryByText('Assign a task')).not.toBeInTheDocument()
   })
 
+  it('shows members only their navigation and redirects them away from coordinator pages', async () => {
+    await seed('p_lena')
+    at('/queue')
+    expect(await screen.findByText('That page is for coordinators. Here are your tasks instead.')).toBeInTheDocument()
+    const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0]
+    expect(within(nav).queryByRole('link', { name: /Queue/ })).not.toBeInTheDocument()
+    expect(within(nav).queryByRole('link', { name: /Flows/ })).not.toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'My tasks' })).toBeInTheDocument()
+  })
+
+  it('shows a coordinator the people grid with local times', async () => {
+    await seed('p_priya')
+    at('/team')
+    expect(await screen.findByRole('heading', { name: 'People' })).toBeInTheDocument()
+    expect(screen.getByText('America/Los_Angeles')).toBeInTheDocument()
+  })
+
   it('reports that demo data is not scored', async () => {
     await seed('p_priya')
     at('/evidence')

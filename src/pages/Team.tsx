@@ -1,8 +1,8 @@
 import { type FormEvent, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Button, Card, CardHeader, CardTitle, EmptyState, Input, Select, StatusChip } from '../components/ui'
 import { CommitmentLink, CommitmentStatus, DeadlineText, Notice, PageHeader, useActionNotice, viewerTimezone } from '../components/domain/parts'
-import { PROGRESS_LABEL, personName, shortTime } from '../components/domain/view'
+import { PROGRESS_LABEL, personName, shortTime, statusView } from '../components/domain/view'
 import { useActions, useEngine } from '../store'
 
 function AssignForm() {
@@ -66,8 +66,58 @@ function AssignForm() {
   )
 }
 
+function PeopleGrid() {
+  const { result, people, now } = useEngine()
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>People</CardTitle>
+      </CardHeader>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead className="text-text-faint">
+            <tr>
+              <th className="p-2">Person</th>
+              <th className="p-2">Team</th>
+              <th className="p-2">Local time</th>
+              <th className="p-2">Open</th>
+              <th className="p-2">Overdue</th>
+              <th className="p-2">Done</th>
+              <th className="p-2">Blockers</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...people.values()].map((p) => {
+              const items = result.commitments.filter((c) => c.ownerId === p.id)
+              return (
+                <tr key={p.id} className="border-t border-surface-border">
+                  <td className="p-2 text-text-primary">
+                    {p.name} <span className="text-text-faint">· {p.role ?? 'member'}</span>
+                  </td>
+                  <td className="p-2 capitalize">{p.teamId ?? '—'}</td>
+                  <td className="p-2">
+                    {new Intl.DateTimeFormat('en-GB', { timeZone: p.timezone, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(now))}
+                    <span className="block text-text-faint">{p.timezone}</span>
+                  </td>
+                  <td className="p-2">{items.filter((c) => c.status === 'open').length}</td>
+                  <td className="p-2 text-status-overdue">{items.filter((c) => statusView(c, now).key === 'overdue').length}</td>
+                  <td className="p-2 text-status-done">{items.filter((c) => c.status === 'done').length}</td>
+                  <td className="p-2">{items.flatMap((c) => c.blockers ?? []).filter((b) => !b.resolved).length}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
 export default function Team() {
   const { result, user, people, now } = useEngine()
+  const location = useLocation()
+  const redirectNotice = (location.state as { notice?: string } | null)?.notice
+  const extensions = result.commitments.filter((c) => c.extensionRequest?.state === 'pending')
   const tz = viewerTimezone()
   const isCoordinator = user?.role === 'coordinator'
   const mine = result.commitments.filter((c) => c.ownerId === user?.id)
@@ -76,6 +126,7 @@ export default function Team() {
 
   return (
     <div className="mx-auto max-w-6xl">
+      {redirectNotice ? <p className="mb-3 rounded-md border border-status-tentative/40 px-3 py-2 text-sm text-status-tentative">{redirectNotice}</p> : null}
       <PageHeader title={isCoordinator ? 'Team' : 'My tasks'} description={isCoordinator ? 'Assign work, approve submissions and clear blockers.' : 'Update progress, report blockers and submit work for approval.'} />
       <div className="grid gap-4 lg:grid-cols-3">
         {isCoordinator ? (
@@ -86,6 +137,31 @@ export default function Team() {
         <div className={isCoordinator ? 'flex flex-col gap-4 lg:col-span-2' : 'flex flex-col gap-4 lg:col-span-3'}>
           {isCoordinator ? (
             <>
+              <PeopleGrid />
+              <Card>
+                <CardHeader>
+                  <CardTitle>More time requested ({extensions.length})</CardTitle>
+                </CardHeader>
+                {extensions.length === 0 ? (
+                  <p className="text-sm text-text-muted">No requests waiting.</p>
+                ) : (
+                  <ul className="flex flex-col gap-2 text-sm">
+                    {extensions.map((c) => (
+                      <li key={c.id} className="flex flex-wrap justify-between gap-2 border-b border-surface-border pb-2">
+                        <span>
+                          <CommitmentLink c={c} />
+                          <span className="block text-xs text-text-faint">
+                            {personName(people, c.extensionRequest!.by)} asks for {shortTime(c.extensionRequest!.dueAt, tz)} (your time) · {c.extensionRequest!.note}
+                          </span>
+                        </span>
+                        <Link to={`/commitments/${c.id}`} className="text-sm text-accent hover:underline">
+                          Decide →
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>Submissions waiting for approval ({pendingSubmissions.length})</CardTitle>

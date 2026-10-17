@@ -149,6 +149,7 @@ export type CommitmentEventType =
   | 'progress'
   | 'not_done'
   | 'blocker'
+  | 'extension_requested'
 
 export interface CommitmentEvent {
   type: CommitmentEventType
@@ -193,6 +194,14 @@ export interface Submission {
   decidedAt?: IsoUtc
 }
 
+export interface ExtensionRequest {
+  dueAt: IsoUtc
+  by: string
+  at: IsoUtc
+  note: string
+  state: 'pending' | 'approved' | 'declined'
+}
+
 export interface Commitment {
   /** 'c_' + source message id, or 'c_' + task id for manual tasks */
   id: string
@@ -205,6 +214,8 @@ export interface Commitment {
   progress?: TaskProgress
   blockers?: Blocker[]
   submissions?: Submission[]
+  /** A member's request for more time. Never changes the deadline until a coordinator approves it. */
+  extensionRequest?: ExtensionRequest
   /** Every message linked to this commitment, in time order */
   linkedMessageIds?: string[]
   requesterId: string | null
@@ -340,12 +351,17 @@ export type DecisionType =
   | 'submit_work'
   | 'approve_submission'
   | 'reject_submission'
+  | 'request_extension'
+  | 'decline_extension'
 
 export interface HumanDecision {
   id: string
   commitmentId: string
   type: DecisionType
+  /** Evaluation-clock time of the decision */
   at: IsoUtc
+  /** Wall-clock time it was recorded; orders decisions made at the same evaluation time */
+  recordedAt?: IsoUtc
   by: string
   note?: string
   ownerId?: string

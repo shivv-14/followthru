@@ -41,6 +41,7 @@ Later additive changes:
 - `CommitmentEventType` gained `progress`, `not_done` and `blocker` (owner updates recorded as evidence; they never change status).
 - `Draft` gained optional `subject`, `recipientRole` and `replyState`; `DraftVersion` gained optional `subject`; `FlowStep` gained optional `recipient` (`owner`, `requester`, `coordinator`); new types `RecipientRole` and `ReplyState`. New exports `composeSubject`, `expectedRecipient`, `replyState`. A change in the owner's reply state is a new draft version with cause `reply_changed`. `checkBeforeApproval` takes an optional `people` map.
 - `DraftState` gained `rejected`; `Draft` gained optional `rejectedBy`, `rejectedAt`, `rejectReason`, `editedBody`, `editedBy`, `editedAt`. New exports `rejectDraft`, `editDraft`, `draftText`, `MAX_DRAFT_BODY`. Rejections and edits survive engine runs until a new version is written.
+- `DecisionType` gained `request_extension` and `decline_extension`; `CommitmentEventType` gained `extension_requested`; `Commitment` gained optional `extensionRequest` (new type `ExtensionRequest`); `HumanDecision` gained optional `recordedAt`, used to order decisions made at the same evaluation time. A pending extension request never changes the deadline; approving it is a coordinator `change_deadline`.
 - New engine exports `rulesExtractor` and type `Extractor` (src/engine/extractor.ts). `runEngine` and `resolveCommitments` take an optional extractor that defaults to the rules.
 
 ## Still incomplete

@@ -20,6 +20,7 @@ const EVENT_LABEL: Record<string, string> = {
   progress: 'Progress update',
   not_done: 'Not done yet',
   blocker: 'Blocker reported',
+  extension_requested: 'More time requested',
 }
 
 export default function CommitmentDetail() {
@@ -34,6 +35,8 @@ export default function CommitmentDetail() {
   const [blocker, setBlocker] = useState('')
   const [submitNote, setSubmitNote] = useState('')
   const [submitFiles, setSubmitFiles] = useState<FileList | null>(null)
+  const [extDue, setExtDue] = useState('')
+  const [extReason, setExtReason] = useState('')
   const c = commitment(id)
   const tz = viewerTimezone()
 
@@ -81,6 +84,14 @@ export default function CommitmentDetail() {
         description={`${c.source === 'manual' ? 'Assigned task' : `Opened by message ${c.sourceMessageId}`} · requested by ${personName(people, c.requesterId)}`}
         actions={<CommitmentStatus c={c} now={now} />}
       />
+
+      {c.extensionRequest ? (
+        <div className="mb-4 rounded-lg border border-status-deferred/40 bg-status-deferred/10 p-3 text-sm text-status-deferred">
+          More time {c.extensionRequest.state === 'pending' ? 'requested' : c.extensionRequest.state} by {personName(people, c.extensionRequest.by)}: new date{' '}
+          {shortTime(c.extensionRequest.dueAt, tz)} (your time). Reason: {c.extensionRequest.note || 'none given'}.
+          {c.extensionRequest.state === 'pending' ? ' The deadline stays as it is until a coordinator approves.' : ''}
+        </div>
+      ) : null}
 
       {c.needsReview ? (
         <div role="alert" className="mb-4 rounded-lg border border-status-tentative/40 bg-status-tentative/10 p-3 text-sm text-status-tentative">
@@ -231,6 +242,16 @@ export default function CommitmentDetail() {
               </CardHeader>
               <div className="flex flex-col gap-3">
                 <Textarea label="Note (kept in the audit log)" value={note} onChange={(e) => setNote(e.target.value)} placeholder="For example: confirmed by phone" />
+                {c.extensionRequest?.state === 'pending' ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" onClick={() => decide('change_deadline', { dueAt: c.extensionRequest!.dueAt })}>
+                      Approve new date
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => decide('decline_extension')}>
+                      Decline request
+                    </Button>
+                  </div>
+                ) : null}
                 {c.status === 'open' ? (
                   <div className="grid grid-cols-3 gap-2">
                     <Button size="sm" onClick={() => decide('mark_done')}>
@@ -321,6 +342,33 @@ export default function CommitmentDetail() {
                   }
                 >
                   Report blocker
+                </Button>
+                <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+                  Need more time? New date (your time)
+                  <input
+                    type="datetime-local"
+                    value={extDue}
+                    onChange={(e) => setExtDue(e.target.value)}
+                    className="h-10 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]"
+                  />
+                </label>
+                <Textarea label="Why do you need more time?" value={extReason} onChange={(e) => setExtReason(e.target.value)} placeholder="For example: waiting on the final logo" />
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={!extDue || !extReason.trim() || notice.busy}
+                  onClick={() =>
+                    notice.run(async () => {
+                      const res = await actions.decide(c.id, 'request_extension', { dueAt: new Date(extDue).toISOString(), note: extReason.trim() })
+                      if (res.ok) {
+                        setExtDue('')
+                        setExtReason('')
+                      }
+                      return res
+                    })
+                  }
+                >
+                  Ask for more time
                 </Button>
                 <Textarea label="Submit work for approval" value={submitNote} onChange={(e) => setSubmitNote(e.target.value)} placeholder="What did you deliver?" />
                 <input type="file" multiple onChange={(e) => setSubmitFiles(e.target.files)} aria-label="Attach files" className="text-xs text-text-muted" />

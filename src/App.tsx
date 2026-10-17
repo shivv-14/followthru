@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AppShell } from './components/shell/AppShell'
 import { EngineProvider } from './store'
+import { RequireRole } from './components/shell/RequireRole'
 import Landing from './pages/Landing'
 import Setup from './pages/Setup'
 import ProfilePicker from './pages/ProfilePicker'
@@ -27,8 +28,8 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/commitments" element={<Commitments />} />
           <Route path="/commitments/:id" element={<CommitmentDetail />} />
-          <Route path="/queue" element={<Queue />} />
-          <Route path="/flows" element={<Flows />} />
+          <Route path="/queue" element={<RequireRole role="coordinator"><Queue /></RequireRole>} />
+          <Route path="/flows" element={<RequireRole role="coordinator"><Flows /></RequireRole>} />
           <Route path="/team" element={<Team />} />
           <Route path="/evidence" element={<Evidence />} />
         </Route>

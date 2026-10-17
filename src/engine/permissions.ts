@@ -21,9 +21,10 @@ const COORDINATOR_ONLY_DECISIONS: DecisionType[] = [
   'resolve_blocker',
   'approve_submission',
   'reject_submission',
+  'decline_extension',
 ]
 
-const OWNER_DECISIONS: DecisionType[] = ['set_progress', 'report_blocker', 'submit_work']
+const OWNER_DECISIONS: DecisionType[] = ['set_progress', 'report_blocker', 'submit_work', 'request_extension']
 
 /**
  * Members can report progress, blockers and submit work on their own items.

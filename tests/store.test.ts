@@ -153,3 +153,14 @@ describe('reject and edit actions', () => {
     expect((await member.edit('d_c_m_21', 'text')).ok).toBe(false)
   })
 })
+
+describe('extension request actions', () => {
+  it('needs a future date and a reason, and is open to the owner only', async () => {
+    const lena = createActions(await state('p_lena'))
+    expect((await lena.decide('c_m_21', 'request_extension', { dueAt: '2026-10-01T00:00:00.000Z', note: 'x' })).ok).toBe(false)
+    expect((await lena.decide('c_m_21', 'request_extension', { dueAt: '2026-10-22T12:00:00.000Z', note: ' ' })).ok).toBe(false)
+    expect((await lena.decide('c_m_21', 'request_extension', { dueAt: '2026-10-22T12:00:00.000Z', note: 'Waiting on logo' })).ok).toBe(true)
+    expect((await createActions(await state('p_dev')).decide('c_m_21', 'request_extension', { dueAt: '2026-10-22T12:00:00.000Z', note: 'x' })).ok).toBe(false)
+    expect((await lena.decide('c_m_21', 'decline_extension')).ok).toBe(false)
+  })
+})

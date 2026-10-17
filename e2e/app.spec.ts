@@ -89,6 +89,28 @@ test('member sees only their work and cannot approve', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('member asks for more time, coordinator approves it', async ({ page }) => {
+  const errors = trackErrors(page)
+  await loadDemoAs(page, 'Lena')
+  await page.goto('/queue')
+  await expect(page.getByText('That page is for coordinators. Here are your tasks instead.')).toBeVisible()
+  await page.goto('/commitments/c_m_21')
+  await page.getByLabel('Need more time? New date (your time)').fill('2026-10-23T12:00')
+  await page.getByLabel('Why do you need more time?').fill('Waiting on the final logo')
+  await page.getByRole('button', { name: 'Ask for more time' }).click()
+  await expect(page.getByText(/More time requested by Lena Ortiz/)).toBeVisible()
+  await page.getByLabel('Profile').selectOption('p_priya')
+  await expect(page.getByRole('button', { name: 'Approve new date' })).toBeVisible()
+  await page.getByRole('button', { name: 'Approve new date' }).click()
+  await expect(page.getByText(/More time approved by Lena Ortiz/)).toBeVisible()
+  await page.goto('/queue')
+  await page.getByRole('tab', { name: /Suppressed/ }).click()
+  const card = page.locator('[id="d_c_m_21"]')
+  // v2: Lena's request counts as a reply; v3: the approved new date
+  await expect(card.getByText(/version 3/)).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('works at phone width', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 })
   await loadDemoAs(page, 'Priya')

@@ -42,7 +42,11 @@ export function createActions(state: EngineState) {
       if (!canDecide(role, type, c.ownerId === actor.id)) return fail('Your role cannot do that here')
       if (type === 'report_blocker' && !input.note?.trim()) return fail('Describe the blocker')
       if (type === 'reassign' && !input.ownerId) return fail('Choose the new owner')
-      const d: HumanDecision = { id: repo.newId('h'), commitmentId, type, at: state.now, by: actor.id, ...input }
+      if (type === 'request_extension') {
+        if (!input.dueAt || Date.parse(input.dueAt) <= Date.parse(state.now)) return fail('Choose a new date after the current evaluation time')
+        if (!input.note?.trim()) return fail('Say why you need more time')
+      }
+      const d: HumanDecision = { id: repo.newId('h'), commitmentId, type, at: state.now, recordedAt: repo.nowIso(), by: actor.id, ...input }
       if (type === 'submit_work') d.submissionId = repo.newId('s')
       await repo.addDecision(d)
       return ok('Saved')
