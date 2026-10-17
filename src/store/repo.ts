@@ -4,6 +4,7 @@ import type { AuditEvent, Draft, Flow, HumanDecision, ManualTask, ValidationResu
 import { DEFAULT_FLAGS, DEFAULT_STALE_HOURS } from '../engine/run'
 import { DEFAULT_FLOWS } from '../engine/flows'
 import { db, type AppSettings, type DataSource, type EvidenceFile, type RunRecord, type StoredDataset } from './db'
+import { isSecretSetting, type BackupFile } from '../schema/backup'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
@@ -153,4 +154,62 @@ export async function saveRun(actorId: string, run: Omit<RunRecord, 'id' | 'at'>
   await db.runs.add(record)
   await audit({ actorId, action: 'run.save', entity: 'data', entityId: record.id, after: { checks: run.checks.map((c) => `${c.name}:${c.pass ? 'pass' : 'fail'}`) } })
   return record
+}
+
+/** Full local backup as JSON. Evidence files are listed with their hashes but their contents stay on this device. */
+export async function exportBackup(actorId: string): Promise<string> {
+  const [dataset, decisions, tasks, drafts, flows, settings, runs, auditRows, files] = await Promise.all([
+    db.datasets.get('current'),
+    db.decisions.toArray(),
+    db.tasks.toArray(),
+    db.drafts.toArray(),
+    db.flows.toArray(),
+    getSettings(),
+    db.runs.toArray(),
+    db.audit.toArray(),
+    db.evidenceFiles.toArray(),
+  ])
+  if (!dataset) throw new Error('Load data before exporting a backup')
+  const safeSettings = Object.fromEntries(Object.entries(settings).filter(([k]) => !isSecretSetting(k)))
+  const backup = {
+    format: 'followthru-backup',
+    version: 1,
+    exportedAt: nowIso(),
+    dataset,
+    decisions,
+    tasks,
+    drafts,
+    flows,
+    settings: safeSettings,
+    runs,
+    audit: auditRows,
+    evidenceFiles: files.map(({ blob: _blob, ...meta }) => meta),
+  }
+  await audit({ actorId, action: 'data.backup_export', entity: 'data', entityId: 'backup', after: { decisions: decisions.length, drafts: drafts.length, audit: auditRows.length } })
+  return JSON.stringify(backup, null, 2)
+}
+
+/** Replaces local data with a validated backup in one transaction. Evidence file contents are kept as they are. */
+export async function importBackup(actorId: string, backup: BackupFile): Promise<void> {
+  await db.transaction('rw', [db.datasets, db.decisions, db.tasks, db.drafts, db.flows, db.settings, db.runs, db.audit], async () => {
+    await Promise.all([db.datasets.clear(), db.decisions.clear(), db.tasks.clear(), db.drafts.clear(), db.flows.clear(), db.runs.clear(), db.audit.clear()])
+    await db.datasets.put(backup.dataset as unknown as StoredDataset)
+    await db.decisions.bulkPut(backup.decisions as unknown as HumanDecision[])
+    await db.tasks.bulkPut(backup.tasks as unknown as ManualTask[])
+    await db.drafts.bulkPut(backup.drafts as unknown as Draft[])
+    await db.flows.bulkPut(backup.flows as unknown as Flow[])
+    await db.runs.bulkPut(backup.runs as unknown as RunRecord[])
+    await db.audit.bulkPut(backup.audit as unknown as AuditEvent[])
+    const current = await getSettings()
+    await db.settings.put({ key: 'app', value: { ...current, ...(backup.settings as Partial<AppSettings>), profileId: current.profileId } })
+    await audit({ actorId, action: 'data.restore', entity: 'data', entityId: 'backup', after: { exportedAt: backup.exportedAt, decisions: backup.decisions.length, drafts: backup.drafts.length } })
+  })
+}
+
+/** Removes an uploaded file. The audit log keeps its name, size, hash and the reason. */
+export async function deleteEvidenceFile(actorId: string, fileId: string, reason: string): Promise<void> {
+  const file = await db.evidenceFiles.get(fileId)
+  if (!file) throw new Error('File not found')
+  await db.evidenceFiles.delete(fileId)
+  await audit({ actorId, action: 'evidence.delete', entity: 'evidence', entityId: fileId, before: { name: file.name, size: file.size, sha256: file.sha256 }, after: { reason } })
 }

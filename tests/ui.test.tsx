@@ -119,6 +119,17 @@ describe('app with real engine data', () => {
     expect(screen.getByText('America/Los_Angeles')).toBeInTheDocument()
   })
 
+  it('filters the audit log by action', async () => {
+    await seed('p_priya')
+    await repo.audit({ actorId: 'p_priya', action: 'draft.approve', entity: 'draft', entityId: 'd_x' })
+    at('/evidence')
+    fireEvent.click(await screen.findByRole('tab', { name: 'Audit log' }))
+    expect(await screen.findByText('data.load')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Action starts with'), { target: { value: 'draft.' } })
+    await waitFor(() => expect(screen.queryByText('data.load')).not.toBeInTheDocument())
+    expect(screen.getByText('draft.approve')).toBeInTheDocument()
+  }, 15_000)
+
   it('reports that demo data is not scored', async () => {
     await seed('p_priya')
     at('/evidence')

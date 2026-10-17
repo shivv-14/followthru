@@ -7,6 +7,8 @@ import { db } from '../src/store/db'
 import * as repo from '../src/store/repo'
 import { createActions } from '../src/store/actions'
 import type { EngineState } from '../src/store/EngineProvider'
+import { validateBackupJson } from '../src/schema/backup'
+import { buildEvidencePack } from '../src/store/evidencePack'
 
 const validation = validateDataset(demo)
 const data = validation.data!
@@ -162,5 +164,60 @@ describe('extension request actions', () => {
     expect((await lena.decide('c_m_21', 'request_extension', { dueAt: '2026-10-22T12:00:00.000Z', note: 'Waiting on logo' })).ok).toBe(true)
     expect((await createActions(await state('p_dev')).decide('c_m_21', 'request_extension', { dueAt: '2026-10-22T12:00:00.000Z', note: 'x' })).ok).toBe(false)
     expect((await lena.decide('c_m_21', 'decline_extension')).ok).toBe(false)
+  })
+})
+
+describe('backup, restore and evidence', () => {
+  it('round-trips decisions, tasks, drafts and flows through export, reset and import', async () => {
+    const s0 = await state('p_priya')
+    const actions = createActions(s0)
+    await actions.confirmRecipient('d_c_m_18', true)
+    await createActions(await state('p_priya')).approve('d_c_m_18')
+    await actions.createTasks({ title: 'Write the FAQ', ownerIds: ['p_dev'], dueAt: '2026-10-21T12:00:00.000Z' })
+    await actions.decide('c_m_21', 'report_blocker', { note: 'Waiting on logo' })
+    const before = { decisions: await db.decisions.toArray(), tasks: await db.tasks.toArray(), drafts: await db.drafts.toArray(), flows: await db.flows.toArray() }
+    const json = await repo.exportBackup('p_priya')
+    await repo.resetAllData('p_priya')
+    expect(await db.drafts.count()).toBe(0)
+    const v = validateBackupJson(json)
+    expect(v.ok).toBe(true)
+    await repo.importBackup('p_priya', v.backup!)
+    expect(await db.decisions.toArray()).toEqual(before.decisions)
+    expect(await db.tasks.toArray()).toEqual(before.tasks)
+    expect(await db.drafts.toArray()).toEqual(before.drafts)
+    expect(await db.flows.toArray()).toEqual(before.flows)
+    expect((await db.drafts.get('d_c_m_18'))?.state).toBe('approved')
+    expect((await db.audit.toArray()).map((a) => a.action)).toContain('data.restore')
+  })
+
+  it('rejects broken backups with issues', () => {
+    expect(validateBackupJson('{nope').issues[0].code).toBe('invalid_json')
+    const bad = validateBackupJson(JSON.stringify({ format: 'followthru-backup', version: 1 }))
+    expect(bad.ok).toBe(false)
+    expect(bad.issues.map((i) => i.code)).toContain('missing_field')
+  })
+
+  it('never exports secret settings', async () => {
+    await db.settings.put({ key: 'app', value: { ...(await repo.getSettings()), aiKey: 'AIza-secret' } as never })
+    expect(await repo.exportBackup('p_priya')).not.toContain('AIza-secret')
+  })
+
+  it('lets only a coordinator restore or delete, and deletion needs a reason', async () => {
+    const file = await repo.addEvidenceFile('p_lena', new File(['x'], 'shot.png', { type: 'image/png' }))
+    const member = createActions(await state('p_lena'))
+    expect((await member.deleteEvidence(file.id, 'mine')).ok).toBe(false)
+    expect((await member.restoreBackup(validateBackupJson(await repo.exportBackup('p_lena')))).ok).toBe(false)
+    const coord = createActions(await state('p_priya'))
+    expect((await coord.deleteEvidence(file.id, ' ')).ok).toBe(false)
+    expect((await coord.deleteEvidence(file.id, 'Wrong file')).ok).toBe(true)
+    const entry = (await db.audit.where('entityId').equals(file.id).toArray()).find((x) => x.action === 'evidence.delete')
+    expect(entry).toMatchObject({ action: 'evidence.delete', before: { name: 'shot.png', sha256: file.sha256 }, after: { reason: 'Wrong file' } })
+  })
+
+  it('builds an evidence pack with the scorecard and file hashes', async () => {
+    const s = await state('p_priya')
+    const pack = JSON.parse(buildEvidencePack(s, await db.audit.toArray(), await db.evidenceFiles.toArray(), '2026-10-18T00:00:00.000Z'))
+    expect(pack).toMatchObject({ format: 'followthru-evidence-pack', dataset: { source: 'demo', synthetic: true }, engineMode: 'Rules' })
+    expect(pack.scorecard.checks).toHaveLength(3)
   })
 })

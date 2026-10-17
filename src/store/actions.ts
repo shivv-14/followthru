@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { approveDraft, canDecide, canDo, checkBeforeApproval, editDraft, rejectDraft, suppressDraft, validateFlow } from '../engine'
 import type { DecisionType, Flow, HumanDecision, IsoUtc, ManualTask, TaskProgress, ValidationResult } from '../engine/types'
 import { db, type AppSettings, type DataSource } from './db'
+import type { BackupValidation } from '../schema/backup'
 import * as repo from './repo'
 import { useEngine, type EngineState } from './EngineProvider'
 
@@ -165,6 +166,33 @@ export function createActions(state: EngineState) {
       if (state.dataset && actor && !canDo(role, 'reset_data')) return fail('Only a coordinator can reset data')
       await repo.resetAllData(actorId)
       return ok('All local data cleared')
+    },
+
+    async exportBackup(): Promise<ActionResult & { json?: string }> {
+      if (!state.dataset) return fail('Load data first')
+      try {
+        return { ...ok('Backup ready'), json: await repo.exportBackup(actorId) }
+      } catch (e) {
+        return fail((e as Error).message)
+      }
+    },
+
+    async restoreBackup(validation: BackupValidation): Promise<ActionResult> {
+      if (state.dataset && (!actor || !canDo(role, 'import_data'))) return fail('Only a coordinator can restore a backup')
+      if (!validation.ok || !validation.backup) return fail('Fix the backup errors first')
+      await repo.importBackup(actorId, validation.backup)
+      return ok(`Restored the backup from ${validation.backup.exportedAt}`)
+    },
+
+    async deleteEvidence(fileId: string, reason: string): Promise<ActionResult> {
+      if (!actor || role !== 'coordinator') return fail('Only a coordinator can delete evidence')
+      if (!reason.trim()) return fail('Give a reason for deleting the file')
+      try {
+        await repo.deleteEvidenceFile(actor.id, fileId, reason.trim())
+        return ok('File deleted; the audit log keeps its name and hash')
+      } catch (e) {
+        return fail((e as Error).message)
+      }
     },
 
     async saveRun(): Promise<ActionResult> {

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Button, Card, CardHeader, CardTitle, Dialog, EmptyState, Input, StatusChip, Tabs } from '../components/ui'
+import { Button, Card, CardHeader, CardTitle, Dialog, EmptyState, Input, Select, StatusChip, Tabs, Textarea } from '../components/ui'
 import { Notice, PageHeader, useActionNotice } from '../components/domain/parts'
 import { downloadText, personName, shortTime } from '../components/domain/view'
 import { commitmentsToCsv, draftsToCsv, resultsToJson } from '../schema/io'
-import { useActions, useAuditLog, useEngine, useEvidenceFiles, useRuns } from '../store'
+import { buildEvidencePack, changedKeys, sha256Hex, useActions, useAuditLog, useEngine, useEvidenceFiles, useRuns, type AuditFilter } from '../store'
+import { validateBackupJson, type BackupValidation } from '../schema/backup'
 
 function ScorecardTab() {
   const { scorecard, dataset, result } = useEngine()
@@ -114,6 +115,7 @@ function ExportsTab() {
           </Button>
         </Card>
       ))}
+      <EvidencePackCard />
       <p className="text-xs text-text-faint sm:col-span-2">
         CSV cells that start with = + - @ are escaped so spreadsheets do not run them. For a hashed, timestamped bundle run <code>npm run evidence</code>.
       </p>
@@ -121,11 +123,36 @@ function ExportsTab() {
   )
 }
 
+function EvidencePackCard() {
+  const state = useEngine()
+  const auditRows = useAuditLog(100_000)
+  const files = useEvidenceFiles()
+  const [hash, setHash] = useState('')
+  async function download() {
+    const text = buildEvidencePack(state, auditRows, files, new Date().toISOString())
+    setHash(await sha256Hex(new TextEncoder().encode(text).buffer as ArrayBuffer))
+    downloadText(`followthru-evidence-pack-${state.result.runAt.replace(/[:.]/g, '-')}.json`, text, 'application/json')
+  }
+  return (
+    <Card className="sm:col-span-2">
+      <CardHeader>
+        <CardTitle className="text-sm">Evidence pack (one JSON: scorecard, results, audit, file hashes)</CardTitle>
+      </CardHeader>
+      <Button size="sm" onClick={download}>
+        Download evidence pack
+      </Button>
+      {hash ? <p className="mt-2 break-all font-mono text-xs text-text-muted">SHA-256 of the downloaded file: {hash}</p> : null}
+    </Card>
+  )
+}
+
 function UploadsTab() {
   const files = useEvidenceFiles()
   const actions = useActions()
   const notice = useActionNotice()
-  const { people } = useEngine()
+  const { people, user } = useEngine()
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [reason, setReason] = useState('')
   return (
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
@@ -186,6 +213,11 @@ function UploadsTab() {
                     >
                       Download
                     </button>
+                    {user?.role === 'coordinator' ? (
+                      <button type="button" className="ml-3 text-status-overdue hover:underline" onClick={() => setDeleting(f.id)}>
+                        Delete
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -193,30 +225,119 @@ function UploadsTab() {
           </table>
         </div>
       )}
+      <Dialog open={deleting !== null} onClose={() => setDeleting(null)} title="Delete this evidence file?" variant="modal">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-text-muted">The file is removed from this device. The audit log keeps its name, size, hash and your reason.</p>
+          <Textarea label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <div className="flex gap-2">
+            <Button
+              variant="danger"
+              disabled={!reason.trim()}
+              onClick={() =>
+                notice.run(async () => {
+                  const res = await actions.deleteEvidence(deleting!, reason)
+                  if (res.ok) {
+                    setDeleting(null)
+                    setReason('')
+                  }
+                  return res
+                })
+              }
+            >
+              Delete file
+            </Button>
+            <Button variant="ghost" onClick={() => setDeleting(null)}>
+              Keep it
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   )
 }
 
+const PAGE = 50
+const ENTITIES = ['commitment', 'draft', 'task', 'evidence', 'settings', 'data'] as const
+
 function AuditTab() {
-  const log = useAuditLog()
   const { people } = useEngine()
-  if (log.length === 0) return <EmptyState title="No audit events yet" />
+  const [limit, setLimit] = useState(PAGE)
+  const [actorId, setActorId] = useState('')
+  const [actionPrefix, setActionPrefix] = useState('')
+  const [entity, setEntity] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const filter: AuditFilter = {
+    actorId: actorId || undefined,
+    actionPrefix: actionPrefix.trim() || undefined,
+    entity: (entity || undefined) as AuditFilter['entity'],
+    from: from ? new Date(from).toISOString() : undefined,
+    to: to ? new Date(to).toISOString() : undefined,
+  }
+  const log = useAuditLog(limit + 1, filter)
+  const shown = log.slice(0, limit)
+  const input = 'h-10 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]'
   return (
-    <ol className="flex flex-col gap-2 text-xs">
-      {log.map((a) => (
-        <li key={a.id} className="rounded-md border border-surface-border p-2">
-          <p>
-            <span className="font-mono text-accent">{a.action}</span> · {a.entity} {a.entityId} · {personName(people, a.actorId)} · {new Date(a.at).toLocaleString()}
-          </p>
-          {a.before !== undefined || a.after !== undefined ? (
-            <details className="mt-1 text-text-muted">
-              <summary className="cursor-pointer">Before / after</summary>
-              <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">{JSON.stringify({ before: a.before, after: a.after }, null, 2)}</pre>
-            </details>
-          ) : null}
-        </li>
-      ))}
-    </ol>
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-2 sm:grid-cols-5">
+        <Select label="Actor" value={actorId} onChange={(e) => setActorId(e.target.value)}>
+          <option value="">Anyone</option>
+          <option value="setup">Setup (no profile)</option>
+          {[...people.values()].map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
+        <Input label="Action starts with" value={actionPrefix} onChange={(e) => setActionPrefix(e.target.value)} placeholder="draft." />
+        <Select label="Entity" value={entity} onChange={(e) => setEntity(e.target.value)}>
+          <option value="">Any</option>
+          {ENTITIES.map((x) => (
+            <option key={x} value={x}>
+              {x}
+            </option>
+          ))}
+        </Select>
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+          From (your time)
+          <input type="datetime-local" value={from} onChange={(e) => setFrom(e.target.value)} className={input} />
+        </label>
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+          To (your time)
+          <input type="datetime-local" value={to} onChange={(e) => setTo(e.target.value)} className={input} />
+        </label>
+      </div>
+      {shown.length === 0 ? (
+        <EmptyState title="No audit events match" />
+      ) : (
+        <ol className="flex flex-col gap-2 text-xs">
+          {shown.map((a) => {
+            const changed = changedKeys(a.before, a.after)
+            return (
+              <li key={a.id} className="rounded-md border border-surface-border p-2">
+                <p>
+                  <span className="font-mono text-accent">{a.action}</span> · {a.entity} {a.entityId} · {personName(people, a.actorId)}
+                </p>
+                <p className="text-text-faint">
+                  {new Date(a.at).toLocaleString()} your time · {a.at} UTC
+                </p>
+                {a.before !== undefined || a.after !== undefined ? (
+                  <details className="mt-1 text-text-muted">
+                    <summary className="cursor-pointer">Before / after{changed.length ? ` (changed: ${changed.join(', ')})` : ''}</summary>
+                    <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">{JSON.stringify({ before: a.before, after: a.after }, null, 2)}</pre>
+                  </details>
+                ) : null}
+              </li>
+            )
+          })}
+        </ol>
+      )}
+      {log.length > limit ? (
+        <Button size="sm" variant="secondary" onClick={() => setLimit((n) => n + PAGE)}>
+          Load more
+        </Button>
+      ) : null}
+    </div>
   )
 }
 
@@ -225,6 +346,7 @@ function DataTab() {
   const actions = useActions()
   const notice = useActionNotice()
   const [confirmReset, setConfirmReset] = useState(false)
+  const [backup, setBackup] = useState<BackupValidation | null>(null)
   const isCoordinator = user?.role === 'coordinator'
   const flag = (key: keyof typeof settings.flags, label: string, hint: string) => (
     <label className="flex items-start gap-2 text-sm">
@@ -289,14 +411,82 @@ function DataTab() {
           >
             Export data
           </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() =>
+              notice.run(async () => {
+                const res = await actions.exportBackup()
+                if (res.ok && res.json) downloadText(`followthru-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`, res.json, 'application/json')
+                return res
+              })
+            }
+          >
+            Export backup
+          </Button>
           <Button variant="danger" size="sm" disabled={!isCoordinator} onClick={() => setConfirmReset(true)}>
             Reset all local data
           </Button>
         </div>
+        <label className="mt-3 flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+          Restore a backup
+          <input
+            type="file"
+            accept=".json,application/json"
+            disabled={!isCoordinator}
+            aria-label="Restore a backup file"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) setBackup(validateBackupJson(await file.text()))
+            }}
+            className="text-sm text-text-muted"
+          />
+        </label>
       </Card>
       <div className="md:col-span-2">
         <Notice result={notice.result} />
       </div>
+      <Dialog open={backup !== null} onClose={() => setBackup(null)} title="Restore this backup?" variant="modal">
+        {backup?.ok ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-text-muted">
+              Backup from {backup.backup!.exportedAt}: {backup.backup!.decisions.length} decisions, {backup.backup!.tasks.length} tasks, {backup.backup!.drafts.length} drafts,{' '}
+              {backup.backup!.audit.length} audit entries. It replaces the data, drafts, decisions, tasks, flows, runs and audit log on this device. Uploaded file contents are kept.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                onClick={() =>
+                  notice.run(async () => {
+                    const res = await actions.restoreBackup(backup)
+                    setBackup(null)
+                    return res
+                  })
+                }
+              >
+                Restore
+              </Button>
+              <Button variant="ghost" onClick={() => setBackup(null)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 text-sm">
+            <p className="text-status-overdue">This backup cannot be restored:</p>
+            <ul className="max-h-48 overflow-auto text-xs text-text-muted">
+              {backup?.issues.map((i, n) => (
+                <li key={n}>
+                  {i.code} at {i.path.join('.') || '(file)'}: {i.message}
+                </li>
+              ))}
+            </ul>
+            <Button variant="ghost" onClick={() => setBackup(null)}>
+              Close
+            </Button>
+          </div>
+        )}
+      </Dialog>
       <Dialog open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset all local data?" variant="modal">
         <p className="mb-4 text-sm text-text-muted">This deletes the data, drafts, decisions, tasks, flows, runs and uploads in this browser. The audit log is kept.</p>
         <div className="flex gap-2">
