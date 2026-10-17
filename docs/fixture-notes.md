@@ -11,6 +11,22 @@ The brief names the input as `Starter_Data/C14/fixture.json`. A search on 17 Oct
 
 **Nothing below is verified against real data.** Every row is marked as either *from brief* (stated in the C14 brief) or *expected* (a planning assumption to check). No labels, ids or answers are invented here. Once the file arrives it goes at `data/fixture.json` and this document gets rewritten from the real contents.
 
+## Canonical input format (Phase 1)
+
+Validation (`src/schema/validate.ts`) accepts this shape. When the real fixture arrives, either it already matches, or a small adapter maps it onto this shape. Labels and data are never edited.
+
+```json
+{
+  "referenceTime": "ISO with Z or offset (optional evaluation clock)",
+  "people":   [{ "id", "name", "timezone (IANA)", "role?", "teamId?", "email?" }],
+  "threads":  [{ "id", "title?", "participantIds?" }],
+  "messages": [{ "id", "threadId", "authorId", "sentAt (ISO with Z or offset)", "text", "replyToId?", "mentionIds?" }],
+  "labels":   [{ "sourceMessageId", "ownerId", "dueAt (ISO or null)", "status (open|done|cancelled|deferred)", "note?" }]
+}
+```
+
+Threads are optional and are derived from messages when missing. Unknown extra fields are ignored. Format samples: `tests/fixtures/sample-valid.json` and `tests/fixtures/sample-invalid.json`.
+
 ## What the brief says the fixture contains (from brief)
 
 > Message IDs, thread IDs, timestamps/timezone, owners, commitments, due dates and later changes/completions.
