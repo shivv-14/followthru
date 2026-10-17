@@ -164,4 +164,5 @@ Product change to negotiate: stale-message suppression and recipient review. Sav
 - None yet. Track B should import domain types only from `src/engine/types.ts` once it is published at the end of Phase 1.
 
 ## Contract changes log
-- 17 Oct 2026: first publication on `back-a-p1` (`864f3ed`). No changes since.
+- 17 Oct 2026: first publication on `back-a-p1` (`864f3ed`).
+- 17 Oct 2026, `full-integration`: additive fields and types only. Details in `docs/integration-status.md`. The two-track split has ended, so this file is kept as history.
