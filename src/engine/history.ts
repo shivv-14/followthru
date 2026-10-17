@@ -469,7 +469,8 @@ export function resolveCommitments(dataset: Dataset, now: IsoUtc, decisions: Hum
   }
   for (const m of dataset.messages) processMessage(ctx, m)
 
-  const all = [...ctx.open, ...manualTasks.map((t) => manualCommitment(ctx, t))]
+  const tasks = [...manualTasks].sort((a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1))
+  const all = [...ctx.open, ...tasks.map((t) => manualCommitment(ctx, t))]
   const byId = new Map(all.map((w) => [w.c.id, w]))
   const sorted = [...decisions].sort((a, b) => (a.at === b.at ? (a.id < b.id ? -1 : 1) : a.at < b.at ? -1 : 1))
   for (const d of sorted) {
