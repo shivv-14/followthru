@@ -48,7 +48,7 @@ const EMPTY_RESULT: EngineResult = { runAt: '', mode: 'Rules', commitments: [], 
 
 export function EngineProvider({ children }: { children: ReactNode }) {
   const settings = useLiveQuery(getSettings, [], undefined)
-  const datasetRow = useLiveQuery(() => db.datasets.get('current'), [], null)
+  const datasetRow = useLiveQuery(async () => (await db.datasets.get('current')) ?? null, [], undefined)
   const decisions = useLiveQuery(() => db.decisions.toArray(), [], undefined)
   const tasks = useLiveQuery(() => db.tasks.toArray(), [], undefined)
   const storedDrafts = useLiveQuery(() => db.drafts.toArray(), [], undefined)
