@@ -5,11 +5,12 @@
   --color-surface: rgba(255, 255, 255, 0.04);
   --color-surface-hover: rgba(255, 255, 255, 0.07);
   --color-surface-border: rgba(255, 255, 255, 0.08);
-  --color-accent: #7C5CFF;
+  --color-accent: #8B6FFF;
   --color-accent-muted: rgba(124, 92, 255, 0.32);
+  --color-accent-strong: #6A4BEF;
   --color-text-primary: #F5F4F8;
   --color-text-muted: rgba(245, 244, 248, 0.64);
-  --color-text-faint: rgba(245, 244, 248, 0.38);
+  --color-text-faint: rgba(245, 244, 248, 0.58);
 
   --color-status-done: #3EE6B0;
   --color-status-overdue: #FF5D6C;

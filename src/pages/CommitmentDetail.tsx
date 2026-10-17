@@ -302,13 +302,13 @@ export default function CommitmentDetail() {
                   </Button>
                 </div>
                 <div className="flex items-end gap-2">
-                  <label className="flex flex-1 flex-col gap-1.5 text-sm font-medium text-text-primary">
+                  <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-sm font-medium text-text-primary">
                     New deadline (your time)
                     <input
                       type="datetime-local"
                       value={newDue}
                       onChange={(e) => setNewDue(e.target.value)}
-                      className="h-10 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]"
+                      className="h-10 w-full min-w-0 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]"
                     />
                   </label>
                   <Button size="sm" variant="secondary" disabled={!newDue} onClick={() => decide('change_deadline', { dueAt: new Date(newDue).toISOString() })}>
@@ -359,7 +359,7 @@ export default function CommitmentDetail() {
                     type="datetime-local"
                     value={extDue}
                     onChange={(e) => setExtDue(e.target.value)}
-                    className="h-10 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]"
+                    className="h-10 w-full min-w-0 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]"
                   />
                 </label>
                 <Textarea label="Why do you need more time?" value={extReason} onChange={(e) => setExtReason(e.target.value)} placeholder="For example: waiting on the final logo" />
