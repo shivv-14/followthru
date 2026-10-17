@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { AppShell } from './components/shell/AppShell'
+import { EngineProvider } from './store'
 import Landing from './pages/Landing'
 import Setup from './pages/Setup'
 import ProfilePicker from './pages/ProfilePicker'
@@ -15,23 +16,25 @@ import NotFound from './pages/NotFound'
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/setup" element={<Setup />} />
-      <Route path="/profiles" element={<ProfilePicker />} />
-      <Route path="/styleguide" element={<Styleguide />} />
+    <EngineProvider>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/setup" element={<Setup />} />
+        <Route path="/profiles" element={<ProfilePicker />} />
+        <Route path="/styleguide" element={<Styleguide />} />
 
-      <Route element={<AppShell />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/commitments" element={<Commitments />} />
-        <Route path="/commitments/:id" element={<CommitmentDetail />} />
-        <Route path="/queue" element={<Queue />} />
-        <Route path="/flows" element={<Flows />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/evidence" element={<Evidence />} />
-      </Route>
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/commitments" element={<Commitments />} />
+          <Route path="/commitments/:id" element={<CommitmentDetail />} />
+          <Route path="/queue" element={<Queue />} />
+          <Route path="/flows" element={<Flows />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/evidence" element={<Evidence />} />
+        </Route>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </EngineProvider>
   )
 }
