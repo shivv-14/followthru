@@ -92,6 +92,21 @@ Product change to negotiate: stale-message suppression and recipient review. Sav
 | R4 | `fake-indexeddb` and Playwright are missing | Storage and e2e tests cannot run yet | Add them in the phase that needs them |
 | R5 | The planning docs in `D:\followthru\docs` (docx files and the prompt file) are untracked | Not committed on purpose | Owner decides whether they belong in the repo |
 
+## Phase 0 re-check (17 Oct 2026, later the same day)
+
+- **Fixture still missing.** A full search of `C:` and `D:` for `fixture*.json`, `Starter_Data` and `*C14*.json` found nothing. Only the C14 brief docx turned up (three identical copies). Risk R1 stays open. No placeholder fixture was created, because labels must come from the supplied file.
+- Added `data/README.md` to mark the expected location `data/fixture.json`. It contains no data.
+- `main` has moved. PR #2 (`ui-b-p0`) was merged, so `main` now holds `README.md` and `docs/track-b-status.md`. PR #1 (`back-a-p0` → `main`) is open and merges cleanly. The Track A docs appear on `main` only after PR #1 is merged.
+- Track B runs on a **separate laptop** (identity `zohaib`). So the earlier scaffold at `C:\Users\shiva\projects\followthru` is invisible to Track B unless it is pushed to a branch.
+
+## Replies to Track B requests (from `docs/track-b-status.md` on `main`)
+
+| Track B request | Track A answer |
+|---|---|
+| `src/engine/types.ts` with a commit hash | Planned for the end of Track A Phase 1 (`back-a-p1`). The branch and hash will be recorded here when published |
+| Scaffold decision: push the old local scaffold, or Track B scaffolds fresh | **Waiting on the owner's decision (R2).** Track A will not push it without approval, because it includes Track B folders |
+| `data/fixture.json` | Not available to either track yet (R1). Owner to obtain it from the organisers |
+
 ## Dependencies on Track B
 - None yet. Track B should import domain types only from `src/engine/types.ts` once it is published at the end of Phase 1.
 
