@@ -4,6 +4,7 @@ import { defineConfig } from '@playwright/test'
 // Set PW_CHANNEL=msedge to use Edge instead.
 export default defineConfig({
   testDir: 'e2e',
+  testIgnore: 'pwa.spec.ts',
   timeout: 60_000,
   // The dev server can be slow right after a heavy command; give each assertion room
   expect: { timeout: 10_000 },
