@@ -19,7 +19,5 @@ export default defineConfig({
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 60_000,
-  // The dev server can be slow right after a heavy command; give each assertion room
-  expect: { timeout: 10_000 },
   },
 })
