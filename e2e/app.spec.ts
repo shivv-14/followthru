@@ -128,4 +128,8 @@ test('api routes respond in the dev server', async ({ request }) => {
   expect(await health.json()).toMatchObject({ ok: true })
   const bad = await request.post('/api/process', { data: 'x', headers: { 'content-type': 'text/plain' } })
   expect(bad.status()).toBe(415)
+  const evidence = await request.get('/api/evidence?format=csv&kind=drafts')
+  expect(evidence.status()).toBe(200)
+  expect(evidence.headers()['x-followthru-dataset']).toBe('synthetic-demo')
+  expect(await evidence.text()).toContain('commitmentId')
 })

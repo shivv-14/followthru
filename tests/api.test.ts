@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import demo from '../src/mocks/demoDataset.json'
 import sample from './fixtures/sample-valid.json'
-import { handleHealth, handleProcess, MAX_BODY_BYTES } from '../api/_lib/handlers'
+import { handleEvidence, handleHealth, handleProcess, MAX_BODY_BYTES, withCors } from '../api/_lib/handlers'
+import { messagesToCsv } from '../src/schema/io'
+import { validateDataset } from '../src/schema/validate'
 import processRoute from '../api/process'
 
 const json = { 'content-type': 'application/json' }
@@ -11,7 +13,7 @@ describe('GET /api/health', () => {
     expect(handleHealth({ method: 'GET', headers: {}, body: undefined })).toMatchObject({ status: 200, body: { ok: true, sending: expect.stringContaining('shadow') } })
   })
   it('rejects other methods with 405', () => {
-    expect(handleHealth({ method: 'POST', headers: {}, body: undefined })).toMatchObject({ status: 405, headers: { Allow: 'GET' } })
+    expect(handleHealth({ method: 'POST', headers: {}, body: undefined })).toMatchObject({ status: 405, headers: { Allow: 'GET, OPTIONS' } })
   })
 })
 
@@ -59,5 +61,55 @@ describe('POST /api/process', () => {
     expect(logged).not.toContain('pricing deck')
     expect(logged).toContain('"status":200')
     log.mockRestore()
+  })
+})
+
+describe('CSV input to /api/process', () => {
+  const data = validateDataset(demo).data!
+  it('builds the dataset from a messages CSV and people', () => {
+    const out = handleProcess({ method: 'POST', headers: json, body: { csv: messagesToCsv(data.messages), people: data.people, threads: data.threads, config: { now: data.referenceTime } } })
+    expect(out.status).toBe(200)
+    expect((out.body as { result: { commitments: unknown[] } }).result.commitments).toHaveLength(10)
+  })
+  it('rejects a CSV with missing columns', () => {
+    const out = handleProcess({ method: 'POST', headers: json, body: { csv: 'id,text' + String.fromCharCode(10) + 'm1,hi', people: data.people } })
+    expect(out).toMatchObject({ status: 422, body: { error: { code: 'invalid_csv' } } })
+  })
+  it('accepts "fixture" as another name for "dataset"', () => {
+    expect(handleProcess({ method: 'POST', headers: json, body: { fixture: demo } }).status).toBe(200)
+  })
+})
+
+describe('GET /api/evidence', () => {
+  const get = (url: string) => handleEvidence({ method: 'GET', url, headers: {}, body: undefined })
+  it('returns the scorecard as JSON, labelled synthetic without the fixture', () => {
+    const out = get('/api/evidence?format=json&kind=scorecard')
+    expect(out.status).toBe(200)
+    expect(out.headers?.['X-FollowThru-Dataset']).toBe('synthetic-demo')
+    expect(out.body).toMatchObject({ dataset: 'synthetic demo (not challenge data)', kind: 'scorecard' })
+    expect(out.headers?.['Content-Disposition']).toMatch(/attachment; filename="followthru-scorecard-.+\.json"/)
+  })
+  it.each(['commitments', 'drafts', 'suppressions'])('returns %s as CSV', (kind) => {
+    const out = get(`/api/evidence?format=csv&kind=${kind}`)
+    expect(out.status).toBe(200)
+    expect(out.headers?.['Content-Type']).toContain('text/csv')
+    expect(typeof out.body).toBe('string')
+  })
+  it.each([
+    ['/api/evidence?format=xml', 'bad_format'],
+    ['/api/evidence?kind=everything', 'bad_kind'],
+    ['/api/evidence?format=csv&kind=scorecard', 'bad_format'],
+  ])('rejects %s with 400', (url, code) => {
+    expect(get(url)).toMatchObject({ status: 400, body: { error: { code } } })
+  })
+  it('rejects POST with 405', () => {
+    expect(handleEvidence({ method: 'POST', headers: {}, body: {} }).status).toBe(405)
+  })
+})
+
+describe('CORS', () => {
+  it('answers preflight with 204 and adds headers to every response', () => {
+    expect(withCors({ method: 'OPTIONS', headers: {}, body: undefined }, handleHealth)).toMatchObject({ status: 204, headers: { 'Access-Control-Allow-Origin': '*' } })
+    expect(withCors({ method: 'GET', headers: {}, body: undefined }, handleHealth).headers).toMatchObject({ 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' })
   })
 })

@@ -10,7 +10,8 @@ function apiDevServer(): Plugin {
     configureServer(server) {
       server.middlewares.use('/api', async (req, res, next) => {
         const route = (req.url ?? '').split('?')[0].replace(/^\/+/, '')
-        if (route !== 'health' && route !== 'process') return next()
+        const handlers = { health: 'handleHealth', process: 'handleProcess', evidence: 'handleEvidence' } as const
+        if (!(route in handlers)) return next()
         const chunks: Buffer[] = []
         let size = 0
         for await (const chunk of req) {
@@ -19,10 +20,12 @@ function apiDevServer(): Plugin {
           chunks.push(chunk as Buffer)
         }
         const mod = await server.ssrLoadModule('/api/_lib/handlers.ts')
-        const request = { method: req.method, headers: req.headers, body: Buffer.concat(chunks).toString('utf8') }
-        const out = route === 'health' ? mod.handleHealth(request) : mod.handleProcess(request)
+        const request = { method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks).toString('utf8') }
+        const out = mod.withCors(request, (r: unknown) => mod[handlers[route as keyof typeof handlers]](r))
         res.statusCode = out.status
         for (const [k, v] of Object.entries(out.headers ?? {})) res.setHeader(k, String(v))
+        if (out.status === 204) return res.end()
+        if (typeof out.body === 'string') return res.end(out.body)
         res.setHeader('Content-Type', 'application/json')
         res.end(JSON.stringify(out.body))
       })
