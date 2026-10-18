@@ -152,6 +152,11 @@ export function buildSyncOps(input: OrgInput, result: EngineResult, actorProfile
     } else if (!same(prev.snapshot, d)) {
       ops.push({ op: 'update', table: 'reminder_drafts', match: { id: prev.id, row_version: prev.row_version }, set: { ...cols, row_version: prev.row_version + 1 }, require_rows: true })
       changed.drafts++
+      // Approved but still waiting for quiet hours to end: if the work closed meanwhile, the held
+      // in-app reminder is cancelled, so it is never shown later (stale-message suppression)
+      if (prev.state === 'approved' && (d.state === 'suppressed' || d.state === 'stale')) {
+        ops.push({ op: 'update', table: 'notifications', match: { org_id: input.orgId, event_key: `reminder:${d.id}:v${prev.version}`, read_at: null }, set: { cancelled_at: at } })
+      }
     } else continue
     for (const v of d.history) {
       if (prev && v.version <= prev.version) continue

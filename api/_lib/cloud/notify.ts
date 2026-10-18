@@ -73,10 +73,21 @@ export async function reviewerIds(orgId: string, teamKey: string | null | undefi
   return [...(coordinators ?? []).map((c) => c.id as string), ...(team?.lead_profile_id ? [team.lead_profile_id as string] : [])]
 }
 
-export function auditOp(orgId: string, actorProfileId: string | null, actorPerson: string | null, action: string, entityType: string, entityId: string, before?: unknown, after?: unknown): Op {
+export function auditOp(orgId: string, actorProfileId: string | null, actorPerson: string | null, action: string, entityType: string, entityId: string, before?: unknown, after?: unknown, subjectProfileId?: string | null): Op {
   return {
     op: 'insert',
     table: 'audit_log',
-    row: { org_id: orgId, actor_profile_id: actorProfileId, actor_person: actorPerson, action, entity_type: entityType, entity_id: entityId, before: before ?? null, after: after ?? null },
+    row: {
+      org_id: orgId,
+      actor_profile_id: actorProfileId,
+      actor_person: actorPerson,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      before: before ?? null,
+      after: after ?? null,
+      // The person the event is about can see it in their own audit history
+      ...(subjectProfileId ? { subject_profile_id: subjectProfileId } : {}),
+    },
   }
 }

@@ -7,7 +7,8 @@ export type AppRole = 'coordinator' | 'team_lead' | 'member'
 
 export interface ProfileRow {
   id: string
-  org_id: string
+  /** Null for a team member who has not joined a workspace yet */
+  org_id: string | null
   full_name: string
   username: string
   email: string | null
@@ -39,7 +40,7 @@ export const engineRole = (role: AppRole): Role => (role === 'member' ? 'member'
  * Verifies the bearer token with Supabase Auth and loads the caller's profile. The role and
  * organization always come from the database, never from the request.
  */
-export async function requireUser(req: ApiRequest, opts: { allowMustChange?: boolean } = {}): Promise<Ctx> {
+export async function requireUser(req: ApiRequest, opts: { allowMustChange?: boolean; allowNoWorkspace?: boolean } = {}): Promise<Ctx> {
   const token = header(req, 'authorization').replace(/^Bearer\s+/i, '')
   if (!token) throw unauthorized()
   // Verifies the JWT signature locally against the project's signing keys (cached), so most
@@ -54,12 +55,13 @@ export async function requireUser(req: ApiRequest, opts: { allowMustChange?: boo
   if (!profile) throw forbidden('This account has no FollowThru workspace.')
   if (!profile.is_active) throw forbidden('This account is disabled. Ask your coordinator.')
   if (profile.must_change_password && !opts.allowMustChange) throw new HttpError(403, 'must_change_password', 'Choose a new password before continuing.')
+  if (!profile.org_id && !opts.allowNoWorkspace) throw new HttpError(403, 'no_workspace', 'Join a workspace first.')
   const { data: person } = await admin().from('external_people').select('external_id, name, timezone, role, team_key').eq('org_id', profile.org_id).eq('external_id', profile.person_id).maybeSingle()
   return {
     userId: profile.id,
     token,
     profile,
-    orgId: profile.org_id,
+    orgId: profile.org_id ?? '',
     role: profile.role,
     ledTeams: (teams ?? []).map((t) => t.team_key as string),
     person: {

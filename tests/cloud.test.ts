@@ -93,3 +93,28 @@ describe('account rules', () => {
     expect(Object.keys(ROUTES).every((r) => /^[a-z]+\/[a-z-]+$/.test(r))).toBe(true)
   })
 })
+
+describe('stale reminder after approval', () => {
+  it('cancels a held in-app reminder when the approved draft becomes suppressed', async () => {
+    const { buildSyncOps } = await import('../api/_lib/cloud/sync')
+    const data = validateDataset(demo).data!
+    const now = data.referenceTime!
+    const r = runEngine({ dataset: data }, makeConfig(now))
+    const live = r.drafts.find((d) => d.state === 'pending_review')!
+    const approvedSnapshot = { ...live, state: 'approved' as const }
+    const suppressed = { ...live, state: 'suppressed' as const, suppression: { reason: 'completed' as const, at: now } }
+    const input = {
+      orgId: 'org-1',
+      now,
+      tasks: [],
+      drafts: [{ id: 'row-1', draft_key: live.id, task_key: live.commitmentId, row_version: 3, version: live.version, state: 'approved', snapshot: approvedSnapshot }],
+      profileByPerson: new Map<string, string>(),
+    } as never
+    const { ops } = buildSyncOps(input, { ...r, commitments: [], drafts: [suppressed] }, null)
+    const cancel = ops.find((o) => o.table === 'notifications')
+    expect(cancel).toMatchObject({ op: 'update', match: { event_key: `reminder:${live.id}:v${live.version}`, read_at: null } })
+    // An approved draft that stays approved never touches notifications
+    const { ops: same } = buildSyncOps(input, { ...r, commitments: [], drafts: [approvedSnapshot] }, null)
+    expect(same.some((o) => o.table === 'notifications')).toBe(false)
+  })
+})

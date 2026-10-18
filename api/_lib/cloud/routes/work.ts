@@ -41,6 +41,11 @@ export async function createTasks(req: ApiRequest) {
   const ownerIds = Array.isArray(b.ownerIds) ? (b.ownerIds as unknown[]).filter((x): x is string => typeof x === 'string') : []
   if (ownerIds.length === 0 || ownerIds.length > 100) throw bad('Choose a person or a team')
   const dueAt = isoOrNull(b.dueAt, 'dueAt')
+  const startAt = isoOrNull(b.startAt, 'startAt')
+  if (startAt && dueAt && Date.parse(dueAt) < Date.parse(startAt)) throw bad('The end date must not be earlier than the start date')
+  const description = str(b, 'description', { max: 4000, optional: true }) || null
+  const priority = str(b, 'priority', { optional: true }) || 'normal'
+  if (!['low', 'normal', 'high', 'critical'].includes(priority)) throw bad('Choose a priority: low, normal, high or critical')
   const teamId = str(b, 'teamId', { max: 40, optional: true }) || undefined
   const outcome = await syncOrg(ctx.orgId, ctx.userId, 'write')
   const people = new Map(outcome.input.dataset.people.map((p) => [p.id, p]))
@@ -59,11 +64,11 @@ export async function createTasks(req: ApiRequest) {
       {
         op: 'insert',
         table: 'tasks',
-        row: { id, org_id: ctx.orgId, task_key: `c_${manual.id}`, source: 'manual', manual_task: manual, title, owner_person: ownerId, owner_profile_id: ownerProfile, requester_person: ctx.person.id, team_key: manual.teamId ?? null, group_key: groupKey, due_at: dueAt, created_by: ctx.userId },
+        row: { id, org_id: ctx.orgId, task_key: `c_${manual.id}`, source: 'manual', manual_task: manual, title, description, priority, owner_person: ownerId, owner_profile_id: ownerProfile, requester_person: ctx.person.id, team_key: manual.teamId ?? null, group_key: groupKey, start_at: startAt, due_at: dueAt, created_by: ctx.userId },
       },
       { op: 'insert', table: 'task_assignments', row: { org_id: ctx.orgId, task_id: id, assignee_person: ownerId, assignee_profile_id: ownerProfile, assigned_by: ctx.userId, reason: 'Assigned by hand' } },
       auditOp(ctx.orgId, ctx.userId, ctx.person.id, 'task.create', 'task', `c_${manual.id}`, null, manual),
-      ...(ownerProfile ? notificationOps({ orgId: ctx.orgId, recipients: [ownerProfile], type: 'task_assigned', title: `New task: ${title}`, body: dueAt ? `Due ${dueAt}` : 'No deadline', taskKey: `c_${manual.id}`, eventKey: `assign:${manual.id}`, skip: ctx.userId }) : []),
+      ...(ownerProfile ? notificationOps({ orgId: ctx.orgId, recipients: [ownerProfile], type: 'task_assigned', title: `New task: ${title}`, body: [startAt ? `Starts ${startAt}` : '', dueAt ? `Due ${dueAt}` : 'No deadline', description ?? ''].filter(Boolean).join(' · '), taskKey: `c_${manual.id}`, eventKey: `assign:${manual.id}`, skip: ctx.userId }) : []),
     )
   }
   await applyOps(ops)

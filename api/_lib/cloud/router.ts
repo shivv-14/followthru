@@ -4,12 +4,14 @@ import * as accounts from './routes/accounts'
 import * as auth from './routes/auth'
 import * as data from './routes/data'
 import * as work from './routes/work'
+import * as workspaces from './routes/workspaces'
 
 type Handler = (req: ApiRequest) => Promise<ApiResponse>
 
 /** POST /api/cloud/<route>. Every route checks the caller itself; none trusts ids, roles or organizations from the request. */
 export const ROUTES: Record<string, Handler> = {
   'auth/signup': auth.signup,
+  'auth/signup-member': auth.signupMember,
   'auth/login': auth.login,
   'auth/change-password': auth.changePassword,
   'auth/logout': auth.logout,
@@ -37,6 +39,12 @@ export const ROUTES: Record<string, Handler> = {
   'settings/update': data.updateSettings,
   'flows/save': data.saveFlow,
   'flows/delete': data.deleteFlow,
+  'workspaces/list': workspaces.listWorkspaces,
+  'workspaces/request': workspaces.requestToJoin,
+  'workspaces/requests': workspaces.listJoinRequests,
+  'workspaces/decide': workspaces.decideJoinRequest,
+  'experiments/list': workspaces.listExperiments,
+  'experiments/save': workspaces.saveExperiment,
 }
 
 export async function routeCloud(route: string, req: ApiRequest): Promise<ApiResponse> {

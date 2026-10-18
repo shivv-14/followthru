@@ -99,9 +99,12 @@ async function main() {
   const { data: lenaTasks } = await lc.from('tasks').select('task_key, owner_person')
   check('member sees only their own tasks', (lenaTasks ?? []).length > 0 && lenaTasks!.every((t) => t.owner_person === 'p_lena'), lenaTasks)
   const { data: lenaDrafts } = await lc.from('reminder_drafts').select('id')
-  const { data: lenaAudit } = await lc.from('audit_log').select('id')
+  const { data: lenaAudit } = await lc.from('audit_log').select('actor_profile_id, subject_profile_id, entity_type, entity_id')
   const { data: lenaProfiles } = await lc.from('profiles').select('id')
-  check('member cannot read drafts, audit log or other accounts', !lenaDrafts?.length && !lenaAudit?.length && lenaProfiles?.length === 1, { lenaDrafts, lenaAudit, lenaProfiles })
+  const lenaId = acct.body.account.id
+  const ownTaskKeys = new Set((lenaTasks ?? []).map((t) => t.task_key))
+  const onlyHers = (lenaAudit ?? []).every((a) => a.actor_profile_id === lenaId || a.subject_profile_id === lenaId || (a.entity_type === 'task' && ownTaskKeys.has(a.entity_id)))
+  check('member sees no drafts, no other accounts, and only audit events about themselves or their tasks', !lenaDrafts?.length && onlyHers && lenaProfiles?.length === 1, { lenaDrafts, lenaAudit, lenaProfiles })
   const { error: writeErr } = await lc.from('tasks').update({ title: 'hacked' }).eq('task_key', 'c_m_21')
   check('member cannot write tables directly', !!writeErr, writeErr)
 
@@ -158,6 +161,50 @@ async function main() {
   check('audit log recorded the workflow', (auditCount ?? 0) >= 8, auditCount)
   const { error: auditErr } = await admin.from('audit_log').update({ action: 'x' }).eq('org_id', orgId)
   check('audit log rejects edits even from the server', !!auditErr, auditErr)
+
+  // 12. Team member signs up, asks to join, the coordinator approves; the member then works in the workspace
+  const memberSignup = await api('auth/signup-member', { fullName: 'Ganesh Rao', username: `smoke_g_${stamp}`, password: `Ganesh${stamp}9x`, timezone: 'Asia/Kolkata' })
+  check('team member signs up without a workspace', memberSignup.status === 201 && !!memberSignup.body.session, memberSignup)
+  const ganesh = memberSignup.body.session?.access_token
+  const gMe = await api('auth/me', {}, ganesh)
+  created.push(gMe.body.profile?.id)
+  check('new member has no workspace yet', gMe.body.org === null, gMe.body)
+  const blockedTask = await api('tasks/decide', { taskKey: lenaTask, type: 'set_progress', input: { progress: 'in_progress' } }, ganesh)
+  check('member without a workspace cannot touch tasks', blockedTask.status === 403, blockedTask)
+  const list = await api('workspaces/list', {}, ganesh)
+  check('member sees the workspace in the list', (list.body.workspaces ?? []).some((w: any) => w.id === orgId && w.status === 'none'), list.body)
+  const ask = await api('workspaces/request', { orgId }, ganesh)
+  const askAgain = await api('workspaces/request', { orgId }, ganesh)
+  check('join request saved once, duplicates refused', ask.status === 201 && askAgain.status === 409, [ask, askAgain])
+  const { data: coordNotes } = await userClient(coord).from('notifications').select('type, title').eq('type', 'join_request')
+  check('coordinator gets a persistent join-request notification', (coordNotes ?? []).length === 1, coordNotes)
+  const reqs = await api('workspaces/requests', {}, coord)
+  const pendingReq = (reqs.body.requests ?? []).find((r: any) => r.status === 'pending')
+  const memberDecides = await api('workspaces/decide', { requestId: pendingReq?.id, approve: true }, lena)
+  check('a team member cannot approve join requests', memberDecides.status === 403, memberDecides)
+  const approveJoin = await api('workspaces/decide', { requestId: pendingReq?.id, approve: true }, coord)
+  check('coordinator approves the join request', approveJoin.status === 200, approveJoin)
+  const gMe2 = await api('auth/me', {}, ganesh)
+  check('member now belongs to the workspace', gMe2.body.org?.id === orgId, gMe2.body)
+  const { data: gAudit } = await userClient(ganesh).from('audit_log').select('action')
+  check('member sees their own audit history (join request and approval)', (gAudit ?? []).some((a) => a.action === 'workspace.join_approved') && (gAudit ?? []).some((a) => a.action === 'workspace.join_request'), gAudit)
+  const { data: gNotes } = await userClient(ganesh).from('notifications').select('type')
+  check('member is notified of the approval', (gNotes ?? []).some((n) => n.type === 'join_approved'), gNotes)
+
+  // 13. Assigning with start and end dates; end before start is refused
+  const badRange = await api('tasks/create', { title: 'Bad range', ownerIds: [gMe2.body.person.id], startAt: '2026-12-02T10:00:00Z', dueAt: '2026-12-01T10:00:00Z' }, coord)
+  check('end before start is refused', badRange.status === 400, badRange)
+  const assigned = await api('tasks/create', { title: 'Prepare the FAQ', ownerIds: [gMe2.body.person.id], startAt: '2026-12-01T04:30:00Z', dueAt: '2026-12-03T12:30:00Z', description: 'Ten questions', priority: 'high' }, coord)
+  check('task with start, end, description and priority is saved', assigned.status === 201, assigned)
+  const { data: gTasks } = await userClient(ganesh).from('tasks').select('title, start_at, due_at, priority')
+  check('member sees the assigned task with its dates', (gTasks ?? []).some((t) => t.title === 'Prepare the FAQ' && t.start_at && t.due_at && t.priority === 'high'), gTasks)
+
+  // 14. First password for coordinator-created accounts is username + 1, and must be changed
+  const ravi = await api('accounts/create', { fullName: 'Ravi Kumar', username: `ravi_${stamp}`, timezone: 'Asia/Kolkata', role: 'member' }, coord)
+  created.push(ravi.body.account?.id)
+  check('first password is username + 1', ravi.body.temporaryPassword === `ravi_${stamp}1`, ravi.body)
+  const raviLogin = await api('auth/login', { identifier: `ravi_${stamp}`, password: `ravi_${stamp}1` })
+  check('username + 1 signs in and must be changed', raviLogin.status === 200 && raviLogin.body.mustChangePassword === true, raviLogin.body)
 
   // 11. Disabling blocks sign-in
   check('coordinator disables the member', (await api('accounts/set-active', { profileId: acct.body.account.id, active: false }, coord)).status === 200)

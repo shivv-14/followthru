@@ -79,7 +79,10 @@ export async function createAccount(req: ApiRequest) {
 
   const orgId = ctx.orgId
   const email = rawEmail ? checkEmail(rawEmail) : placeholderEmail(username, orgId)
-  const password = temporaryPassword()
+  // Pilot onboarding convention: the first password is the username followed by 1 (ganesh -> ganesh1).
+  // It is shown once, never stored, and must be changed at first sign-in.
+  const password = `${username}1`
+  if (password.length < 6) throw bad('Use a username of at least 5 characters (the first password is the username followed by 1)')
   const created = await admin().auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: fullName } })
   if (created.error || !created.data.user) {
     if (/already|exists|registered/i.test(created.error?.message ?? '')) throw conflict('An account with this email already exists.')
@@ -110,9 +113,7 @@ export async function createAccount(req: ApiRequest) {
   return json(201, {
     account: { id: userId, username, fullName, role },
     temporaryPassword: password,
-    handoff: rawEmail
-      ? 'No email was sent. Give this temporary password to the person directly; they must change it when they first sign in.'
-      : 'This account signs in with its username. No email was sent. Give the username and temporary password to the person directly; they must change it when they first sign in.',
+    handoff: `First password = username + 1. Give it to the person directly (no email was sent); they must choose a new password when they first sign in. Pilot convention only: use invitations or password resets before real customer data.`,
   })
 }
 
@@ -199,6 +200,8 @@ export async function linkPerson(req: ApiRequest) {
   await applyOps([
     { op: 'update', table: 'external_people', match: { org_id: ctx.orgId, external_id: target.person_id }, set: { linked_profile_id: null } },
     { op: 'update', table: 'profiles', match: { id: target.id }, set: { person_id: externalId } },
+    // The placeholder person made for the account (u_...) is no longer anyone; remove it so names are not listed twice
+    ...(target.person_id.startsWith('u_') ? ([{ op: 'delete', table: 'external_people', match: { org_id: ctx.orgId, external_id: target.person_id, linked_profile_id: null } }] as Op[]) : []),
     { op: 'update', table: 'external_people', match: { org_id: ctx.orgId, external_id: externalId }, set: { linked_profile_id: target.id, role: target.role === 'member' ? 'member' : 'coordinator' } },
     auditOp(ctx.orgId, ctx.userId, ctx.person.id, 'account.link_person', 'profile', target.id, { person: target.person_id }, { person: externalId }),
   ])
