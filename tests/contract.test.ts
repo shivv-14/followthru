@@ -58,6 +58,12 @@ describe('published contract', () => {
         'editDraft',
         'MAX_DRAFT_BODY',
         'rejectDraft',
+        // Queue actions: snooze and regenerate (additive, see docs/integration-status.md)
+        'isSnoozed',
+        'MAX_SNOOZE_DAYS',
+        'regenerateDraft',
+        'snoozeDraft',
+        'unsnoozeDraft',
       ].sort(),
     )
   })

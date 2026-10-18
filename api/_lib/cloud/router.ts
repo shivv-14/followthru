@@ -52,6 +52,8 @@ export const ROUTES: Record<string, Handler> = {
   'chat/teams': chat.listChats,
   'chat/messages': chat.chatMessages,
   'chat/post': chat.postChat,
+  'chat/react': chat.reactChat,
+  'chat/search': chat.searchChats,
   'gmail/connect': automation.gmailConnect,
   'gmail/callback': automation.gmailCallback,
   'gmail/disconnect': automation.gmailDisconnect,

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, EmptyState } from '../components/ui'
 import { CommitmentLink, CommitmentStatus, DeadlineText, OwnerText, PageHeader, Stat, viewerTimezone } from '../components/domain/parts'
 import { REVIEW_LABEL, firstName, statusView } from '../components/domain/view'
-import { blockingReviewReasons } from '../engine/drafts'
+import { blockingReviewReasons, isSnoozed } from '../engine/drafts'
 import { useEngine } from '../store'
 import { cloudEnabled } from '../lib/supabase'
 
@@ -17,7 +17,7 @@ export default function Dashboard() {
   const overdue = open.filter((c) => statusView(c, now).key === 'overdue')
   const review = open.filter((c) => c.needsReview)
   const drafts = result.drafts.filter((d) => mine.some((c) => c.id === d.commitmentId))
-  const pending = drafts.filter((d) => d.state === 'pending_review')
+  const pending = drafts.filter((d) => d.state === 'pending_review' && !isSnoozed(d, now))
   const suppressed = drafts.filter((d) => d.state === 'suppressed' || d.state === 'stale')
   const closed = mine.filter((c) => c.status !== 'open')
 

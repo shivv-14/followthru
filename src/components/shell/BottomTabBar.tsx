@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import clsx from 'clsx'
 import { useEngine } from '../../store'
+import { isSnoozed } from '../../engine/drafts'
 import { navFor } from './nav'
 
 export function BottomTabBar() {
-  const { user, result } = useEngine()
-  const pending = result.drafts.filter((d) => d.state === 'pending_review').length
+  const { user, result, now } = useEngine()
+  const pending = result.drafts.filter((d) => d.state === 'pending_review' && !isSnoozed(d, now)).length
   // At most five tabs; the mobile sheet lists everything
   const items = navFor(user?.role).filter((i) => i.to !== '/flows').slice(0, 5)
 

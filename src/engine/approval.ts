@@ -1,10 +1,10 @@
 import type { Commitment, Dataset, Draft, EngineConfig, IsoUtc, Person, SuppressionReason } from './types'
-import { blockingReviewReasons, expectedRecipient } from './drafts'
+import { blockingReviewReasons, expectedRecipient, isSnoozed, reviewAgeHours } from './drafts'
 import { isOverdue } from './deadline'
 import { toWallTime } from './time'
 
 export interface ApprovalBlocker {
-  code: SuppressionReason | 'not_pending'
+  code: SuppressionReason | 'not_pending' | 'snoozed'
   message: string
 }
 
@@ -30,6 +30,7 @@ export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, con
   if (!config.flags.staleSuppression) {
     // Baseline without the product change: no freshness re-check at all.
     if (draft.state !== 'pending_review') blockers.push({ code: 'not_pending', message: `Draft is ${draft.state.replace('_', ' ')}, not waiting for review` })
+    if (isSnoozed(draft, config.now)) blockers.push(snoozedBlocker(draft))
     if (config.flags.recipientReview && !draft.recipientConfirmed) blockers.push({ code: 'recipient_unconfirmed', message: 'Confirm the recipient before approving' })
     return { ok: blockers.length === 0, blockers }
   }
@@ -39,6 +40,7 @@ export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, con
     suppressWith = terminal
   }
   if (draft.state !== 'pending_review') blockers.push({ code: 'not_pending', message: `Draft is ${draft.state.replace('_', ' ')}, not waiting for review` })
+  if (isSnoozed(draft, config.now)) blockers.push(snoozedBlocker(draft))
   if (blockingReviewReasons(c).length > 0) blockers.push({ code: 'needs_review', message: `Needs review first: ${blockingReviewReasons(c).join(', ').replace(/_/g, ' ')}` })
   const draftedDue = draft.history[draft.history.length - 1]?.dueAt ?? null
   if (draftedDue !== c.deadline.dueAt) {
@@ -59,11 +61,14 @@ export function checkBeforeApproval(draft: Draft, c: Commitment | undefined, con
   if (config.flags.recipientReview && !draft.recipientConfirmed) {
     blockers.push({ code: 'recipient_unconfirmed', message: 'Confirm the recipient before approving' })
   }
-  const ageHours = (Date.parse(config.now) - Date.parse(draft.updatedAt)) / 3_600_000
-  if (config.flags.staleSuppression && ageHours > config.staleAfterHours) {
+  if (config.flags.staleSuppression && reviewAgeHours(draft, config.now) > config.staleAfterHours) {
     blockers.push({ code: 'stale', message: `Drafted more than ${config.staleAfterHours} hours ago; review the latest messages first` })
   }
   return { ok: blockers.length === 0, blockers, suppressWith }
+}
+
+function snoozedBlocker(draft: Draft): ApprovalBlocker {
+  return { code: 'snoozed', message: `Snoozed until ${draft.snoozedUntil}; wake it up first to approve now` }
 }
 
 export function approveDraft(draft: Draft, by: string, at: IsoUtc): Draft {
