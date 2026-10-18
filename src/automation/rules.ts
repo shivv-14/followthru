@@ -37,8 +37,9 @@ function itemFromLine(line: string): ActionItem | null {
     return { title: rec.title, description: null, assignee_email: null, assignee_name: rec.ownerName ?? null, deadline_text: rec.deadlineText ?? null, priority: p.priority, priority_reason: p.reason, blockers: [] }
   }
   let owner: string | null = null
-  let rest = line.trim()
-  const email = /([\w.+-]+@[\w-]+\.[\w.-]+)/.exec(rest)
+  const email = /([\w.+-]+@[\w-]+\.[\w.-]+)/.exec(line)
+  // "asha@x.com: send the deck" or "asha@x.com, please send…": the address names the owner, not the task
+  let rest = line.trim().replace(/^@?[\w.+-]+@[\w-]+\.[\w.-]+\s*[:,–—-]?\s*(please\s+)?/i, '')
   let m = /^@?([A-Z][\w'-]+(?:\s+[A-Z][\w'-]+)?)\s*(?::|-|–|—)\s+(.+)$/.exec(rest)
   if (m) [owner, rest] = [m[1], m[2]]
   else if ((m = /^@?([A-Z][\w'-]+(?:\s+[A-Z][\w'-]+)?)\s+(?:to|will|shall|should)\s+(.+)$/.exec(rest))) [owner, rest] = [m[1], m[2]]
@@ -159,7 +160,7 @@ export function rulesAnalyze(e: EmailForReading): EmailAnalysis {
     const firstSentence = text.split(/(?<=[.!?])\s+/).find((s) => /\b(please|can you|could you|need you|will you|i'?ll|i will|make sure)\b/i.test(s)) ?? text
     const item = itemFromLine(firstSentence.replace(/^(hi|hello|hey|dear)\b[^,\n]*[,\n]\s*/i, ''))
     const leading = /^@?([A-Z][\w'-]+)\s*,/.exec(text.replace(/^(hi|hello|hey|dear)\s+/i, ''))
-    const title = titleFrom(firstSentence.replace(/^(hi|hello|hey|dear)\b[^,\n]*[,\n]\s*/i, ''), [])
+    const title = titleFrom(firstSentence.replace(/^(hi|hello|hey|dear)\b[^,\n]*[,\n]\s*/i, '').replace(/^\s*[\w.+-]+@[\w-]+\.[\w.-]+\s*[:,]?\s*/, ''), [])
     const p = priorityOf(text)
     const dl = DEADLINE_WORDS.exec(firstSentence.replace(/[.!]+$/, ''))
     return base(e, {
