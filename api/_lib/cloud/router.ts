@@ -5,6 +5,7 @@ import * as auth from './routes/auth'
 import * as automation from './routes/automation'
 import * as chat from './routes/chat'
 import * as data from './routes/data'
+import * as knowledge from './routes/knowledge'
 import * as work from './routes/work'
 import * as workspaces from './routes/workspaces'
 
@@ -60,6 +61,13 @@ export const ROUTES: Record<string, Handler> = {
   'automation/dismiss': automation.dismissEmail,
   'automation/retry': automation.retryEmail,
   'cron/gmail': automation.cron,
+  'kb/spaces': knowledge.listSpaces,
+  'kb/space-save': knowledge.saveSpace,
+  'kb/pages': knowledge.listPages,
+  'kb/page': knowledge.getPage,
+  'kb/page-save': knowledge.savePage,
+  'kb/page-status': knowledge.setPageStatus,
+  'kb/page-restore': knowledge.restorePage,
 }
 
 export async function routeCloud(route: string, req: ApiRequest): Promise<ApiResponse> {
