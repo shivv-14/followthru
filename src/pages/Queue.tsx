@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button, Card, Dialog, EmptyState, StatusChip, Tabs, Textarea } from '../components/ui'
+import { Button, Card, Dialog, EmptyState, Select, StatusChip, Tabs, Textarea } from '../components/ui'
 import { Notice, PageHeader, useActionNotice } from '../components/domain/parts'
 import { SUPPRESSION_LABEL, draftStateView, personName, shortTime } from '../components/domain/view'
 import { checkBeforeApproval, draftText, MAX_DRAFT_BODY, recipientWarnings } from '../engine/approval'
@@ -125,7 +125,7 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
           ) : null}
           <div className="flex flex-wrap gap-2">
             <Button size="sm" disabled={!isCoordinator || (!check.ok && !check.suppressWith) || notice.busy} onClick={() => notice.run(() => actions.approve(draft.id))}>
-              {check.suppressWith ? 'Re-check and suppress' : 'Approve (shadow, not sent)'}
+              {check.suppressWith ? 'Re-check and suppress' : 'Approve'}
             </Button>
             {isCoordinator ? (
               <>
@@ -203,9 +203,20 @@ function Lane({ drafts, empty, notice }: { drafts: Draft[]; empty: string; notic
 }
 
 export default function Queue() {
-  const { result, user, scorecard } = useEngine()
+  const { result, user, scorecard, people, commitment, now } = useEngine()
   const notice = useActionNotice()
-  const visible = user?.role === 'coordinator' ? result.drafts : result.drafts.filter((d) => d.recipientId === user?.id)
+  const [owner, setOwner] = useState('')
+  const [due, setDue] = useState<'all' | 'overdue' | 'week'>('all')
+  const mine = user?.role === 'coordinator' ? result.drafts : result.drafts.filter((d) => d.recipientId === user?.id)
+  // Filters: whose task it is, and how close the deadline is
+  const visible = mine.filter((d) => {
+    const c = commitment(d.commitmentId)
+    if (owner && c?.ownerId !== owner) return false
+    const dueAt = c?.deadline.dueAt ? Date.parse(c.deadline.dueAt) : null
+    if (due === 'overdue' && !(dueAt && dueAt < Date.parse(now))) return false
+    if (due === 'week' && !(dueAt && dueAt < Date.parse(now) + 7 * 86_400_000)) return false
+    return true
+  })
   const by = (states: Draft['state'][], kind?: Draft['kind']) => visible.filter((d) => states.includes(d.state) && (!kind || d.kind === kind))
   const reminders = by(['pending_review'], 'reminder')
   const clarify = by(['pending_review'], 'clarify')
@@ -216,11 +227,26 @@ export default function Queue() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Draft queue"
-        description="One draft per commitment. Deadline or owner changes update the same draft as a new version. Approving re-checks freshness first. Shadow mode: nothing is ever sent."
+        description="One draft per commitment. Deadline or owner changes update the same draft as a new version. Approving re-checks freshness first; approved reminders appear inside FollowThru only."
       />
       <p className={activeOnClosed === 0 ? 'mb-3 text-sm text-status-done' : 'mb-3 text-sm text-status-overdue'}>
         {activeOnClosed} active reminders for completed, cancelled or deferred work
       </p>
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Select label="Owner" value={owner} onChange={(e) => setOwner(e.target.value)}>
+          <option value="">Everyone</option>
+          {[...people.values()].map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
+        <Select label="Deadline" value={due} onChange={(e) => setDue(e.target.value as typeof due)}>
+          <option value="all">Any deadline</option>
+          <option value="overdue">Already overdue</option>
+          <option value="week">Due within 7 days</option>
+        </Select>
+      </div>
       <div className="mb-3" aria-live="polite">
         <Notice result={notice.result} />
       </div>

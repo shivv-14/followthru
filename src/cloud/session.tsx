@@ -7,14 +7,24 @@ export type AccountRole = 'coordinator' | 'team_lead' | 'member'
 
 export interface Me {
   profile: { id: string; fullName: string; username: string; email: string | null; role: AccountRole; timezone: string; personId: string; mustChangePassword: boolean }
-  org: { id: string; name: string }
+  /** Null for a team member who has not joined a workspace yet */
+  org: { id: string; name: string } | null
   person: Person
   ledTeams: string[]
   /** The workspace's data clock (reference time), when the evaluation clock follows the data */
   dataClock: string | null
 }
 
+export interface MemberSignupInput {
+  fullName: string
+  username: string
+  email: string
+  password: string
+  timezone: string
+}
+
 export interface SignupInput {
+  description?: string
   orgName: string
   fullName: string
   username: string
@@ -32,6 +42,7 @@ export interface CloudSession {
   bump: () => void
   signIn: (identifier: string, password: string) => Promise<ApiResult<{ mustChangePassword: boolean; role: AccountRole }>>
   signUp: (input: SignupInput) => Promise<ApiResult<unknown>>
+  signUpMember: (input: MemberSignupInput) => Promise<ApiResult<unknown>>
   signOut: () => Promise<void>
   changePassword: (password: string) => Promise<ApiResult<unknown>>
   refreshMe: () => Promise<void>
@@ -121,6 +132,11 @@ export function CloudSessionProvider({ children }: { children: ReactNode }) {
       },
       async signUp(input) {
         const res = await callApi<{ session: Tokens | null }>('auth/signup', input)
+        if (res.ok) await adopt(res.data.session)
+        return res
+      },
+      async signUpMember(input) {
+        const res = await callApi<{ session: Tokens | null }>('auth/signup-member', input)
         if (res.ok) await adopt(res.data.session)
         return res
       },

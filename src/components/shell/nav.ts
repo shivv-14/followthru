@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, FlaskConical, type LucideIcon } from 'lucide-react'
 import { cloudEnabled } from '../../lib/supabase'
 import type { Role } from '../../engine/types'
 
@@ -19,7 +19,12 @@ const COORDINATOR: NavEntry[] = [
   { to: '/flows', label: 'Flows', short: 'Flows', icon: Workflow },
   { to: '/team', label: 'Team', short: 'Team', icon: Users },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
-  ...(cloudEnabled ? [{ to: '/people', label: 'People', short: 'People', icon: UserCog }] : []),
+  ...(cloudEnabled
+    ? [
+        { to: '/people', label: 'People', short: 'People', icon: UserCog },
+        { to: '/experiment', label: 'Experiment', short: 'Experiment', icon: FlaskConical },
+      ]
+    : []),
 ]
 
 const MEMBER: NavEntry[] = [

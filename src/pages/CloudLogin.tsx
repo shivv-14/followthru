@@ -50,18 +50,13 @@ export default function CloudLogin() {
 
   return (
     <AuthLayout
-      aside={
-        <Link to="/signup" className="rounded-full bg-pill px-5 py-2.5 text-sm font-medium text-pill-text shadow-[0_4px_14px_rgba(0,0,0,0.16)] hover:bg-[#323234] hover:text-white">
-          Create a workspace
-        </Link>
-      }
     >
       <div className="mb-8 text-center">
         <p className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-pill-border bg-pill/90 px-4 py-1.5 text-xs font-medium text-[#c4c2c3]">
           <LockKeyhole size={14} aria-hidden /> Secure sign-in · your workspace is saved in the cloud
         </p>
         <h1 className="font-dot text-5xl leading-tight text-white sm:text-6xl">Sign in</h1>
-        <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-white/75">Use the username or email your coordinator gave you, or the one you signed up with.</p>
+        <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-white/75">Use your username or email and password.</p>
       </div>
       <form onSubmit={submit} className="glass-surface mx-auto flex max-w-md flex-col gap-4 rounded-[28px] p-6" noValidate>
         <Input label="Username or email" autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="priya or priya@company.com" />
@@ -74,16 +69,21 @@ export default function CloudLogin() {
         <Button type="submit" size="lg" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
-        <div className="flex justify-between text-sm">
-          <button type="button" className="text-white/70 hover:text-white" onClick={() => setForgot(true)}>
-            Forgot password?
-          </button>
-          <Link to="/signup" className="text-accent hover:underline">
-            New workspace
-          </Link>
-        </div>
+        <button type="button" className="self-start text-sm text-white/70 hover:text-white" onClick={() => setForgot(true)}>
+          Forgot password?
+        </button>
       </form>
-      <p className="mt-6 text-center text-xs text-white/55">Members get their account from a coordinator or team lead. Shadow mode: reminders appear in the app only; nothing is emailed or texted.</p>
+      <div className="mx-auto mt-4 grid max-w-md gap-3 sm:grid-cols-2">
+        <Link to="/join" className="glass-surface rounded-[22px] p-4 text-center hover:bg-white/[0.07]">
+          <span className="block text-sm font-semibold text-white">Join as a team member</span>
+          <span className="mt-1 block text-xs text-white/60">Make an account, then ask to join your team's workspace</span>
+        </Link>
+        <Link to="/signup" className="glass-surface rounded-[22px] p-4 text-center hover:bg-white/[0.07]">
+          <span className="block text-sm font-semibold text-white">Create a workspace</span>
+          <span className="mt-1 block text-xs text-white/60">For the Coordinator / Team Lead who runs the team</span>
+        </Link>
+      </div>
+      <p className="mt-6 text-center text-xs text-white/55">Reminders appear inside FollowThru only; nothing is emailed or texted.</p>
 
       <Dialog open={forgot} onClose={() => setForgot(false)} title="Forgot your password?" variant="modal">
         <p className="mb-3 text-sm text-text-muted">The fastest way: ask your coordinator or team lead to reset it. They get a temporary password to give you, and you choose a new one when you sign in.</p>

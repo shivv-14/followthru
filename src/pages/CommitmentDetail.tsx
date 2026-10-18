@@ -132,6 +132,24 @@ export default function CommitmentDetail() {
                 <dt className="text-xs text-text-faint">Reply from owner</dt>
                 <dd>{c.responseState === 'pending' ? 'Pending (silence does not change status)' : 'Responded'}</dd>
               </div>
+              {cloud?.taskRows.get(c.id)?.startAt ? (
+                <div>
+                  <dt className="text-xs text-text-faint">Start (your time)</dt>
+                  <dd>{shortTime(cloud.taskRows.get(c.id)!.startAt!, tz)}</dd>
+                </div>
+              ) : null}
+              {cloud?.taskRows.get(c.id) && cloud.taskRows.get(c.id)!.priority !== 'normal' ? (
+                <div>
+                  <dt className="text-xs text-text-faint">Priority</dt>
+                  <dd className="capitalize">{cloud.taskRows.get(c.id)!.priority}</dd>
+                </div>
+              ) : null}
+              {cloud?.taskRows.get(c.id)?.description ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-text-faint">Description</dt>
+                  <dd className="whitespace-pre-wrap text-text-muted">{cloud.taskRows.get(c.id)!.description}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-xs text-text-faint">Progress</dt>
                 <dd>{c.progress ? PROGRESS_LABEL[c.progress] : '—'}</dd>

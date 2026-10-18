@@ -34,7 +34,7 @@ interface Person {
   linked_profile_id: string | null
 }
 
-const ROLE_LABEL: Record<AccountRole, string> = { coordinator: 'Coordinator', team_lead: 'Team lead', member: 'Member' }
+const ROLE_LABEL: Record<AccountRole, string> = { coordinator: 'Coordinator / Team Lead', team_lead: 'Coordinator / Team Lead', member: 'Team member' }
 const detected = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 /** Accounts and teams. Coordinators manage the workspace; team leads manage members of the teams they lead. */
@@ -81,6 +81,7 @@ export default function People() {
       <div className="mb-4">
         <Notice result={notice} />
       </div>
+      <JoinRequests onChange={() => void load()} />
 
       <Card className="mb-4 overflow-x-auto p-0">
         <table className="w-full min-w-[720px] text-left text-sm">
@@ -127,11 +128,9 @@ export default function People() {
                       onChange={(e) => void act('accounts/update', { profileId: a.id, role: e.target.value })}
                       className="rounded-lg border border-surface-border bg-transparent px-2 py-1 text-sm [&>option]:bg-bg"
                     >
-                      {Object.entries(ROLE_LABEL).map(([k, v]) => (
-                        <option key={k} value={k}>
-                          {v}
-                        </option>
-                      ))}
+                      <option value="member">Team member</option>
+                      <option value="coordinator">Coordinator / Team Lead</option>
+                      {a.role === 'team_lead' ? <option value="team_lead">Coordinator / Team Lead (team scope)</option> : null}
                     </select>
                   ) : (
                     ROLE_LABEL[a.role]
@@ -200,11 +199,11 @@ export default function People() {
         }}
       />
 
-      <Dialog open={!!secret} onClose={() => setSecret(null)} title="Temporary password" variant="modal">
+      <Dialog open={!!secret} onClose={() => setSecret(null)} title="First password" variant="modal">
         {secret ? (
           <div className="flex flex-col gap-3 text-sm">
             <p className="text-text-muted">
-              For <strong className="text-white">{secret.who}</strong> (username <code>@{secret.username}</code>). It is shown only now and is not stored anywhere.
+              For <strong className="text-white">{secret.who}</strong> (username <code>@{secret.username}</code>). Shown only now and not stored anywhere; they must change it when they first sign in.
             </p>
             <div className="flex items-center gap-2 rounded-2xl border border-surface-border bg-white/[0.04] p-3">
               <code className="flex-1 break-all font-mono text-base text-white">{secret.password}</code>
@@ -275,13 +274,12 @@ function CreateAccount({
           </Select>
         ) : null}
         <Input label="Full name" value={form.fullName} onChange={set('fullName')} />
-        <Input label="Username" value={form.username} onChange={set('username')} hint="They sign in with this" />
+        <Input label="Username" value={form.username} onChange={set('username')} hint={`They sign in with this. First password: ${form.username ? form.username.toLowerCase() + '1' : 'username + 1'} (they must change it)`} />
         <Input label="Email (optional)" type="email" value={form.email} onChange={set('email')} hint="Leave empty to sign in by username only" />
         <div className="grid gap-3 sm:grid-cols-2">
           <Select label="Role" value={form.role} onChange={set('role')} disabled={!isCoordinator}>
-            <option value="member">Member</option>
-            {isCoordinator ? <option value="team_lead">Team lead</option> : null}
-            {isCoordinator ? <option value="coordinator">Coordinator</option> : null}
+            <option value="member">Team member</option>
+            {isCoordinator ? <option value="coordinator">Coordinator / Team Lead</option> : null}
           </Select>
           <Select label="Team" value={form.team} onChange={set('team')}>
             {isCoordinator ? <option value="">No team</option> : null}
@@ -391,6 +389,89 @@ function Teams({
         </form>
       ) : null}
       <p className="mt-3 text-xs text-text-faint">Saving with an existing team id updates that team. Imported people keep the team from the conversation data.</p>
+    </Card>
+  )
+}
+
+interface JoinRequest {
+  id: string
+  status: 'pending' | 'approved' | 'rejected'
+  message: string | null
+  created_at: string
+  decided_at: string | null
+  decision_reason: string | null
+  profiles: { full_name: string; username: string; timezone: string } | null
+}
+
+/** People asking to join this workspace. Approving makes them a team member; both answers are saved and the person sees them. */
+function JoinRequests({ onChange }: { onChange: () => void }) {
+  const cloud = useCloud()!
+  const [requests, setRequests] = useState<JoinRequest[]>([])
+  const [notice, setNotice] = useState<ActionResult | null>(null)
+  const [rejecting, setRejecting] = useState<JoinRequest | null>(null)
+  const [reason, setReason] = useState('')
+  const load = useCallback(async () => {
+    const res = await callApi<{ requests: JoinRequest[] }>('workspaces/requests')
+    if (res.ok) setRequests(res.data.requests)
+  }, [])
+  useEffect(() => {
+    void load()
+  }, [load, cloud.version])
+
+  async function decide(r: JoinRequest, approve: boolean, why?: string) {
+    const res = await callApi<{ message: string }>('workspaces/decide', { requestId: r.id, approve, reason: why })
+    setNotice(res.ok ? { ok: true, message: res.data.message } : { ok: false, message: res.error.message })
+    setRejecting(null)
+    setReason('')
+    await load()
+    onChange()
+  }
+
+  const pending = requests.filter((r) => r.status === 'pending')
+  if (requests.length === 0) return null
+  return (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>Join requests ({pending.length} waiting)</CardTitle>
+      </CardHeader>
+      <Notice result={notice} />
+      <ul className="flex flex-col gap-2">
+        {requests.slice(0, 20).map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-surface-border p-3 text-sm">
+            <div>
+              <p className="font-medium">
+                {r.profiles?.full_name ?? 'Someone'} <span className="text-text-faint">@{r.profiles?.username}</span>
+              </p>
+              <p className="text-xs text-text-faint">
+                Asked {new Date(r.created_at).toLocaleString()}
+                {r.message ? ` · "${r.message}"` : ''}
+                {r.decided_at ? ` · ${r.status} ${new Date(r.decided_at).toLocaleString()}` : ''}
+                {r.decision_reason ? ` · ${r.decision_reason}` : ''}
+              </p>
+            </div>
+            {r.status === 'pending' ? (
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => void decide(r, true)}>
+                  Approve
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => setRejecting(r)}>
+                  Reject
+                </Button>
+              </div>
+            ) : (
+              <StatusChip status={r.status === 'approved' ? 'done' : 'cancelled'} label={r.status === 'approved' ? 'Approved' : 'Rejected'} />
+            )}
+          </li>
+        ))}
+      </ul>
+      <Dialog open={!!rejecting} onClose={() => setRejecting(null)} title="Reject this request?" variant="modal">
+        <div className="flex flex-col gap-3">
+          <Input label="Reason (they will see it)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Button variant="danger" disabled={!reason.trim()} onClick={() => rejecting && void decide(rejecting, false, reason)}>
+            Reject
+          </Button>
+        </div>
+      </Dialog>
     </Card>
   )
 }

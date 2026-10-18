@@ -21,6 +21,8 @@ export function AppShell() {
   if (cloud) {
     if (cloud.status === 'signed_out') return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
     if (cloud.me?.profile.mustChangePassword) return <Navigate to="/change-password" replace />
+    // A team member who has not joined a workspace yet picks one first
+    if (cloud.me && !cloud.me.org) return <Navigate to="/workspaces" replace />
   }
   if (!ready || (cloud && cloud.status === 'loading')) {
     return (

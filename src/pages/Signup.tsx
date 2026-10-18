@@ -1,15 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
 import { Button, Input } from '../components/ui'
 import { AuthLayout } from '../components/shell/AuthLayout'
 import { useCloud, type SignupInput } from '../cloud/session'
 
 const detected = Intl.DateTimeFormat().resolvedOptions().timeZone
-const ROLE_HELP = {
-  coordinator: 'You run the workspace: import conversations, create accounts and teams, review every reminder.',
-  team_lead: 'You lead one team: the workspace starts with a "General" team you lead, and you add your members.',
-}
 
 /** Public sign-up creates a new workspace. Members never sign up here; their coordinator or team lead creates their account. */
 export default function Signup() {
@@ -64,25 +59,12 @@ export default function Signup() {
     >
       <div className="mb-8 text-center">
         <h1 className="font-dot text-4xl leading-tight text-white sm:text-5xl">Create a workspace</h1>
-        <p className="mx-auto mt-3 max-w-md text-[15px] text-white/75">For coordinators and team leads. You will add your team's accounts after this.</p>
+        <p className="mx-auto mt-3 max-w-md text-[15px] text-white/75">For the Coordinator / Team Lead. Team members join from the sign-in page with "Join as a team member".</p>
       </div>
       <form onSubmit={submit} className="glass-surface mx-auto flex max-w-lg flex-col gap-4 rounded-[28px] p-6" noValidate>
-        <div role="radiogroup" aria-label="Your role" className="grid grid-cols-2 gap-2 rounded-2xl border border-surface-border bg-white/[0.04] p-1">
-          {(['coordinator', 'team_lead'] as const).map((r) => (
-            <button
-              key={r}
-              type="button"
-              role="radio"
-              aria-checked={form.role === r}
-              onClick={() => setForm((f) => ({ ...f, role: r }))}
-              className={clsx('rounded-xl px-3 py-2 text-sm font-medium transition-colors', form.role === r ? 'bg-white text-black' : 'text-white/70 hover:text-white')}
-            >
-              {r === 'coordinator' ? 'Coordinator' : 'Team lead'}
-            </button>
-          ))}
-        </div>
-        <p className="-mt-2 text-xs text-white/60">{ROLE_HELP[form.role]}</p>
+        <p className="text-xs text-white/60">You become the workspace's Coordinator / Team Lead: you approve join requests, assign tasks and review reminders.</p>
         <Input label="Workspace name" value={form.orgName} onChange={set('orgName')} error={errors.orgName} placeholder="Acme launch team" />
+        <Input label="Description (optional)" value={form.description ?? ''} onChange={set('description')} placeholder="What this team works on" />
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Your full name" autoComplete="name" value={form.fullName} onChange={set('fullName')} error={errors.fullName} />
           <Input label="Username" autoComplete="username" value={form.username} onChange={set('username')} error={errors.username} placeholder="priya" />

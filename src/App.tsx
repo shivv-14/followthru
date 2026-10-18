@@ -18,6 +18,9 @@ const Signup = lazy(() => import('./pages/Signup'))
 const ChangePassword = lazy(() => import('./pages/ChangePassword'))
 const People = lazy(() => import('./pages/People'))
 const Notifications = lazy(() => import('./pages/Notifications'))
+const JoinTeam = lazy(() => import('./pages/JoinTeam'))
+const Workspaces = lazy(() => import('./pages/Workspaces'))
+const Experiment = lazy(() => import('./pages/Experiment'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Commitments = lazy(() => import('./pages/Commitments'))
 const CommitmentDetail = lazy(() => import('./pages/CommitmentDetail'))
@@ -47,6 +50,8 @@ export default function App() {
             <Route path="/setup" element={<Setup />} />
             <Route path="/login" element={cloudEnabled ? <CloudLogin /> : <Login />} />
             {cloudEnabled ? <Route path="/signup" element={<Signup />} /> : null}
+            {cloudEnabled ? <Route path="/join" element={<JoinTeam />} /> : null}
+            {cloudEnabled ? <Route path="/workspaces" element={<Workspaces />} /> : null}
             {cloudEnabled ? <Route path="/change-password" element={<ChangePassword />} /> : null}
             <Route path="/profiles" element={<Navigate to="/login" replace />} />
             <Route path="/styleguide" element={<Styleguide />} />
@@ -61,6 +66,7 @@ export default function App() {
               <Route path="/evidence" element={<Evidence />} />
               {cloudEnabled ? <Route path="/people" element={<RequireRole role="coordinator"><People /></RequireRole>} /> : null}
               {cloudEnabled ? <Route path="/notifications" element={<Notifications />} /> : null}
+              {cloudEnabled ? <Route path="/experiment" element={<RequireRole role="coordinator"><Experiment /></RequireRole>} /> : null}
             </Route>
 
             <Route path="*" element={<NotFound />} />

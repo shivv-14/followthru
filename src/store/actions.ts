@@ -29,7 +29,12 @@ export interface NewTaskInput {
   title: string
   ownerIds: string[]
   teamId?: string
+  /** End date and time: the deadline the engine checks */
   dueAt: IsoUtc | null
+  /** Planned start (saved with the task in cloud mode) */
+  startAt?: IsoUtc | null
+  description?: string
+  priority?: 'low' | 'normal' | 'high' | 'critical'
 }
 
 export function createActions(state: EngineState) {
@@ -105,6 +110,7 @@ export function createActions(state: EngineState) {
       if (!input.title.trim()) return fail('Give the task a title')
       if (input.ownerIds.length === 0) return fail('Choose a person or a team')
       if (input.dueAt && Date.parse(input.dueAt) <= Date.parse(state.now)) return fail('The deadline must be after the current evaluation time')
+      if (input.startAt && input.dueAt && Date.parse(input.dueAt) < Date.parse(input.startAt)) return fail('The end date must not be earlier than the start date')
       const tasks: ManualTask[] = input.ownerIds.map((ownerId) => ({
         id: repo.newId('task'),
         title: input.title.trim(),

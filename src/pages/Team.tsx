@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Button, Card, CardHeader, CardTitle, EmptyState, Input, Select, StatusChip } from '../components/ui'
+import { Button, Card, CardHeader, CardTitle, EmptyState, Input, Select, StatusChip, Textarea } from '../components/ui'
 import { CommitmentLink, CommitmentStatus, DeadlineText, Notice, PageHeader, useActionNotice, viewerTimezone } from '../components/domain/parts'
 import { PROGRESS_LABEL, personName, shortTime, statusView } from '../components/domain/view'
 import { useActions, useEngine } from '../store'
@@ -11,7 +11,10 @@ function AssignForm() {
   const notice = useActionNotice()
   const [title, setTitle] = useState('')
   const [target, setTarget] = useState('')
+  const [start, setStart] = useState('')
   const [due, setDue] = useState('')
+  const [description, setDescription] = useState('')
+  const [priority, setPriority] = useState<'low' | 'normal' | 'high' | 'critical'>('normal')
   const teams = [...new Set([...people.values()].map((p) => p.teamId).filter(Boolean))] as string[]
 
   async function submit(event: FormEvent) {
@@ -20,10 +23,21 @@ function AssignForm() {
     const teamId = isTeam ? target.slice(5) : undefined
     const ownerIds = isTeam ? [...people.values()].filter((p) => p.teamId === teamId).map((p) => p.id) : target ? [target] : []
     await notice.run(async () => {
-      const res = await actions.createTasks({ title, ownerIds, teamId, dueAt: due ? new Date(due).toISOString() : null })
+      if (start && due && new Date(due) < new Date(start)) return { ok: false, message: 'The end date and time must not be earlier than the start' }
+      const res = await actions.createTasks({
+        title,
+        ownerIds,
+        teamId,
+        startAt: start ? new Date(start).toISOString() : null,
+        dueAt: due ? new Date(due).toISOString() : null,
+        description: description.trim() || undefined,
+        priority,
+      })
       if (res.ok) {
         setTitle('')
+        setStart('')
         setDue('')
+        setDescription('')
       }
       return res
     })
@@ -53,10 +67,24 @@ function AssignForm() {
             ))}
           </optgroup>
         </Select>
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
-          Deadline (your time, optional)
-          <input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} className="h-10 rounded-md border border-surface-border bg-surface px-3 text-sm [color-scheme:dark]" />
-        </label>
+        <Textarea label="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What done looks like, links, instructions" />
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+            Start Date &amp; Time
+            <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className="h-10 w-full min-w-0 rounded-xl border border-surface-border bg-white/[0.04] px-3 text-sm [color-scheme:dark]" />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+            End Date &amp; Time (deadline)
+            <input type="datetime-local" value={due} min={start || undefined} onChange={(e) => setDue(e.target.value)} className="h-10 w-full min-w-0 rounded-xl border border-surface-border bg-white/[0.04] px-3 text-sm [color-scheme:dark]" />
+          </label>
+        </div>
+        <p className="-mt-1 text-xs text-text-faint">Times are in your timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone}); each person sees them in their own time.</p>
+        <Select label="Priority" value={priority} onChange={(e) => setPriority(e.target.value as typeof priority)}>
+          <option value="low">Low</option>
+          <option value="normal">Normal</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </Select>
         <Button type="submit" disabled={notice.busy}>
           Assign
         </Button>

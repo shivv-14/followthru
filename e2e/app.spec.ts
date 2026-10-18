@@ -39,10 +39,10 @@ test('coordinator journey: setup, dashboard, approve, evidence', async ({ page }
 
   await page.getByRole('navigation', { name: 'Primary' }).first().getByRole('link', { name: 'Queue' }).click()
   const card = page.locator('[id="d_c_m_18"]')
-  await expect(card.getByRole('button', { name: 'Approve (shadow, not sent)' })).toBeDisabled()
+  await expect(card.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled()
   await card.getByRole('checkbox').click()
   await expect(card.getByRole('checkbox')).toBeChecked()
-  await card.getByRole('button', { name: 'Approve (shadow, not sent)' }).click()
+  await card.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(page.getByText('Approved in shadow mode. Nothing was sent.')).toBeVisible()
   await page.getByRole('tab', { name: /Approved \(1\)/ }).click()
   await expect(page.getByRole('link', { name: 'Share the homepage mockups' })).toBeVisible()

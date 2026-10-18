@@ -30,7 +30,7 @@ export interface CloudData {
   orgId: string
   orgName: string
   /** task_key -> database row id and optimistic-lock version */
-  taskRows: Map<string, { id: string; rowVersion: number }>
+  taskRows: Map<string, { id: string; rowVersion: number; startAt: string | null; priority: string; description: string | null }>
   files: EvidenceFile[]
   runs: RunRecord[]
   lastRun: LastRun | null
@@ -48,7 +48,7 @@ const LIVE_TABLES = ['notifications', 'tasks', 'reminder_drafts', 'human_decisio
 
 interface Loaded {
   dataset: StoredDataset
-  tasks: { task_key: string; id: string; row_version: number; snapshot: Commitment | null; manual_task: ManualTask | null }[]
+  tasks: { task_key: string; id: string; row_version: number; snapshot: Commitment | null; manual_task: ManualTask | null; start_at: string | null; priority: string; description: string | null }[]
   drafts: Draft[]
   decisions: HumanDecision[]
   flows: Flow[]
@@ -73,7 +73,7 @@ async function load(orgName: string): Promise<Loaded> {
     rows<any>(db.from('threads').select('external_id, title')),
     rows<any>(db.from('messages').select('external_id, thread_external_id, author_external_id, text, sent_at, reply_to_external_id, mention_external_ids').order('sent_at').limit(5000)),
     rows<any>(db.from('imports').select('file_name, source, created_at, reference_time, labels, issues').eq('status', 'imported').order('created_at')),
-    rows<any>(db.from('tasks').select('id, task_key, row_version, snapshot, manual_task')),
+    rows<any>(db.from('tasks').select('id, task_key, row_version, snapshot, manual_task, start_at, priority, description')),
     rows<any>(db.from('reminder_drafts').select('snapshot')),
     rows<any>(db.from('human_decisions').select('payload').order('recorded_at')),
     rows<any>(db.from('followup_flows').select('definition').order('created_at')),
@@ -149,7 +149,7 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const live = useLiveClock()
   const timer = useRef<number | undefined>(undefined)
-  const active = cloud.status === 'signed_in' && !!me && !me.profile.mustChangePassword
+  const active = cloud.status === 'signed_in' && !!me && !!me.org && !me.profile.mustChangePassword
 
   // Load, then refetch whenever something changes (live update, focus, every 30 s as a fallback)
   useEffect(() => {
@@ -159,7 +159,7 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
     }
     let stale = false
     setLoading(true)
-    load(me!.org.name)
+    load(me!.org!.name)
       .then((l) => !stale && (setLoaded(l), setError(null)))
       .catch((e: Error) => !stale && setError(`Could not load the workspace: ${e.message}`))
       .finally(() => !stale && setLoading(false))
@@ -175,7 +175,7 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(timer.current)
       timer.current = window.setTimeout(cloud.bump, 400)
     }
-    const channel = db.channel(`org-${me!.org.id}`)
+    const channel = db.channel(`org-${me!.org!.id}`)
     for (const table of LIVE_TABLES) channel.on('postgres_changes', { event: '*', schema: 'public', table }, refetch)
     channel.subscribe()
     const onFocus = () => document.visibilityState === 'visible' && refetch()
@@ -225,11 +225,11 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
 
   const data = useMemo<CloudData | null>(
     () =>
-      me
+      me?.org
         ? {
             orgId: me.org.id,
             orgName: me.org.name,
-            taskRows: new Map((loaded?.tasks ?? []).map((t) => [t.task_key, { id: t.id, rowVersion: t.row_version }])),
+            taskRows: new Map((loaded?.tasks ?? []).map((t) => [t.task_key, { id: t.id, rowVersion: t.row_version, startAt: t.start_at, priority: t.priority, description: t.description }])),
             files: loaded?.files ?? [],
             runs: loaded?.runs ?? [],
             lastRun: loaded?.lastRun ?? null,
