@@ -7,7 +7,7 @@ Run on 2026-10-18 (UTC) on branch `full-integration`, updated after the fixture 
 | Unit, engine, store, UI, server helpers, CSV/PDF import, fixture, Phase 11 scenarios A–M | `npm test` | **319 passed, 0 failed** |
 | Database migrations and RLS in a local Postgres (included above) | `npm run test:db` | 19 passed |
 | Browser tests (demo mode) incl. accessibility, screen widths, fixture import and team chat | `npx playwright test` | **24 passed** |
-| Live API checks against the real Supabase project (local server) | `npm run cloud:smoke` | **67 of 67 passed** (throwaway workspace created and deleted) |
+| Live API checks against the real Supabase project | `npm run cloud:smoke` (local) and `SMOKE_BASE=https://followthru-ruby.vercel.app npm run cloud:smoke` (production) | **67 of 67 passed on both** (throwaway workspace created and deleted) |
 | Type check and production build | `npm run typecheck`, `npm run build` | passed |
 
 ## Official ten labelled commitments (C14 starter fixture)
