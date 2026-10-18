@@ -206,6 +206,36 @@ async function main() {
   const raviLogin = await api('auth/login', { identifier: `ravi_${stamp}`, password: `ravi_${stamp}1` })
   check('username + 1 signs in and must be changed', raviLogin.status === 200 && raviLogin.body.mustChangePassword === true, raviLogin.body)
 
+  // 15. Team chat: members use their own team's chat; each line is engine input
+  const coordChats = await api('chat/teams', {}, coord)
+  const lenaChats = await api('chat/teams', {}, lena)
+  const ids = (r: any) => (r.body.teams ?? []).map((t: any) => t.id).sort().join(',')
+  check('coordinator sees every team chat, a member only the workspace and their own team', ids(coordChats) === 'all,design,eng,ops' && ids(lenaChats) === 'all,design', [ids(coordChats), ids(lenaChats)])
+  const foreignChat = await api('chat/messages', { teamId: 'eng' }, lena)
+  check("member cannot read another team's chat", foreignChat.status === 403, foreignChat)
+  const posted = await api('chat/post', { teamId: 'design', text: "I'll send the onboarding checklist by Friday." }, lena)
+  check('member posts in the team chat', posted.status === 201 && typeof posted.body.id === 'string', posted)
+  const thread = await api('chat/messages', { teamId: 'design' }, coord)
+  check('coordinator reads the team chat with author names', (thread.body.messages ?? []).some((m: any) => m.id === posted.body.id && m.authorName === 'Lena Ortiz'), thread.body)
+  const { data: chatTask } = await admin.from('tasks').select('task_key, owner_person, status').eq('org_id', orgId).eq('task_key', `c_${posted.body.id}`).maybeSingle()
+  check('the chat promise became a tracked commitment owned by its author', chatTask?.owner_person === 'p_lena' && chatTask.status === 'open', chatTask)
+  const emptyPost = await api('chat/post', { teamId: 'design', text: '   ' }, lena)
+  check('empty chat message is refused', emptyPost.status === 400, emptyPost)
+
+  // 16. The C14 starter fixture imports as-is (the server maps its shape) and scores its labels
+  const fixture = JSON.parse(readFileSync('data/fixture.json', 'utf8'))
+  const fx = await api('data/import', { name: 'C14 challenge fixture (fixture.json)', source: 'fixture', format: 'json', dataset: fixture }, coord)
+  check('C14 fixture.json imports through the API', fx.status === 201, fx)
+  const { data: fxTasks } = await admin.from('tasks').select('task_key, owner_person, status, due_at').eq('org_id', orgId).in('task_key', ['c_M01', 'c_M02', 'c_M05', 'c_M06', 'c_M07', 'c_M12'])
+  const fxBy = new Map((fxTasks ?? []).map((t) => [t.task_key, t]))
+  check(
+    'fixture: A1 corrected to 21 Oct, A2/A7 done, A5 cancelled, A6 deferred, M12 ignored',
+    fxBy.get('c_M01')?.owner_person === 'dev' && new Date(fxBy.get('c_M01')!.due_at).toISOString() === '2026-10-21T18:29:00.000Z' && fxBy.get('c_M02')?.status === 'done' && fxBy.get('c_M07')?.status === 'done' && fxBy.get('c_M05')?.status === 'cancelled' && fxBy.get('c_M06')?.status === 'deferred' && !fxBy.has('c_M12'),
+    fxTasks,
+  )
+  const { data: fxActive } = await admin.from('reminder_drafts').select('task_key, state').eq('org_id', orgId).in('task_key', ['c_M02', 'c_M05', 'c_M06', 'c_M07']).in('state', ['pending_review', 'approved'])
+  check('fixture: no active reminder for completed, cancelled or deferred actions', (fxActive ?? []).length === 0, fxActive)
+
   // 11. Disabling blocks sign-in
   check('coordinator disables the member', (await api('accounts/set-active', { profileId: acct.body.account.id, active: false }, coord)).status === 200)
   const disabled = await api('auth/login', { identifier: `smoke_lena_${stamp}`, password: lenaPassword })

@@ -1,6 +1,6 @@
 // Every write goes through here so it is audited. UI code uses store hooks
 // and actions, never Dexie directly.
-import type { AuditEvent, Draft, Flow, HumanDecision, ManualTask, ValidationResult } from '../engine/types'
+import type { AuditEvent, Draft, Flow, HumanDecision, ManualTask, Message, ValidationResult } from '../engine/types'
 import { DEFAULT_FLAGS, DEFAULT_STALE_HOURS } from '../engine/run'
 import { DEFAULT_FLOWS } from '../engine/flows'
 import { db, type AppSettings, type DataSource, type EvidenceFile, type RunRecord, type StoredDataset } from './db'
@@ -70,6 +70,21 @@ export async function loadDataset(actorId: string, name: string, source: DataSou
     })
   })
   return record
+}
+
+/** Adds one team-chat line to the loaded data, keeping messages in time order. The engine re-reads it at once. */
+export async function appendMessage(actorId: string, message: Message, threadTitle: string): Promise<void> {
+  await db.transaction('rw', [db.datasets, db.audit], async () => {
+    const cur = await db.datasets.get('current')
+    if (!cur) throw new Error('Load data first')
+    const known = cur.data.threads.find((t) => t.id === message.threadId)
+    const threads = known
+      ? cur.data.threads.map((t) => (t.id === message.threadId && !t.participantIds?.includes(message.authorId) ? { ...t, participantIds: [...(t.participantIds ?? []), message.authorId] } : t))
+      : [...cur.data.threads, { id: message.threadId, title: threadTitle, participantIds: [message.authorId] }]
+    const messages = [...cur.data.messages, message].sort((a, b) => (a.sentAt === b.sentAt ? (a.id < b.id ? -1 : 1) : a.sentAt < b.sentAt ? -1 : 1))
+    await db.datasets.put({ ...cur, data: { ...cur.data, threads, messages } })
+    await audit({ actorId, action: 'chat.post', entity: 'data', entityId: message.id, after: { threadId: message.threadId, length: message.text.length } })
+  })
 }
 
 export async function resetAllData(actorId: string): Promise<void> {

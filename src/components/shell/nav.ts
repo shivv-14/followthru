@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, FlaskConical, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, FlaskConical, MessagesSquare, type LucideIcon } from 'lucide-react'
 import { cloudEnabled } from '../../lib/supabase'
 import type { Role } from '../../engine/types'
 
@@ -18,6 +18,7 @@ const COORDINATOR: NavEntry[] = [
   { to: '/queue', label: 'Queue', short: 'Queue', icon: Inbox, badge: 'pending_drafts' },
   { to: '/flows', label: 'Flows', short: 'Flows', icon: Workflow },
   { to: '/team', label: 'Team', short: 'Team', icon: Users },
+  { to: '/chat', label: 'Team chat', short: 'Chat', icon: MessagesSquare },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
   ...(cloudEnabled
     ? [
@@ -30,6 +31,7 @@ const COORDINATOR: NavEntry[] = [
 const MEMBER: NavEntry[] = [
   { to: '/dashboard', label: 'My work', short: 'My work', icon: LayoutDashboard },
   { to: '/team', label: 'My tasks', short: 'Tasks', icon: Users },
+  { to: '/chat', label: 'Team chat', short: 'Chat', icon: MessagesSquare },
   { to: '/commitments', label: 'Commitments', short: 'Items', icon: ListChecks },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
   ...(cloudEnabled ? [{ to: '/notifications', label: 'Notifications', short: 'Alerts', icon: Bell }] : []),

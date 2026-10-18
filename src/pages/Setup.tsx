@@ -1,5 +1,5 @@
 import { type ChangeEvent, useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Input, Button, Card, CardHeader, CardTitle } from '../components/ui'
 import { Notice, useActionNotice } from '../components/domain/parts'
 import { isMockModeEnabled } from '../config/demoMode'
@@ -22,6 +22,11 @@ const bundledFixture = import.meta.glob('/data/fixture.json', {
 }) as Record<string, () => Promise<string>>
 const fixtureLoader: (() => Promise<string>) | undefined = bundledFixture['/data/fixture.json']
 
+// The fixture has no reference time. Its last line is 16 Oct 2026 13:01 IST and its latest deadline is 23 Oct,
+// so this clock is after every deadline: open actions get reminder drafts, closed ones never do.
+const FIXTURE_AFTER_DEADLINES = '2026-10-24T09:00:00+05:30'
+type FixtureClock = 'after_deadlines' | 'dataset' | 'live'
+
 interface Candidate {
   name: string
   source: DataSource
@@ -37,15 +42,31 @@ export default function Setup() {
   const [name, setName] = useState(state.settings.userName)
   const [nameError, setNameError] = useState('')
   const [candidate, setCandidate] = useState<Candidate | null>(null)
+  const [fixtureClock, setFixtureClock] = useState<FixtureClock>('after_deadlines')
+  const [params] = useSearchParams()
 
   async function loadFixture() {
     if (!fixtureLoader) return
     setCandidate({
-      name: 'C14 challenge fixture',
+      name: 'C14 challenge fixture (fixture.json)',
       source: 'fixture',
       validation: validateDatasetJson(await fixtureLoader()),
     })
   }
+
+  async function downloadFixture() {
+    if (!fixtureLoader) return
+    const url = URL.createObjectURL(new Blob([await fixtureLoader()], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'C14-fixture-SYNTHETIC.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  useEffect(() => {
+    if (params.get('fixture') === '1') void loadFixture()
+  }, [])
 
   async function onFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -137,6 +158,11 @@ export default function Setup() {
       const res = await actions.loadDataset(candidate.name, candidate.source, candidate.validation)
       if (res.ok) {
         if (!cloud) await actions.updateSettings({ userName: name.trim() })
+        if (candidate.source === 'fixture') {
+          await actions.updateSettings(
+            fixtureClock === 'after_deadlines' ? { clockMode: 'custom', customNow: new Date(FIXTURE_AFTER_DEADLINES).toISOString() } : { clockMode: fixtureClock },
+          )
+        }
         navigate(cloud ? '/dashboard' : '/login')
       }
       return res
@@ -231,10 +257,10 @@ export default function Setup() {
             </li>
             <li>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-text-primary">
-                {cloud || isMockModeEnabled() ? '3.' : '2.'} Upload your file (CSV or PDF)
+                {cloud || isMockModeEnabled() ? '3.' : '2.'} Upload your file (CSV, JSON or PDF)
                 <input
                   type="file"
-                  accept=".csv,.pdf,text/csv,application/pdf"
+                  accept=".csv,.json,.pdf,text/csv,application/json,application/pdf"
                   onChange={onFile}
                   className="text-sm font-normal text-text-muted file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-black"
                 />
@@ -258,9 +284,18 @@ export default function Setup() {
             </li>
             {fixtureLoader ? (
               <li>
-                <Button variant="secondary" onClick={loadFixture}>
-                  Load the C14 challenge fixture
-                </Button>
+                <p className="mb-1 text-sm font-semibold text-text-primary">C14 challenge fixture (fixture.json)</p>
+                <p className="mb-2 text-sm text-text-muted">
+                  The official synthetic starter data: 12 messages, 10 labelled actions. Loading it scores owner, deadline and status on the Evidence page. You can also upload the same JSON file in the step above.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="secondary" onClick={loadFixture}>
+                    Import fixture.json
+                  </Button>
+                  <Button variant="ghost" onClick={downloadFixture}>
+                    Download fixture.json
+                  </Button>
+                </div>
               </li>
             ) : null}
           </ol>
@@ -275,10 +310,28 @@ export default function Setup() {
             {data ? (
               <p className="mb-3 text-sm text-text-muted">
                 {data.people.length} people · {data.threads.length} threads · {data.messages.length} messages · {data.labels.length} labelled commitments
-                {data.referenceTime ? ` · evaluation clock ${data.referenceTime}` : ' · no reference time (live clock will be used)'}
+                {data.referenceTime ? ` · evaluation clock ${data.referenceTime}` : candidate.source === 'fixture' ? ' · no reference time (choose a clock below)' : ' · no reference time (live clock will be used)'}
               </p>
             ) : null}
             {candidate.source === 'demo' ? <p className="mb-3 text-sm text-status-tentative">Synthetic data written for the demo. It has no labels and is never scored.</p> : null}
+            {candidate.source === 'fixture' && data ? (
+              <fieldset className="mb-3 flex flex-col gap-1.5 text-sm text-text-muted">
+                <legend className="mb-1 font-semibold text-text-primary">Evaluation clock (the file has none)</legend>
+                <label className="flex items-start gap-2">
+                  <input type="radio" name="fixture-clock" checked={fixtureClock === 'after_deadlines'} onChange={() => setFixtureClock('after_deadlines')} />
+                  <span>24 Oct 2026, 09:00 IST: after every deadline, so each open action gets one reminder draft</span>
+                </label>
+                <label className="flex items-start gap-2">
+                  <input type="radio" name="fixture-clock" checked={fixtureClock === 'dataset'} onChange={() => setFixtureClock('dataset')} />
+                  <span>Last message in the file (16 Oct 2026, 13:01 IST): nothing is overdue yet</span>
+                </label>
+                <label className="flex items-start gap-2">
+                  <input type="radio" name="fixture-clock" checked={fixtureClock === 'live'} onChange={() => setFixtureClock('live')} />
+                  <span>Live clock (now)</span>
+                </label>
+                <span className="text-xs text-text-faint">You can change it later from the clock in the top bar.</span>
+              </fieldset>
+            ) : null}
             {[...errors, ...warnings].length > 0 ? (
               <div className="mb-3 max-h-60 overflow-auto rounded-md border border-surface-border">
                 <table className="w-full text-left text-xs">

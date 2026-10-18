@@ -41,6 +41,27 @@ export default function Dashboard() {
         description={`${dataset?.name ?? ''} · ${result.mode} · evaluated at ${new Date(now).toLocaleString()}`}
       />
 
+      {user?.role === 'coordinator' ? (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Import data</CardTitle>
+            <span className="text-xs text-text-faint">{dataset ? `${dataset.data.messages.length} messages · ${dataset.data.labels.length} labelled actions loaded` : 'No data yet'}</span>
+          </CardHeader>
+          <p className="mb-3 text-sm text-text-muted">Bring in team conversations as CSV, JSON or PDF, or load the official C14 challenge fixture (synthetic) and see its score on the Evidence page.</p>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/setup?fixture=1" className="pill-glow rounded-full bg-white px-5 py-2 text-sm font-semibold text-black">
+              Import C14 fixture.json
+            </Link>
+            <Link to="/setup" className="rounded-full border border-pill-border bg-pill px-5 py-2 text-sm text-pill-text hover:text-white">
+              Upload CSV, JSON or PDF
+            </Link>
+            <Link to="/chat" className="rounded-full border border-pill-border bg-pill px-5 py-2 text-sm text-pill-text hover:text-white">
+              Open team chat
+            </Link>
+          </div>
+        </Card>
+      ) : null}
+
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Open" value={open.length} />
         <Stat label="Overdue" value={overdue.length} tone="overdue" />

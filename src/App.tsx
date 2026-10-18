@@ -21,6 +21,7 @@ const Notifications = lazy(() => import('./pages/Notifications'))
 const JoinTeam = lazy(() => import('./pages/JoinTeam'))
 const Workspaces = lazy(() => import('./pages/Workspaces'))
 const Experiment = lazy(() => import('./pages/Experiment'))
+const TeamChat = lazy(() => import('./pages/TeamChat'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Commitments = lazy(() => import('./pages/Commitments'))
 const CommitmentDetail = lazy(() => import('./pages/CommitmentDetail'))
@@ -63,6 +64,8 @@ export default function App() {
               <Route path="/queue" element={<RequireRole role="coordinator"><Queue /></RequireRole>} />
               <Route path="/flows" element={<RequireRole role="coordinator"><Flows /></RequireRole>} />
               <Route path="/team" element={<Team />} />
+              <Route path="/chat" element={<TeamChat />} />
+              <Route path="/chat/:teamId" element={<TeamChat />} />
               <Route path="/evidence" element={<Evidence />} />
               {cloudEnabled ? <Route path="/people" element={<RequireRole role="coordinator"><People /></RequireRole>} /> : null}
               {cloudEnabled ? <Route path="/notifications" element={<Notifications />} /> : null}

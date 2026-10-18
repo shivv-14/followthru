@@ -2,6 +2,7 @@ import type { ApiRequest, ApiResponse } from '../handlers'
 import { HttpError, json } from './http'
 import * as accounts from './routes/accounts'
 import * as auth from './routes/auth'
+import * as chat from './routes/chat'
 import * as data from './routes/data'
 import * as work from './routes/work'
 import * as workspaces from './routes/workspaces'
@@ -45,6 +46,9 @@ export const ROUTES: Record<string, Handler> = {
   'workspaces/decide': workspaces.decideJoinRequest,
   'experiments/list': workspaces.listExperiments,
   'experiments/save': workspaces.saveExperiment,
+  'chat/teams': chat.listChats,
+  'chat/messages': chat.chatMessages,
+  'chat/post': chat.postChat,
 }
 
 export async function routeCloud(route: string, req: ApiRequest): Promise<ApiResponse> {
