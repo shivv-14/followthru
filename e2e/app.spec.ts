@@ -12,7 +12,7 @@ function trackErrors(page: Page) {
 async function loadDemoAs(page: Page, person: string) {
   await page.goto('/setup')
   await page.getByLabel('Your name').fill('Browser check')
-  await page.getByRole('button', { name: 'Use synthetic demo data (not the challenge fixture)' }).click()
+  await page.getByRole('button', { name: 'Use the demo team (synthetic data)' }).click()
   await expect(page.getByText('Ready to load')).toBeVisible()
   await page.getByRole('button', { name: 'Load and continue' }).click()
   await signInAs(page, person)

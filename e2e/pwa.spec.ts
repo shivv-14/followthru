@@ -19,7 +19,7 @@ test('registers a service worker and reopens the app offline with local data', a
   page.on('pageerror', (e) => errors.push(e.message))
   await page.goto('/setup')
   await page.getByLabel('Your name').fill('Offline check')
-  await page.getByRole('button', { name: 'Use synthetic demo data (not the challenge fixture)' }).click()
+  await page.getByRole('button', { name: 'Use the demo team (synthetic data)' }).click()
   await page.getByRole('button', { name: 'Load and continue' }).click()
   await page.getByRole('button', { name: /^Sign in as Priya/ }).click()
   await expect(page.getByRole('heading', { name: 'What needs attention' })).toBeVisible()

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useState } from 'react'
+import { type ChangeEvent, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Input, Button, Card, CardHeader, CardTitle } from '../components/ui'
 import { Notice, useActionNotice } from '../components/domain/parts'
@@ -7,6 +7,7 @@ import { AuthLayout } from '../components/shell/AuthLayout'
 import { useCloud } from '../cloud/session'
 import { validateDataset, validateDatasetJson } from '../schema/validate'
 import { messagesFromCsv } from '../schema/io'
+import { isSimpleChatCsv, simpleChatCsvToDataset } from '../schema/simpleCsv'
 import type { ValidationResult } from '../engine/types'
 import { useActions, useEngine, type DataSource } from '../store'
 import demoDataset from '../mocks/demoDataset.json'
@@ -49,6 +50,10 @@ export default function Setup() {
     const file = event.target.files?.[0]
     if (!file) return
     const text = await file.text()
+    if (file.name.toLowerCase().endsWith('.csv') && isSimpleChatCsv(text)) {
+      setCandidate({ name: file.name, source: 'import', validation: simpleChatCsvToDataset(text, detectedTimezone) })
+      return
+    }
     if (file.name.toLowerCase().endsWith('.csv')) {
       const csv = messagesFromCsv(text)
       if (!state.dataset) {
@@ -93,6 +98,11 @@ export default function Setup() {
       validation: validateDatasetJson(text),
     })
   }
+
+  // Bring the check result and the "Load and continue" button into view (matters on a phone)
+  useEffect(() => {
+    if (candidate) document.getElementById('validation-result')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [candidate])
 
   function loadDemo() {
     setCandidate({
@@ -179,35 +189,68 @@ export default function Setup() {
           <CardHeader>
             <CardTitle>Choose data</CardTitle>
           </CardHeader>
-          <div className="flex flex-col gap-3">
-            {fixtureLoader ? (
-              <Button variant="secondary" onClick={loadFixture}>
-                Load the C14 challenge fixture
-              </Button>
-            ) : (
-              <p className="rounded-md border border-dashed border-surface-border p-3 text-sm text-text-muted">
-                Challenge fixture not found. Copy <code>Starter_Data/C14/fixture.json</code> to <code>data/fixture.json</code> and restart to load it here.
-              </p>
-            )}
-            <label className="flex flex-col gap-1.5 text-sm font-medium text-text-primary">
-              Import a JSON dataset or a messages CSV
-              <input
-                type="file"
-                accept=".json,.csv,application/json,text/csv"
-                onChange={onFile}
-                className="text-sm text-text-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface-hover file:px-3 file:py-2 file:text-text-primary"
-              />
-            </label>
-            {isMockModeEnabled() ? (
-              <Button variant="ghost" onClick={loadDemo}>
-                Use synthetic demo data (not the challenge fixture)
-              </Button>
+          <ol className="flex flex-col gap-5">
+            {cloud || isMockModeEnabled() ? (
+              <li>
+                <p className="mb-1 text-sm font-semibold text-text-primary">1. Quickest: use the demo team</p>
+                <p className="mb-2 text-sm text-text-muted">A made-up team of 6 people with 23 chat messages. One tap and you can try every screen.</p>
+                <Button onClick={loadDemo}>Use the demo team (synthetic data)</Button>
+              </li>
             ) : null}
-          </div>
+            <li>
+              <p className="mb-1 text-sm font-semibold text-text-primary">{cloud || isMockModeEnabled() ? '2.' : '1.'} Or download a ready-made file, then upload it below</p>
+              <p className="mb-2 text-sm text-text-muted">All files are made-up (synthetic) team chats. Works on a phone too: download, then pick the file in step 3.</p>
+              <div className="flex flex-wrap gap-2">
+                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/demo-team-chat-SYNTHETIC.csv" download>
+                  Demo team chat (CSV)
+                </a>
+                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/product-team-chat-SYNTHETIC.csv" download>
+                  Product team chat (CSV)
+                </a>
+                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/demo-team-SYNTHETIC.json" download>
+                  Demo team (JSON)
+                </a>
+                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/template.csv" download>
+                  Blank template (CSV)
+                </a>
+              </div>
+            </li>
+            <li>
+              <label className="flex flex-col gap-1.5 text-sm font-semibold text-text-primary">
+                {cloud || isMockModeEnabled() ? '3.' : '2.'} Upload your file (CSV or JSON)
+                <input
+                  type="file"
+                  accept=".json,.csv,application/json,text/csv"
+                  onChange={onFile}
+                  className="text-sm font-normal text-text-muted file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-black"
+                />
+              </label>
+              <details className="mt-2 text-sm text-text-muted">
+                <summary className="cursor-pointer text-accent">Make your own file in Excel or Google Sheets</summary>
+                <p className="mt-2">One row per chat message, with these columns:</p>
+                <ul className="mt-1 list-disc pl-5">
+                  <li><b>time</b>: like 2026-10-20 10:00 (in the sender's own time)</li>
+                  <li><b>thread</b>: the chat or channel name, for example Website launch</li>
+                  <li><b>from</b>: who wrote it, for example Asha Rao</li>
+                  <li><b>timezone</b>: for example Asia/Kolkata</li>
+                  <li><b>message</b>: what they wrote</li>
+                  <li>Optional: <b>role</b> (coordinator or member), <b>team</b>, <b>reply_to</b> (the row number of the message being answered)</li>
+                </ul>
+                <p className="mt-1">Save as CSV and upload. People and threads are created from their names automatically.</p>
+              </details>
+            </li>
+            {fixtureLoader ? (
+              <li>
+                <Button variant="secondary" onClick={loadFixture}>
+                  Load the C14 challenge fixture
+                </Button>
+              </li>
+            ) : null}
+          </ol>
         </Card>
 
         {candidate ? (
-          <Card aria-live="polite">
+          <Card aria-live="polite" id="validation-result">
             <CardHeader>
               <CardTitle>Validation: {candidate.name}</CardTitle>
               <span className={errors.length ? 'text-sm text-status-overdue' : 'text-sm text-status-done'}>{errors.length ? `${errors.length} errors` : 'Ready to load'}</span>
