@@ -8,6 +8,7 @@ import { gmailGet, newMessageIds, parseGmailMessage, refreshAccess, RevokedError
 import { HttpError } from './http'
 import { auditOp, notificationOps, reviewerIds } from './notify'
 import { decideAs } from './routes/work'
+import { syncSlack } from './slackSync'
 import { syncOrg } from './sync'
 
 // Gmail → AI reading → tickets. Every step writes an automation_events row, so the activity
@@ -340,8 +341,8 @@ export async function processPending(orgId: string, f: Fetch = fetch, limit = PR
   return { processed }
 }
 
-/** One automation round for a workspace: fetch new Gmail messages, then process what is due. */
-export async function tick(orgId: string, f: Fetch = fetch, minIntervalMs = 45_000): Promise<{ fetched: number; processed: number; errors: string[] }> {
+/** One automation round for a workspace: fetch new Gmail messages, process what is due, then import enabled Slack channels. */
+export async function tick(orgId: string, f: Fetch = fetch, minIntervalMs = 45_000): Promise<{ fetched: number; processed: number; slack: number; errors: string[] }> {
   const { data: accounts } = await admin().from('gmail_accounts').select('id, org_id, email, refresh_token_enc, access_token_enc, access_expires_at, history_id, initial_days, messages_seen, connected_by, last_sync_at, status').eq('org_id', orgId).neq('status', 'revoked')
   let fetched = 0
   const errors: string[] = []
@@ -352,7 +353,16 @@ export async function tick(orgId: string, f: Fetch = fetch, minIntervalMs = 45_0
     if (r.error) errors.push(`${a.email}: ${r.error}`)
   }
   const { processed } = await processPending(orgId, f)
-  return { fetched, processed, errors }
+  let slack = 0
+  try {
+    const r = await syncSlack(orgId, f, minIntervalMs)
+    slack = r.imported
+    errors.push(...r.errors)
+  } catch (e) {
+    // Slack trouble never breaks the Gmail round
+    errors.push(`Slack: ${e instanceof HttpError ? e.message : 'sync failed'}`)
+  }
+  return { fetched, processed, slack, errors }
 }
 
 export { EMAIL_COLUMNS }

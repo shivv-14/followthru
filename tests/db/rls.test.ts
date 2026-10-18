@@ -198,3 +198,42 @@ describe('gmail automation tables', () => {
     expect((await rows(`select id from public.automation_events where org_id = '${ids.orgA}'`)).length).toBe(2)
   })
 })
+
+describe('slack tables', () => {
+  const team = '40000000-0000-4000-8000-000000000001'
+  beforeAll(async () => {
+    await db.exec(`
+      insert into public.slack_workspaces (id, org_id, team_id, team_name, bot_token_enc) values ('${team}', '${ids.orgA}', 'T1', 'Acme', 'v1.sealed');
+      insert into public.slack_channels (org_id, slack_workspace_id, channel_id, name) values ('${ids.orgA}', '${team}', 'C1', 'launch');
+      insert into public.slack_users (org_id, slack_user_id, email, person_external_id) values ('${ids.orgA}', 'U1', 'member@a.test', 'p_member');
+    `)
+  })
+
+  it('never lets any signed-in role read Slack workspaces or bot tokens', async () => {
+    for (const user of [ids.coordA, ids.leadA, ids.memberA, ids.coordB]) {
+      await expect(asUser(db, user, () => rows('select bot_token_enc from public.slack_workspaces'))).rejects.toThrow(/permission denied/)
+      await expect(asUser(db, user, () => rows('select id, team_name from public.slack_workspaces'))).rejects.toThrow(/permission denied/)
+    }
+  })
+
+  it('shows Slack channels to coordinators and team leads of the same workspace only', async () => {
+    expect(await asUser(db, ids.coordA, () => rows('select name, enabled from public.slack_channels'))).toEqual([{ name: 'launch', enabled: false }])
+    expect(await asUser(db, ids.leadA, () => rows('select name from public.slack_channels'))).toEqual([{ name: 'launch' }])
+    expect(await asUser(db, ids.coordB, () => rows('select id from public.slack_channels'))).toEqual([])
+    expect(await asUser(db, ids.memberA, () => rows('select id from public.slack_channels'))).toEqual([])
+  })
+
+  it('shows the Slack user mapping to coordinators of the same workspace only', async () => {
+    expect(await asUser(db, ids.coordA, () => rows('select slack_user_id from public.slack_users'))).toEqual([{ slack_user_id: 'U1' }])
+    expect(await asUser(db, ids.leadA, () => rows('select id from public.slack_users'))).toEqual([])
+    expect(await asUser(db, ids.coordB, () => rows('select id from public.slack_users'))).toEqual([])
+  })
+
+  it('keeps one row per Slack channel and lets the server write Slack tables through apply_ops', async () => {
+    await expect(db.exec(`insert into public.slack_channels (org_id, slack_workspace_id, channel_id, name) values ('${ids.orgA}', '${team}', 'C1', 'again')`)).rejects.toThrow(/duplicate key/)
+    await asService(db, () =>
+      db.query(`select public.apply_ops($1::jsonb)`, [JSON.stringify([{ op: 'update', table: 'slack_channels', match: { org_id: ids.orgA, channel_id: 'C1' }, set: { enabled: true } }])]),
+    )
+    expect(await rows(`select enabled from public.slack_channels where channel_id = 'C1'`)).toEqual([{ enabled: true }])
+  })
+})

@@ -5,6 +5,7 @@ import * as auth from './routes/auth'
 import * as automation from './routes/automation'
 import * as chat from './routes/chat'
 import * as data from './routes/data'
+import * as slack from './routes/slack'
 import * as work from './routes/work'
 import * as workspaces from './routes/workspaces'
 
@@ -60,13 +61,19 @@ export const ROUTES: Record<string, Handler> = {
   'automation/dismiss': automation.dismissEmail,
   'automation/retry': automation.retryEmail,
   'cron/gmail': automation.cron,
+  'slack/connect': slack.slackConnect,
+  'slack/callback': slack.slackCallback,
+  'slack/channels': slack.slackChannels,
+  'slack/channel-toggle': slack.slackChannelToggle,
+  'slack/disconnect': slack.slackDisconnect,
+  'slack/sync': slack.slackSyncNow,
 }
 
 export async function routeCloud(route: string, req: ApiRequest): Promise<ApiResponse> {
   const handler = ROUTES[route]
   if (!handler) return json(404, { error: { code: 'not_found', message: 'Unknown route' } })
-  // Google's OAuth redirect and schedulers use GET; everything else is POST
-  const getAllowed = route === 'gmail/callback' || route === 'cron/gmail'
+  // Google's and Slack's OAuth redirects and schedulers use GET; everything else is POST
+  const getAllowed = route === 'gmail/callback' || route === 'slack/callback' || route === 'cron/gmail'
   if (req.method !== 'POST' && !(getAllowed && req.method === 'GET')) return { ...json(405, { error: { code: 'method_not_allowed', message: 'Use POST' } }), headers: { Allow: 'POST' } }
   try {
     return await handler(req)

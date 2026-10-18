@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Card, CardHeader, CardTitle, EmptyState, Input, Select, Textarea } from '../components/ui'
 import { Notice, PageHeader, Stat, useActionNotice } from '../components/domain/parts'
+import { SlackCard, type SlackStatus } from '../components/domain/SlackCard'
 import { shortTime } from '../components/domain/view'
 import { callApi } from '../cloud/api'
 import { useEngine } from '../store'
@@ -70,6 +71,7 @@ interface MinutesRow {
 }
 interface Overview {
   google: { configured: boolean }
+  slack?: SlackStatus
   ai: { mode: 'ai' | 'rules'; provider: string | null; model: string }
   minConfidence: number
   accounts: Account[]
@@ -236,6 +238,7 @@ export default function Automation() {
   }, [load])
 
   const gmailFlag = params.get('gmail')
+  const slackFlag = params.get('slack')
   const s = data?.stats
 
   return (
@@ -243,6 +246,8 @@ export default function Automation() {
       <PageHeader title="Email automation" description="Gmail → AI reading → tickets. New mail is fetched every two minutes while a coordinator has the app open (and daily by the server). Nothing is ever sent from your mailbox." />
       {gmailFlag === 'connected' ? <p className="mb-3 rounded-md border border-status-done/40 p-2 text-sm text-status-done">Gmail connected. The first sync starts within two minutes, or press Sync now.</p> : null}
       {gmailFlag === 'error' ? <p className="mb-3 rounded-md border border-status-overdue/40 p-2 text-sm text-status-overdue">Gmail was not connected: {params.get('reason')}</p> : null}
+      {slackFlag === 'connected' ? <p className="mb-3 rounded-md border border-status-done/40 p-2 text-sm text-status-done">Slack connected. Choose the channels to import below; nothing is read until a channel is enabled.</p> : null}
+      {slackFlag === 'error' ? <p className="mb-3 rounded-md border border-status-overdue/40 p-2 text-sm text-status-overdue">Slack was not connected: {params.get('reason')}</p> : null}
       {error ? <p className="mb-3 text-sm text-status-overdue">{error}</p> : null}
 
       <div className="mb-4 grid gap-4 lg:grid-cols-2">
@@ -313,6 +318,8 @@ export default function Automation() {
             </div>
           )}
         </Card>
+
+        <SlackCard slack={data ? (data.slack ?? { configured: false, workspaces: [], channels: [] }) : undefined} onChange={load} />
 
         <Card>
           <CardHeader>

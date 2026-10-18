@@ -10,7 +10,7 @@ function apiDevServer(): Plugin {
     configureServer(server) {
       // Server-only settings for the cloud routes (never exposed to the browser bundle)
       const env = loadEnv(server.config.mode, server.config.root, '')
-      for (const key of ['SUPABASE_SECRET_KEY', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'TOKEN_ENCRYPTION_KEY', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI', 'AI_PROVIDER', 'AI_MODEL', 'AI_MIN_CONFIDENCE', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'CRON_SECRET']) {
+      for (const key of ['SUPABASE_SECRET_KEY', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'TOKEN_ENCRYPTION_KEY', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI', 'SLACK_CLIENT_ID', 'SLACK_CLIENT_SECRET', 'SLACK_REDIRECT_URI', 'AI_PROVIDER', 'AI_MODEL', 'AI_MIN_CONFIDENCE', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'CRON_SECRET']) {
         if (env[key] && !process.env[key]) process.env[key] = env[key]
       }
       server.middlewares.use('/api', async (req, res, next) => {

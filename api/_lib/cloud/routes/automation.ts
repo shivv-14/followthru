@@ -10,9 +10,10 @@ import { authUrl, exchangeCode, gmailGet, gmailThreadLink, googleConfig, revoke 
 import { bad, bodyOf, forbidden, header, json, notFound, rateLimit, str } from '../http'
 import { auditOp } from '../notify'
 import { applyOps } from '../admin'
+import { slackStatus } from '../slackSync'
 import { syncOrg } from '../sync'
 
-function query(req: ApiRequest, key: string): string {
+export function query(req: ApiRequest, key: string): string {
   const q = req.query?.[key]
   if (typeof q === 'string') return q
   try {
@@ -22,7 +23,7 @@ function query(req: ApiRequest, key: string): string {
   }
 }
 
-const redirect = (to: string): ApiResponse => ({ status: 302, body: {}, headers: { Location: to } })
+export const redirect = (to: string): ApiResponse => ({ status: 302, body: {}, headers: { Location: to } })
 
 /** Starts Google OAuth for the workspace. Coordinators only; read-only Gmail scope. */
 export async function gmailConnect(req: ApiRequest) {
@@ -105,7 +106,8 @@ export async function overview(req: ApiRequest) {
     return (await q).count ?? 0
   }
   const countEvents = async (kind: string) => (await admin().from('automation_events').select('id', { count: 'exact', head: true }).eq('org_id', org).eq('kind', kind)).count ?? 0
-  const [accounts, total, processed, ignored, review, failed, pending, actionable, created, updated, blockers, extensions, events, reviewRows, recent, minutes] = await Promise.all([
+  const [slack, accounts, total, processed, ignored, review, failed, pending, actionable, created, updated, blockers, extensions, events, reviewRows, recent, minutes] = await Promise.all([
+    slackStatus(org),
     admin().from('gmail_accounts').select('id, email, status, last_sync_at, last_error, messages_seen, initial_days, created_at').eq('org_id', org),
     count(),
     count('processed'),
@@ -127,6 +129,7 @@ export async function overview(req: ApiRequest) {
   const accountEmail = (accounts.data ?? [])[0]?.email as string | undefined
   return json(200, {
     google: { configured: googleConfig().configured },
+    slack,
     ai: ai ? { mode: 'ai', provider: ai.provider, model: ai.model } : { mode: 'rules', provider: null, model: 'rules-v1' },
     minConfidence: minConfidence(),
     accounts: accounts.data ?? [],
@@ -145,7 +148,7 @@ export async function runTick(req: ApiRequest) {
   rateLimit(`tick:${ctx.orgId}`, 30, 60_000)
   const b = bodyOf(req)
   const r = await tick(ctx.orgId, fetch, b.force === true ? 0 : 45_000)
-  return json(200, { ok: true, ...r, message: `Fetched ${r.fetched} new emails, processed ${r.processed}${r.errors.length ? `. Errors: ${r.errors.join('; ')}` : ''}` })
+  return json(200, { ok: true, ...r, message: `Fetched ${r.fetched} new emails, processed ${r.processed}, imported ${r.slack} Slack messages${r.errors.length ? `. Errors: ${r.errors.join('; ')}` : ''}` })
 }
 
 /**
@@ -228,9 +231,12 @@ export async function retryEmail(req: ApiRequest) {
 export async function cron(req: ApiRequest) {
   const secret = process.env.CRON_SECRET ?? ''
   if (!secret || header(req, 'authorization') !== `Bearer ${secret}`) throw forbidden('Not allowed')
-  const { data } = await admin().from('gmail_accounts').select('org_id').neq('status', 'revoked')
-  const orgs = [...new Set((data ?? []).map((a) => a.org_id as string))]
+  const [{ data }, { data: slackTeams }] = await Promise.all([
+    admin().from('gmail_accounts').select('org_id').neq('status', 'revoked'),
+    admin().from('slack_workspaces').select('org_id').neq('status', 'revoked'),
+  ])
+  const orgs = [...new Set([...(data ?? []), ...(slackTeams ?? [])].map((a) => a.org_id as string))]
   const results = []
   for (const org of orgs) results.push({ org, ...(await tick(org)) })
-  return json(200, { ok: true, workspaces: results.length, fetched: results.reduce((n, r) => n + r.fetched, 0), processed: results.reduce((n, r) => n + r.processed, 0) })
+  return json(200, { ok: true, workspaces: results.length, fetched: results.reduce((n, r) => n + r.fetched, 0), processed: results.reduce((n, r) => n + r.processed, 0), slack: results.reduce((n, r) => n + r.slack, 0) })
 }
