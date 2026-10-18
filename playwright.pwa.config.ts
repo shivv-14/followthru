@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: 'http://localhost:4173', channel: process.env.PW_CHANNEL ?? 'chrome' },
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    command: 'npx tsc -b && npx vite build --mode demo && npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173',
     reuseExistingServer: false,
     // The demo data option only appears in production builds with this flag
