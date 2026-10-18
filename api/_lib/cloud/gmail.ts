@@ -122,6 +122,9 @@ export interface ParsedEmail {
   headers: Record<string, string>
 }
 
+// Footer wording of newsletters, job alerts and system mail
+const BULK_TEXT = /(unsubscribe|system[- ]generated|do not reply to this|please don'?t reply|you are receiving this (e-?mail|because)|manage (your )?(email )?preferences)/i
+
 const b64 = (data: string) => Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
 
 function findBody(part: GmailPart | undefined, mime: string): string | null {
@@ -154,7 +157,7 @@ export function parseGmailMessage(m: GmailMessage): ParsedEmail {
     subject: (headers.subject ?? '').slice(0, 300),
     sentAt: new Date(Number.isFinite(dateMs) ? dateMs : 0).toISOString(),
     body: latestReply(raw).slice(0, 20000),
-    automated: looksAutomated(from.email, headers) || labels.some((l) => ['CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL', 'CATEGORY_FORUMS', 'SPAM'].includes(l)),
+    automated: looksAutomated(from.email, headers) || BULK_TEXT.test(raw.slice(-4000)) || labels.some((l) => ['CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL', 'CATEGORY_FORUMS', 'SPAM'].includes(l)),
     headers,
   }
 }

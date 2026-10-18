@@ -76,6 +76,8 @@ export function resolveOwner(item: ActionItem, ctx: PlanContext): { person?: Dir
     return byName ? { person: byName, reason: `"${item.assignee_name}" matches exactly one person (${byName.name})` } : { reason: `"${item.assignee_name}" matches no one, or more than one person` }
   }
   const sender = personByEmail(ctx.directory, ctx.fromEmail)
+  // Only a teammate's request is assigned to its single recipient; outside mail must name the owner
+  if (!sender) return { reason: 'The sender is outside the team and named no owner' }
   const recipients = ctx.toEmails.map((e) => personByEmail(ctx.directory, e)).filter((p): p is DirectoryPerson => !!p && p.id !== sender?.id)
   if (recipients.length === 1) return { person: recipients[0], reason: `The request was sent only to ${recipients[0].name}` }
   return { reason: recipients.length > 1 ? 'Several team members were addressed and none was named' : 'No team member was named or addressed' }
@@ -117,6 +119,11 @@ export function planSteps(a: EmailAnalysis, ctx: PlanContext): PlannedStep[] {
   if (a.confidence < ctx.minConfidence) return [{ kind: 'review', reason: `Confidence ${a.confidence.toFixed(2)} is below the ${ctx.minConfidence} threshold` }]
 
   const sender = personByEmail(ctx.directory, ctx.fromEmail)
+  // Mail from outside the team that names no team member is not this team's work (job alerts, offers, newsletters)
+  const namesMember = a.items.some((i) => personByEmail(ctx.directory, i.assignee_email) || personByName(ctx.directory, i.assignee_name))
+  if (!sender && !namesMember && !(a.update && matchTicket(a.update.target_hint, undefined, ctx).ticket)) {
+    return [{ kind: 'ignore', reason: 'From outside the team and about no team member or ticket' }]
+  }
   const tzOf = (p?: DirectoryPerson) => p?.timezone ?? sender?.timezone ?? ctx.directory.find((x) => x.role === 'coordinator')?.timezone ?? 'UTC'
   const steps: PlannedStep[] = []
 

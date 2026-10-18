@@ -152,6 +152,13 @@ describe('planning steps from a reading', () => {
     const steps = planSteps(analysis({ classification: 'completed', update: { kind: 'completed', target_hint: 'budget sheet', new_deadline_text: null, blocker: null, evidence_quote: 'done' } }), ctx({ threadId: 'new', fromEmail: 'chhavigupta0987@gmail.com', tickets: [ticket()] }))
     expect(steps[0].kind).toBe('review')
   })
+  it('ignores outside mail that names no team member (job alerts, offers) and never assigns it to the mailbox owner', () => {
+    const outsider = ctx({ fromEmail: 'jobs@portal.example', toEmails: ['brungishivaganesh@gmail.com'] })
+    expect(planSteps(analysis({ items: [item()] }), outsider)).toEqual([expect.objectContaining({ kind: 'ignore' })])
+    expect(planSteps(analysis({ classification: 'completed', update: { kind: 'completed', target_hint: 'new jobs', new_deadline_text: null, blocker: null, evidence_quote: 'applied' } }), outsider)[0].kind).toBe('ignore')
+    const named = planSteps(analysis({ items: [item({ assignee_email: 'chhavigupta0987@gmail.com' })] }), outsider)
+    expect(named[0]).toMatchObject({ kind: 'create', ownerId: 'p_chhavi', requesterId: null })
+  })
   it('a coordinator saying it is done closes the ticket directly', () => {
     const steps = planSteps(analysis({ classification: 'completed', update: { kind: 'completed', target_hint: 'pricing deck', new_deadline_text: null, blocker: null, evidence_quote: 'deck is done' } }), ctx({ fromEmail: 'shivaganesh1430@gmail.com', tickets: [ticket()] }))
     expect(steps[0]).toMatchObject({ kind: 'decide', type: 'mark_done' })

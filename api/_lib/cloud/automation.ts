@@ -218,7 +218,14 @@ export async function createTicket(
 
 /** Reads, plans and applies one stored email. Safe to call twice: it claims the row first. */
 export async function processEmail(row: EmailRow, f: Fetch = fetch): Promise<{ status: string; taskKeys: string[] }> {
-  const { data: claimed } = await admin().from('inbound_emails').update({ status: 'processing' }).eq('id', row.id).in('status', ['pending', 'failed']).select('id')
+  // A claim lasts five minutes; a run cut off by a timeout leaves the row claimable again after that
+  const nowIso = new Date().toISOString()
+  const { data: claimed } = await admin()
+    .from('inbound_emails')
+    .update({ status: 'processing', next_attempt_at: new Date(Date.now() + 5 * 60_000).toISOString() })
+    .eq('id', row.id)
+    .or(`status.in.(pending,failed),and(status.eq.processing,next_attempt_at.lt.${nowIso})`)
+    .select('id')
   if (!claimed?.length) return { status: 'skipped', taskKeys: [] }
   const orgId = row.org_id
   try {
@@ -343,7 +350,8 @@ export async function processEmail(row: EmailRow, f: Fetch = fetch): Promise<{ s
 
 /** Processes emails that are due, oldest first. */
 export async function processPending(orgId: string, f: Fetch = fetch, limit = PROCESS_PER_RUN): Promise<{ processed: number }> {
-  const { data } = await admin().from('inbound_emails').select(EMAIL_COLUMNS).eq('org_id', orgId).eq('status', 'pending').lte('next_attempt_at', new Date().toISOString()).order('sent_at').limit(limit)
+  const now = new Date().toISOString()
+  const { data } = await admin().from('inbound_emails').select(EMAIL_COLUMNS).eq('org_id', orgId).in('status', ['pending', 'processing']).lte('next_attempt_at', now).order('sent_at').limit(limit)
   let processed = 0
   for (const row of (data ?? []) as EmailRow[]) {
     await processEmail(row, f)
