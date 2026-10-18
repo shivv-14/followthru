@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.followthru_ruby.twa",
+        "sha256_cert_fingerprints": ["9D:25:BD:F9:9A:6B:B5:08:D3:AB:AC:1B:2F:A4:CA:E9:A1:EA:9C:83:E8:84:19:3A:1C:1B:CC:D5:9A:BD:A8:FE"]
+      }
+    }]

@@ -44,3 +44,16 @@ Optional: Authentication → URL Configuration → set Site URL to your app URL 
 - The engine runs on the server on every write, on sign-in, every 5 minutes while a reviewer has the app open, and with **Run now**. Nothing runs when nobody is signed in; quiet-hour reminders still appear on time because delivery is gated by `deliver_after`, not by a job.
 - The optional Gemini second opinion is available in demo mode only; the server engine uses the rules.
 - If the secret key was ever shared outside `.env.local` or Vercel settings, rotate it in Supabase (Project Settings → API Keys).
+
+## Live deployment
+
+- Production: https://followthru-ruby.vercel.app (Vercel project `followthru`).
+- `npm run build` first bundles the server code (`scripts/build-api.mjs` → `api/_dist/entries.mjs`, not committed). The `api/*.js` files are one-line entries that re-export from it; Vercel runs functions as ES modules, which cannot follow the extensionless imports in `src/`.
+- Redeploy: `npx vercel deploy --prod` (with a Vercel login or `--token`).
+
+## Android app (Trusted Web Activity)
+
+- Built with PWABuilder from the live manifest. Package id `app.vercel.followthru_ruby.twa`.
+- `public/.well-known/assetlinks.json` holds the signing certificate fingerprint, so Android opens the app full screen (no address bar). Google's Digital Asset Links API confirms the link.
+- The APK, AAB, signing keystore and its password are kept outside the repository (never commit them). Every future app update must be signed with the same keystore.
+- A new Vercel domain needs a new package (or an updated `assetlinks.json` and `host`).
