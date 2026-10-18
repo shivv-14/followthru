@@ -6,6 +6,26 @@ import { commitmentsToCsv, draftsToCsv, resultsToJson } from '../schema/io'
 import { buildEvidencePack, changedKeys, sha256Hex, useActions, useAuditLog, useEngine, useEvidenceFiles, useRuns, type AuditFilter } from '../store'
 import { validateBackupJson, type BackupValidation } from '../schema/backup'
 import { GEMINI_MODEL } from '../ai/gemini'
+import { callApi } from '../cloud/api'
+import { useCloud } from '../cloud/session'
+import { useCloudData } from '../cloud/CloudEngineProvider'
+import type { EvidenceFile } from '../store'
+
+/** Browser mode saves the stored bytes; cloud mode asks the server for a short-lived signed link after its permission check. */
+async function downloadEvidence(f: EvidenceFile) {
+  if (!f.blob) {
+    const res = await callApi<{ url: string }>('files/url', { id: f.id })
+    if (res.ok) window.location.assign(res.data.url)
+    else window.alert(res.error.message)
+    return
+  }
+  const url = URL.createObjectURL(f.blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = f.name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
 
 function ScorecardTab() {
   const { scorecard, dataset, result } = useEngine()
@@ -203,14 +223,7 @@ function UploadsTab() {
                     <button
                       type="button"
                       className="text-accent hover:underline"
-                      onClick={() => {
-                        const url = URL.createObjectURL(f.blob)
-                        const a = document.createElement('a')
-                        a.href = url
-                        a.download = f.name
-                        a.click()
-                        setTimeout(() => URL.revokeObjectURL(url), 1000)
-                      }}
+                      onClick={() => void downloadEvidence(f)}
                     >
                       Download
                     </button>
@@ -398,13 +411,58 @@ function AiKeyField({ disabled }: { disabled: boolean }) {
   )
 }
 
+/** Cloud only: when approved reminders appear in the recipient's app. */
+function DeliverySettings({ disabled }: { disabled: boolean }) {
+  const data = useCloudData()
+  const notice = useActionNotice()
+  const org = data?.orgSettings
+  const [start, setStart] = useState(org?.quietHours.start ?? '21:00')
+  const [end, setEnd] = useState(org?.quietHours.end ?? '09:00')
+  const [weekends, setWeekends] = useState(org?.skipWeekends ?? true)
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Reminder delivery</CardTitle>
+      </CardHeader>
+      <p className="mb-3 text-sm text-text-muted">Approved reminders are delivered inside FollowThru only. During quiet hours (in the recipient's timezone) they wait and appear when quiet hours end.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input label="Quiet hours start" type="time" value={start} disabled={disabled} onChange={(e) => setStart(e.target.value)} />
+        <Input label="Quiet hours end" type="time" value={end} disabled={disabled} onChange={(e) => setEnd(e.target.value)} />
+      </div>
+      <label className="mt-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" className="size-4" checked={weekends} disabled={disabled} onChange={(e) => setWeekends(e.target.checked)} />
+        Hold reminders over the weekend until Monday
+      </label>
+      <Button
+        className="mt-3"
+        size="sm"
+        variant="secondary"
+        disabled={disabled}
+        onClick={() =>
+          notice.run(async () => {
+            const res = await callApi<{ message: string }>('settings/update', { patch: { quietHours: { start, end }, skipWeekends: weekends } })
+            data?.reload()
+            return res.ok ? { ok: true, message: res.data.message } : { ok: false, message: res.error.message }
+          })
+        }
+      >
+        Save delivery settings
+      </Button>
+      <div className="mt-2">
+        <Notice result={notice.result} />
+      </div>
+    </Card>
+  )
+}
+
 function DataTab() {
   const { dataset, settings, user } = useEngine()
   const actions = useActions()
   const notice = useActionNotice()
   const [confirmReset, setConfirmReset] = useState(false)
   const [backup, setBackup] = useState<BackupValidation | null>(null)
-  const isCoordinator = user?.role === 'coordinator'
+  const cloud = useCloud()
+  const isCoordinator = cloud?.me ? cloud.me.profile.role === 'coordinator' : user?.role === 'coordinator'
   const flag = (key: keyof typeof settings.flags, label: string, hint: string) => (
     <label className="flex items-start gap-2 text-sm">
       <input
@@ -429,8 +487,10 @@ function DataTab() {
         <div className="flex flex-col gap-3">
           {flag('staleSuppression', 'Stale-message suppression', 'Suppress drafts when work closes, and mark unapproved drafts stale after the window below.')}
           {flag('recipientReview', 'Recipient review', 'A coordinator must confirm the recipient before approving.')}
-          {flag('ai', 'AI second opinion (Gemini)', 'Off by default. The rules still decide; the AI can only send an item to human review when it reads a message differently. Message text is sent to Google when this is on.')}
-          {settings.flags.ai ? <AiKeyField disabled={!isCoordinator} /> : null}
+          {cloud
+            ? null
+            : flag('ai', 'AI second opinion (Gemini)', 'Off by default. The rules still decide; the AI can only send an item to human review when it reads a message differently. Message text is sent to Google when this is on.')}
+          {!cloud && settings.flags.ai ? <AiKeyField disabled={!isCoordinator} /> : null}
           <Input
             label="Stale window (hours)"
             type="number"
@@ -483,24 +543,27 @@ function DataTab() {
             Export backup
           </Button>
           <Button variant="danger" size="sm" disabled={!isCoordinator} onClick={() => setConfirmReset(true)}>
-            Reset all local data
+            {cloud ? 'Reset workspace data' : 'Reset all local data'}
           </Button>
         </div>
-        <label className="mt-3 flex flex-col gap-1.5 text-sm font-medium text-text-primary">
-          Restore a backup
-          <input
-            type="file"
-            accept=".json,application/json"
-            disabled={!isCoordinator}
-            aria-label="Restore a backup file"
-            onChange={async (e) => {
-              const file = e.target.files?.[0]
-              if (file) setBackup(validateBackupJson(await file.text()))
-            }}
-            className="text-sm text-text-muted"
-          />
-        </label>
+        {cloud ? null : (
+          <label className="mt-3 flex flex-col gap-1.5 text-sm font-medium text-text-primary">
+            Restore a backup
+            <input
+              type="file"
+              accept=".json,application/json"
+              disabled={!isCoordinator}
+              aria-label="Restore a backup file"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (file) setBackup(validateBackupJson(await file.text()))
+              }}
+              className="text-sm text-text-muted"
+            />
+          </label>
+        )}
       </Card>
+      {cloud ? <DeliverySettings disabled={!isCoordinator} /> : null}
       <div className="md:col-span-2">
         <Notice result={notice.result} />
       </div>
@@ -545,8 +608,12 @@ function DataTab() {
           </div>
         )}
       </Dialog>
-      <Dialog open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset all local data?" variant="modal">
-        <p className="mb-4 text-sm text-text-muted">This deletes the data, drafts, decisions, tasks, flows, runs and uploads in this browser. The audit log is kept.</p>
+      <Dialog open={confirmReset} onClose={() => setConfirmReset(false)} title={cloud ? 'Reset workspace data?' : 'Reset all local data?'} variant="modal">
+        <p className="mb-4 text-sm text-text-muted">
+          {cloud
+            ? 'This deletes the imported conversations, tasks, decisions and drafts of this workspace for everyone. Accounts, teams, flows, files and the audit log are kept.'
+            : 'This deletes the data, drafts, decisions, tasks, flows, runs and uploads in this browser. The audit log is kept.'}
+        </p>
         <div className="flex gap-2">
           <Button
             variant="danger"

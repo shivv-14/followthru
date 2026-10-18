@@ -6,6 +6,8 @@ import { PROGRESS_LABEL, REVIEW_LABEL, SUPPRESSION_LABEL, draftStateView, person
 import type { DecisionType, TaskProgress } from '../engine/types'
 import { useActions, useEngine, useEvidenceFiles } from '../store'
 import { PlainWhy, ReplaySlider, ThreadSheet } from '../components/domain/HistoryTools'
+import { useCloudData } from '../cloud/CloudEngineProvider'
+import { TaskComments } from '../cloud/TaskComments'
 
 const EVENT_LABEL: Record<string, string> = {
   created: 'Created',
@@ -27,6 +29,7 @@ const EVENT_LABEL: Record<string, string> = {
 export default function CommitmentDetail() {
   const { id = '' } = useParams<{ id: string }>()
   const { commitment, draftFor, people, now, user, dataset } = useEngine()
+  const cloud = useCloudData()
   const actions = useActions()
   const notice = useActionNotice()
   const files = useEvidenceFiles()
@@ -183,6 +186,8 @@ export default function CommitmentDetail() {
               </ul>
             </Card>
           ) : null}
+
+          {cloud?.taskRows.get(c.id) ? <TaskComments taskId={cloud.taskRows.get(c.id)!.id} taskKey={c.id} /> : null}
 
           {(c.submissions?.length ?? 0) > 0 || (c.blockers?.length ?? 0) > 0 ? (
             <Card>

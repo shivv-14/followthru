@@ -5,6 +5,9 @@ import { Button, Dialog } from '../ui'
 import { useActions, useEngine, type ClockMode } from '../../store'
 import { shortTime } from '../domain/view'
 import { InstallButton } from './InstallButton'
+import { useCloud } from '../../cloud/session'
+import { NotificationBell } from '../../cloud/NotificationBell'
+import { EngineStatus } from '../../cloud/EngineStatus'
 
 export interface TopBarProps {
   onOpenMobileNav?: () => void
@@ -21,6 +24,7 @@ function toLocalInput(iso: string): string {
 export function TopBar({ onOpenMobileNav }: TopBarProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const cloud = useCloud()
   const { now, settings, result, dataset, user } = useEngine()
   const actions = useActions()
   const [query, setQuery] = useState('')
@@ -33,6 +37,11 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
   }
 
   async function signOut() {
+    if (cloud) {
+      await cloud.signOut()
+      navigate('/login')
+      return
+    }
     await actions.updateSettings({ profileId: null })
     // Signing back in, as anyone, returns to this page
     navigate('/login', { state: { from: location.pathname + location.search } })
@@ -68,6 +77,7 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
 
       <div className="ml-auto flex items-center gap-2">
         <InstallButton className="hidden sm:inline-flex" label="Install" />
+        {cloud ? <EngineStatus /> : null}
         <button
           type="button"
           onClick={() => {
@@ -83,12 +93,13 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
         <span className="hidden h-9 items-center rounded-full border border-pill-border bg-pill px-3 text-xs text-[#c4c2c3] lg:inline-flex" title="Extraction mode">
           {result.mode}
         </span>
+        {cloud ? <NotificationBell /> : null}
         <span className="flex h-9 items-center gap-2 rounded-full bg-white py-1 pl-1 pr-1 text-xs text-black shadow-[0_4px_14px_rgba(0,0,0,0.16)]">
           <span className="grid size-7 place-items-center rounded-full bg-black text-[11px] font-semibold text-white" aria-hidden>
             {(user?.name ?? '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
           </span>
           <span className="hidden font-medium sm:inline">
-            {user?.name.split(/\s+/)[0]} · {user?.role ?? 'member'}
+            {user?.name.split(/\s+/)[0]} · {cloud?.me ? cloud.me.profile.role.replace('_', ' ') : (user?.role ?? 'member')}
           </span>
           <button
             type="button"

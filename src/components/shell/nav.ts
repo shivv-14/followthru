@@ -1,4 +1,5 @@
-import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, type LucideIcon } from 'lucide-react'
+import { cloudEnabled } from '../../lib/supabase'
 import type { Role } from '../../engine/types'
 
 export interface NavEntry {
@@ -18,6 +19,7 @@ const COORDINATOR: NavEntry[] = [
   { to: '/flows', label: 'Flows', short: 'Flows', icon: Workflow },
   { to: '/team', label: 'Team', short: 'Team', icon: Users },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
+  ...(cloudEnabled ? [{ to: '/people', label: 'People', short: 'People', icon: UserCog }] : []),
 ]
 
 const MEMBER: NavEntry[] = [
@@ -25,6 +27,7 @@ const MEMBER: NavEntry[] = [
   { to: '/team', label: 'My tasks', short: 'Tasks', icon: Users },
   { to: '/commitments', label: 'Commitments', short: 'Items', icon: ListChecks },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
+  ...(cloudEnabled ? [{ to: '/notifications', label: 'Notifications', short: 'Alerts', icon: Bell }] : []),
 ]
 
 /** One list per role, shared by the sidebar, the bottom tab bar and the mobile sheet. */
