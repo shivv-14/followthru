@@ -1,0 +1,166 @@
+import { beforeAll, describe, expect, it } from 'vitest'
+import type { PGlite } from '@electric-sql/pglite'
+import { asService, asUser, freshDb, ids, seed } from './harness'
+
+let db: PGlite
+const rows = async (sql: string) => (await db.query<Record<string, unknown>>(sql)).rows
+
+beforeAll(async () => {
+  db = await freshDb()
+  await seed(db)
+}, 60_000)
+
+describe('migrations', () => {
+  it('enable row level security on every public table', async () => {
+    const off = await rows(`select relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity`)
+    expect(off).toEqual([])
+  })
+
+  it('give anon nothing and signed-in users read access only', async () => {
+    const writes = await rows(`select table_name, privilege_type from information_schema.role_table_grants
+      where table_schema = 'public' and grantee in ('anon', 'authenticated') and privilege_type <> 'SELECT'`)
+    expect(writes).toEqual([])
+    const anon = await rows(`select table_name from information_schema.role_table_grants where table_schema = 'public' and grantee = 'anon'`)
+    expect(anon).toEqual([])
+  })
+
+  it('keep one reminder draft per task', async () => {
+    await expect(
+      db.exec(`insert into public.reminder_drafts (org_id, draft_key, task_key, kind, body, state, snapshot)
+        values ('${ids.orgA}', 'd_other', 'c_m_1', 'reminder', 'x', 'pending_review', '{}')`),
+    ).rejects.toThrow(/duplicate key/)
+  })
+})
+
+describe('organization isolation', () => {
+  it('shows a coordinator only their own organization', async () => {
+    const tasks = await asUser(db, ids.coordA, () => rows('select task_key from public.tasks order by task_key'))
+    expect(tasks.map((t) => t.task_key)).toEqual(['c_m_1', 'c_m_2'])
+    const msgs = await asUser(db, ids.coordA, () => rows('select external_id from public.messages order by external_id'))
+    expect(msgs.map((m) => m.external_id)).toEqual(['m_1', 'm_2'])
+    const orgs = await asUser(db, ids.coordB, () => rows('select name from public.organizations'))
+    expect(orgs).toEqual([{ name: 'Org B' }])
+  })
+
+  it('does not reveal another organization by guessing ids', async () => {
+    const guess = await asUser(db, ids.coordB, () => rows(`select * from public.tasks where id = '${ids.task1}'`))
+    expect(guess).toEqual([])
+    const profiles = await asUser(db, ids.coordB, () => rows(`select id from public.profiles where org_id = '${ids.orgA}'`))
+    expect(profiles).toEqual([])
+  })
+
+  it('rejects every direct write from the browser, including into another organization', async () => {
+    await expect(
+      asUser(db, ids.coordB, () => db.exec(`insert into public.tasks (org_id, task_key, source, title) values ('${ids.orgA}', 'x', 'conversation', 'x')`)),
+    ).rejects.toThrow(/permission denied/)
+    await expect(asUser(db, ids.memberA, () => db.exec(`update public.profiles set role = 'coordinator' where id = '${ids.memberA}'`))).rejects.toThrow(
+      /permission denied/,
+    )
+    await expect(asUser(db, ids.memberA, () => db.exec(`delete from public.audit_log`))).rejects.toThrow(/permission denied/)
+  })
+})
+
+describe('role scopes', () => {
+  it('shows a member only their own tasks, threads and decisions', async () => {
+    const tasks = await asUser(db, ids.memberA, () => rows('select task_key from public.tasks'))
+    expect(tasks.map((t) => t.task_key)).toEqual(['c_m_1'])
+    const msgs = await asUser(db, ids.memberA, () => rows('select external_id from public.messages'))
+    expect(msgs.map((m) => m.external_id)).toEqual(['m_1'])
+  })
+
+  it('never shows members the reminder drafts, audit log or other accounts', async () => {
+    expect(await asUser(db, ids.memberA, () => rows('select id from public.reminder_drafts'))).toEqual([])
+    expect(await asUser(db, ids.memberA, () => rows('select id from public.audit_log'))).toEqual([])
+    const profiles = await asUser(db, ids.memberA, () => rows('select username from public.profiles'))
+    expect(profiles).toEqual([{ username: 'member_a' }])
+  })
+
+  it('shows a team lead the tasks and drafts of the teams they lead, not others', async () => {
+    const tasks = await asUser(db, ids.leadA, () => rows('select task_key from public.tasks'))
+    expect(tasks.map((t) => t.task_key)).toEqual(['c_m_1'])
+    const drafts = await asUser(db, ids.leadA, () => rows('select draft_key from public.reminder_drafts'))
+    expect(drafts.map((d) => d.draft_key)).toEqual(['d_c_m_1'])
+  })
+
+  it('hides all organization data until a temporary password is changed', async () => {
+    expect(await asUser(db, ids.mustChangeA, () => rows('select id from public.tasks'))).toEqual([])
+    expect(await asUser(db, ids.mustChangeA, () => rows('select id from public.external_people'))).toEqual([])
+    const self = await asUser(db, ids.mustChangeA, () => rows('select must_change_password from public.profiles'))
+    expect(self).toEqual([{ must_change_password: true }])
+  })
+
+  it('hides data from disabled accounts', async () => {
+    await db.exec(`update public.profiles set is_active = false where id = '${ids.member2A}'`)
+    expect(await asUser(db, ids.member2A, () => rows('select id from public.tasks'))).toEqual([])
+    await db.exec(`update public.profiles set is_active = true where id = '${ids.member2A}'`)
+  })
+})
+
+describe('notifications', () => {
+  it('shows only your own notifications, and quiet-hour reminders only once due', async () => {
+    const mine = await asUser(db, ids.memberA, () => rows('select title from public.notifications'))
+    expect(mine).toEqual([{ title: 'Now' }])
+  })
+
+  it('lets you mark only your own delivered notifications read', async () => {
+    const n = await asUser(db, ids.memberA, async () => (await db.query<{ n: number }>('select public.mark_notifications_read() as n')).rows[0].n)
+    expect(n).toBe(1)
+    const other = await rows(`select read_at from public.notifications where event_key = 'e3'`)
+    expect(other[0].read_at).toBeNull()
+    const later = await rows(`select read_at from public.notifications where event_key = 'e2'`)
+    expect(later[0].read_at).toBeNull()
+  })
+})
+
+describe('audit log', () => {
+  it('is append-only, even for the server', async () => {
+    await expect(asService(db, () => db.exec(`update public.audit_log set action = 'changed'`))).rejects.toThrow(/append-only/)
+    await expect(asService(db, () => db.exec(`delete from public.audit_log`))).rejects.toThrow(/append-only/)
+  })
+})
+
+describe('apply_ops', () => {
+  it('cannot be called from the browser', async () => {
+    await expect(asUser(db, ids.coordA, () => db.query(`select public.apply_ops('[]')`))).rejects.toThrow(/permission denied/)
+  })
+
+  it('applies all operations or none', async () => {
+    const ops = JSON.stringify([
+      { op: 'insert', table: 'audit_log', row: { org_id: ids.orgA, action: 'atomic', entity_type: 'data', entity_id: 'y' } },
+      { op: 'update', table: 'tasks', match: { id: ids.task1, row_version: 99 }, set: { title: 'x' }, require_rows: true },
+    ])
+    await expect(asService(db, () => db.query(`select public.apply_ops($1::jsonb)`, [ops]))).rejects.toThrow(/conflict/)
+    expect(await rows(`select id from public.audit_log where action = 'atomic'`)).toEqual([])
+  })
+
+  it('updates with optimistic locking and upserts idempotently', async () => {
+    const ops = JSON.stringify([
+      { op: 'update', table: 'tasks', match: { id: ids.task1, row_version: 1 }, set: { title: 'Send it today', row_version: 2 }, require_rows: true },
+      { op: 'upsert', table: 'task_events', conflict: ['org_id', 'event_key'], ignore_duplicates: true, row: { org_id: ids.orgA, task_id: ids.task1, event_key: 'k1', event_type: 'created', at: '2026-10-01T00:00:00Z' } },
+      { op: 'upsert', table: 'task_events', conflict: ['org_id', 'event_key'], ignore_duplicates: true, row: { org_id: ids.orgA, task_id: ids.task1, event_key: 'k1', event_type: 'created', at: '2026-10-01T00:00:00Z' } },
+    ])
+    await asService(db, () => db.query(`select public.apply_ops($1::jsonb)`, [ops]))
+    expect(await rows(`select title, row_version from public.tasks where id = '${ids.task1}'`)).toEqual([{ title: 'Send it today', row_version: 2 }])
+    expect(await rows(`select count(*)::int as n from public.task_events where event_key = 'k1'`)).toEqual([{ n: 1 }])
+  })
+})
+
+describe('file storage', () => {
+  it('allows uploads only into your own organization folder', async () => {
+    await expect(
+      asUser(db, ids.memberA, () => db.exec(`insert into storage.objects (bucket_id, name) values ('task-attachments', '${ids.orgB}/r1/a.pdf')`)),
+    ).rejects.toThrow(/row-level security/)
+    await asUser(db, ids.memberA, () => db.exec(`insert into storage.objects (bucket_id, name) values ('task-attachments', '${ids.orgA}/r1/a.pdf')`))
+  })
+
+  it('lets only people who can read the task download the file', async () => {
+    await db.exec(`insert into public.files (org_id, uploader_profile_id, task_id, original_name, object_path, mime, size_bytes, sha256)
+      values ('${ids.orgA}', '${ids.memberA}', '${ids.task1}', 'a.pdf', '${ids.orgA}/r1/a.pdf', 'application/pdf', 10, '${'a'.repeat(64)}')`)
+    const own = await asUser(db, ids.memberA, () => rows(`select name from storage.objects`))
+    expect(own).toEqual([{ name: `${ids.orgA}/r1/a.pdf` }])
+    expect(await asUser(db, ids.member2A, () => rows(`select name from storage.objects`))).toEqual([])
+    expect(await asUser(db, ids.coordB, () => rows(`select name from storage.objects`))).toEqual([])
+    expect(await asUser(db, ids.coordA, () => rows(`select name from storage.objects`))).toHaveLength(1)
+  })
+})
