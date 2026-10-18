@@ -237,6 +237,11 @@ export async function cron(req: ApiRequest) {
   ])
   const orgs = [...new Set([...(data ?? []), ...(slackTeams ?? [])].map((a) => a.org_id as string))]
   const results = []
-  for (const org of orgs) results.push({ org, ...(await tick(org)) })
+  const started = Date.now()
+  // A new workspace round starts only early on, so the call ends inside the 60 s limit; the rest wait two minutes
+  for (const org of orgs) {
+    if (Date.now() - started > 10_000) break
+    results.push({ org, ...(await tick(org)) })
+  }
   return json(200, { ok: true, workspaces: results.length, fetched: results.reduce((n, r) => n + r.fetched, 0), processed: results.reduce((n, r) => n + r.processed, 0), slack: results.reduce((n, r) => n + r.slack, 0) })
 }

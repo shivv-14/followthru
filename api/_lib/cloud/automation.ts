@@ -17,6 +17,8 @@ import { syncOrg } from './sync'
 // inbound_emails with a retry time, and anything uncertain waits in the review list.
 
 const MAX_ATTEMPTS = 5
+/** One round stops starting new work after this long, so it ends well inside the 60 s function limit */
+const ROUND_BUDGET_MS = 35_000
 const FETCH_PER_RUN = 40
 const PROCESS_PER_RUN = 15
 
@@ -58,14 +60,20 @@ async function accessToken(a: AccountRow, f: Fetch): Promise<string> {
 }
 
 /** Fetches new mail for one connected account and stores each message once. */
-export async function syncAccount(a: AccountRow, f: Fetch = fetch): Promise<{ fetched: number; error?: string }> {
+export async function syncAccount(a: AccountRow, f: Fetch = fetch, deadline = Date.now() + ROUND_BUDGET_MS): Promise<{ fetched: number; error?: string }> {
   try {
     const token = await accessToken(a, f)
     const { ids, historyId } = await newMessageIds(token, a.history_id, a.initial_days, f)
     const { data: known } = ids.length ? await admin().from('inbound_emails').select('gmail_message_id').eq('org_id', a.org_id).in('gmail_message_id', ids) : { data: [] }
     const seen = new Set((known ?? []).map((k) => k.gmail_message_id as string))
     let fetched = 0
-    for (const id of ids.filter((x) => !seen.has(x)).slice(0, FETCH_PER_RUN)) {
+    const todo = ids.filter((x) => !seen.has(x)).slice(0, FETCH_PER_RUN)
+    let complete = true
+    for (const id of todo) {
+      if (Date.now() > deadline) {
+        complete = false
+        break
+      }
       const m = parseGmailMessage(await gmailGet<GmailMessage>(`/messages/${encodeURIComponent(id)}?format=full`, token, f))
       const { data: inserted } = await admin()
         .from('inbound_emails')
@@ -95,7 +103,7 @@ export async function syncAccount(a: AccountRow, f: Fetch = fetch): Promise<{ fe
     }
     await admin()
       .from('gmail_accounts')
-      .update({ history_id: historyId ?? a.history_id, last_sync_at: new Date().toISOString(), last_error: null, status: 'connected', messages_seen: a.messages_seen + fetched, updated_at: new Date().toISOString() })
+      .update({ history_id: complete && todo.length === ids.filter((x) => !seen.has(x)).length ? (historyId ?? a.history_id) : a.history_id, last_sync_at: new Date().toISOString(), last_error: null, status: 'connected', messages_seen: a.messages_seen + fetched, updated_at: new Date().toISOString() })
       .eq('id', a.id)
     return { fetched }
   } catch (e) {
@@ -349,11 +357,12 @@ export async function processEmail(row: EmailRow, f: Fetch = fetch): Promise<{ s
 }
 
 /** Processes emails that are due, oldest first. */
-export async function processPending(orgId: string, f: Fetch = fetch, limit = PROCESS_PER_RUN): Promise<{ processed: number }> {
+export async function processPending(orgId: string, f: Fetch = fetch, limit = PROCESS_PER_RUN, deadline = Date.now() + ROUND_BUDGET_MS): Promise<{ processed: number }> {
   const now = new Date().toISOString()
   const { data } = await admin().from('inbound_emails').select(EMAIL_COLUMNS).eq('org_id', orgId).in('status', ['pending', 'processing']).lte('next_attempt_at', now).order('sent_at').limit(limit)
   let processed = 0
   for (const row of (data ?? []) as EmailRow[]) {
+    if (Date.now() > deadline) break
     await processEmail(row, f)
     processed++
   }
@@ -365,13 +374,14 @@ export async function tick(orgId: string, f: Fetch = fetch, minIntervalMs = 45_0
   const { data: accounts } = await admin().from('gmail_accounts').select('id, org_id, email, refresh_token_enc, access_token_enc, access_expires_at, history_id, initial_days, messages_seen, connected_by, last_sync_at, status').eq('org_id', orgId).neq('status', 'revoked')
   let fetched = 0
   const errors: string[] = []
+  const deadline = Date.now() + ROUND_BUDGET_MS
   for (const a of accounts ?? []) {
     if (a.last_sync_at && Date.now() - Date.parse(a.last_sync_at as string) < minIntervalMs) continue
-    const r = await syncAccount(a as AccountRow, f)
+    const r = await syncAccount(a as AccountRow, f, Date.now() + ROUND_BUDGET_MS / 2)
     fetched += r.fetched
     if (r.error) errors.push(`${a.email}: ${r.error}`)
   }
-  const { processed } = await processPending(orgId, f)
+  const { processed } = await processPending(orgId, f, PROCESS_PER_RUN, deadline)
   let slack = 0
   try {
     const r = await syncSlack(orgId, f, minIntervalMs)
