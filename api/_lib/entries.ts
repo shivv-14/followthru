@@ -18,5 +18,6 @@ export async function cloud(req: VercelRequest, res: VercelResponse) {
   const route = (Array.isArray(raw) ? raw.join('/') : raw) ?? ''
   const out = await routeCloud(route, { method: req.method, url: req.url, headers: req.headers, body: req.body, query: req.query })
   for (const [k, v] of Object.entries(out.headers ?? {})) res.setHeader(k, v)
-  res.status(out.status).json(out.body)
+  if (out.status === 302) res.status(302).end()
+  else res.status(out.status).json(out.body)
 }

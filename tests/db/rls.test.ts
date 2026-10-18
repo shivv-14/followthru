@@ -164,3 +164,37 @@ describe('file storage', () => {
     expect(await asUser(db, ids.coordA, () => rows(`select name from storage.objects`))).toHaveLength(1)
   })
 })
+
+describe('gmail automation tables', () => {
+  beforeAll(async () => {
+    await db.exec(`
+      insert into public.gmail_accounts (org_id, email, refresh_token_enc) values ('${ids.orgA}', 'coord@a.test', 'v1.sealed');
+      insert into public.inbound_emails (org_id, gmail_message_id, gmail_thread_id, sent_at, subject) values ('${ids.orgA}', 'gm_1', 'th_1', now(), 'Deck');
+      insert into public.automation_events (org_id, kind, message) values ('${ids.orgA}', 'ticket_created', 'Ticket created automatically');
+    `)
+  })
+
+  it('stores each Gmail message once per workspace', async () => {
+    await expect(db.exec(`insert into public.inbound_emails (org_id, gmail_message_id, gmail_thread_id, sent_at) values ('${ids.orgA}', 'gm_1', 'th_1', now())`)).rejects.toThrow(/duplicate key/)
+  })
+
+  it('never lets a signed-in user read stored OAuth tokens', async () => {
+    await expect(asUser(db, ids.coordA, () => rows('select refresh_token_enc from public.gmail_accounts'))).rejects.toThrow(/permission denied/)
+    await expect(asUser(db, ids.memberA, () => rows('select id from public.gmail_accounts'))).rejects.toThrow(/permission denied/)
+  })
+
+  it('shows emails and automation events to coordinators of the same workspace only', async () => {
+    expect(await asUser(db, ids.coordA, () => rows('select subject from public.inbound_emails'))).toEqual([{ subject: 'Deck' }])
+    expect((await asUser(db, ids.coordA, () => rows('select kind from public.automation_events'))).length).toBe(1)
+    expect(await asUser(db, ids.coordB, () => rows('select id from public.inbound_emails'))).toEqual([])
+    expect(await asUser(db, ids.memberA, () => rows('select id from public.inbound_emails'))).toEqual([])
+    expect(await asUser(db, ids.memberA, () => rows('select id from public.automation_events'))).toEqual([])
+  })
+
+  it('lets the server write the new tables through apply_ops', async () => {
+    await asService(db, () =>
+      db.query(`select public.apply_ops($1::jsonb)`, [JSON.stringify([{ op: 'insert', table: 'automation_events', row: { org_id: ids.orgA, kind: 'email_detected', message: 'New email detected' } }])]),
+    )
+    expect((await rows(`select id from public.automation_events where org_id = '${ids.orgA}'`)).length).toBe(2)
+  })
+})

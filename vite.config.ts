@@ -10,7 +10,7 @@ function apiDevServer(): Plugin {
     configureServer(server) {
       // Server-only settings for the cloud routes (never exposed to the browser bundle)
       const env = loadEnv(server.config.mode, server.config.root, '')
-      for (const key of ['SUPABASE_SECRET_KEY', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY']) {
+      for (const key of ['SUPABASE_SECRET_KEY', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'TOKEN_ENCRYPTION_KEY', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI', 'AI_PROVIDER', 'AI_MODEL', 'AI_MIN_CONFIDENCE', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'CRON_SECRET']) {
         if (env[key] && !process.env[key]) process.env[key] = env[key]
       }
       server.middlewares.use('/api', async (req, res, next) => {
@@ -22,6 +22,7 @@ function apiDevServer(): Plugin {
           const out = await mod.routeCloud(route.slice('cloud/'.length), { method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks).toString('utf8') })
           res.statusCode = out.status
           for (const [k, v] of Object.entries(out.headers ?? {})) res.setHeader(k, String(v))
+          if (out.status === 302) return res.end()
           res.setHeader('Content-Type', 'application/json')
           return res.end(JSON.stringify(out.body))
         }

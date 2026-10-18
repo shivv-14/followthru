@@ -48,6 +48,22 @@ export async function requireUser(req: ApiRequest, opts: { allowMustChange?: boo
   const { data, error } = await admin().auth.getClaims(token)
   const userId = data?.claims?.sub
   if (error || !userId) throw unauthorized('Your session has expired. Sign in again.')
+  return loadCtx(userId, token, opts)
+}
+
+/**
+ * Context for a profile the server already trusts: the email automation acts as the sender of a
+ * message (matched by email address) so the usual role checks still apply. No token is involved.
+ */
+export async function ctxForProfile(profileId: string): Promise<Ctx | null> {
+  try {
+    return await loadCtx(profileId, '', {})
+  } catch {
+    return null
+  }
+}
+
+async function loadCtx(userId: string, token: string, opts: { allowMustChange?: boolean; allowNoWorkspace?: boolean }): Promise<Ctx> {
   const [{ data: profile }, { data: teams }] = await Promise.all([
     admin().from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle<ProfileRow>(),
     admin().from('teams').select('team_key').eq('lead_profile_id', userId),

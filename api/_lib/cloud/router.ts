@@ -2,6 +2,7 @@ import type { ApiRequest, ApiResponse } from '../handlers'
 import { HttpError, json } from './http'
 import * as accounts from './routes/accounts'
 import * as auth from './routes/auth'
+import * as automation from './routes/automation'
 import * as chat from './routes/chat'
 import * as data from './routes/data'
 import * as work from './routes/work'
@@ -49,12 +50,24 @@ export const ROUTES: Record<string, Handler> = {
   'chat/teams': chat.listChats,
   'chat/messages': chat.chatMessages,
   'chat/post': chat.postChat,
+  'gmail/connect': automation.gmailConnect,
+  'gmail/callback': automation.gmailCallback,
+  'gmail/disconnect': automation.gmailDisconnect,
+  'automation/overview': automation.overview,
+  'automation/tick': automation.runTick,
+  'automation/test-email': automation.testEmail,
+  'automation/review-create': automation.reviewCreate,
+  'automation/dismiss': automation.dismissEmail,
+  'automation/retry': automation.retryEmail,
+  'cron/gmail': automation.cron,
 }
 
 export async function routeCloud(route: string, req: ApiRequest): Promise<ApiResponse> {
   const handler = ROUTES[route]
   if (!handler) return json(404, { error: { code: 'not_found', message: 'Unknown route' } })
-  if (req.method !== 'POST') return { ...json(405, { error: { code: 'method_not_allowed', message: 'Use POST' } }), headers: { Allow: 'POST' } }
+  // Google's OAuth redirect and schedulers use GET; everything else is POST
+  const getAllowed = route === 'gmail/callback' || route === 'cron/gmail'
+  if (req.method !== 'POST' && !(getAllowed && req.method === 'GET')) return { ...json(405, { error: { code: 'method_not_allowed', message: 'Use POST' } }), headers: { Allow: 'POST' } }
   try {
     return await handler(req)
   } catch (e) {

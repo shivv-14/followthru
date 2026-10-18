@@ -80,7 +80,11 @@ export async function createTasks(req: ApiRequest) {
 export async function decide(req: ApiRequest) {
   const ctx = await requireUser(req)
   rateLimit(`decide:${ctx.userId}`, 120, 60_000)
-  const b = bodyOf(req)
+  return decideAs(ctx, bodyOf(req))
+}
+
+/** The decision workflow for an already verified caller. The email automation calls it on behalf of the sender. */
+export async function decideAs(ctx: Ctx, b: Record<string, unknown>) {
   const taskKey = str(b, 'taskKey', { max: 120 })
   const type = str(b, 'type') as DecisionType
   if (!DECISIONS.includes(type)) throw bad('Unknown action')
