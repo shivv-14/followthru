@@ -22,6 +22,7 @@ const JoinTeam = lazy(() => import('./pages/JoinTeam'))
 const Workspaces = lazy(() => import('./pages/Workspaces'))
 const Experiment = lazy(() => import('./pages/Experiment'))
 const TeamChat = lazy(() => import('./pages/TeamChat'))
+const Automation = lazy(() => import('./pages/Automation'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Commitments = lazy(() => import('./pages/Commitments'))
 const CommitmentDetail = lazy(() => import('./pages/CommitmentDetail'))
@@ -69,6 +70,7 @@ export default function App() {
               <Route path="/evidence" element={<Evidence />} />
               {cloudEnabled ? <Route path="/people" element={<RequireRole role="coordinator"><People /></RequireRole>} /> : null}
               {cloudEnabled ? <Route path="/notifications" element={<Notifications />} /> : null}
+              {cloudEnabled ? <Route path="/automation" element={<RequireRole role="coordinator"><Automation /></RequireRole>} /> : null}
               {cloudEnabled ? <Route path="/experiment" element={<RequireRole role="coordinator"><Experiment /></RequireRole>} /> : null}
             </Route>
 

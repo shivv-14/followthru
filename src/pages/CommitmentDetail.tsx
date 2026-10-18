@@ -132,6 +132,21 @@ export default function CommitmentDetail() {
                 <dt className="text-xs text-text-faint">Reply from owner</dt>
                 <dd>{c.responseState === 'pending' ? 'Pending (silence does not change status)' : 'Responded'}</dd>
               </div>
+              {cloud?.taskRows.get(c.id)?.origin ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-text-faint">Created from email {cloud.taskRows.get(c.id)!.origin!.kind === 'test' ? '(test email, not Gmail)' : ''}</dt>
+                  <dd className="text-sm text-text-muted">
+                    "{cloud.taskRows.get(c.id)!.origin!.subject ?? '(no subject)'}" from {cloud.taskRows.get(c.id)!.origin!.from ?? 'unknown'} ·{' '}
+                    {cloud.taskRows.get(c.id)!.origin!.approvedBy ? `approved by ${cloud.taskRows.get(c.id)!.origin!.approvedBy}` : `${cloud.taskRows.get(c.id)!.origin!.mode === 'ai' ? `AI (${cloud.taskRows.get(c.id)!.origin!.model})` : 'rules'}, confidence ${Number(cloud.taskRows.get(c.id)!.origin!.confidence).toFixed(2)}`}
+                    <span className="block text-xs">Owner: {cloud.taskRows.get(c.id)!.origin!.assignReason}. Deadline: {cloud.taskRows.get(c.id)!.origin!.deadlineNote}.{cloud.taskRows.get(c.id)!.origin!.priorityReason ? ` Priority: ${cloud.taskRows.get(c.id)!.origin!.priorityReason}.` : ''}</span>
+                    {cloud.taskRows.get(c.id)!.origin!.kind === 'gmail' ? (
+                      <a className="text-xs text-accent hover:underline" href={`https://mail.google.com/mail/u/0/#all/${cloud.taskRows.get(c.id)!.origin!.threadId}`} target="_blank" rel="noreferrer">
+                        Open the thread in Gmail
+                      </a>
+                    ) : null}
+                  </dd>
+                </div>
+              ) : null}
               {cloud?.taskRows.get(c.id)?.startAt ? (
                 <div>
                   <dt className="text-xs text-text-faint">Start (your time)</dt>

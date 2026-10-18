@@ -4,6 +4,7 @@ import { CommitmentLink, CommitmentStatus, DeadlineText, OwnerText, PageHeader, 
 import { REVIEW_LABEL, firstName, statusView } from '../components/domain/view'
 import { blockingReviewReasons } from '../engine/drafts'
 import { useEngine } from '../store'
+import { cloudEnabled } from '../lib/supabase'
 
 const DAY = 86_400_000
 
@@ -58,6 +59,11 @@ export default function Dashboard() {
             <Link to="/chat" className="rounded-full border border-pill-border bg-pill px-5 py-2 text-sm text-pill-text hover:text-white">
               Open team chat
             </Link>
+            {cloudEnabled ? (
+              <Link to="/automation" className="rounded-full border border-pill-border bg-pill px-5 py-2 text-sm text-pill-text hover:text-white">
+                Email automation (Gmail)
+              </Link>
+            ) : null}
           </div>
         </Card>
       ) : null}

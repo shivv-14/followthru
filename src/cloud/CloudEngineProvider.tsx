@@ -26,11 +26,28 @@ export interface LastRun {
 }
 
 /** Cloud-only details the shared engine state has no place for. */
+/** Where an automatic ticket came from (tasks.origin) */
+export interface TaskOrigin {
+  kind: 'gmail' | 'test'
+  emailId: string
+  messageId: string
+  threadId: string
+  subject: string | null
+  from: string | null
+  mode: string
+  model: string
+  confidence: number
+  assignReason: string
+  deadlineNote: string
+  priorityReason: string | null
+  approvedBy: string | null
+}
+
 export interface CloudData {
   orgId: string
   orgName: string
   /** task_key -> database row id and optimistic-lock version */
-  taskRows: Map<string, { id: string; rowVersion: number; startAt: string | null; priority: string; description: string | null }>
+  taskRows: Map<string, { id: string; rowVersion: number; startAt: string | null; priority: string; description: string | null; origin: TaskOrigin | null }>
   files: EvidenceFile[]
   runs: RunRecord[]
   lastRun: LastRun | null
@@ -48,7 +65,7 @@ const LIVE_TABLES = ['notifications', 'tasks', 'reminder_drafts', 'human_decisio
 
 interface Loaded {
   dataset: StoredDataset
-  tasks: { task_key: string; id: string; row_version: number; snapshot: Commitment | null; manual_task: ManualTask | null; start_at: string | null; priority: string; description: string | null }[]
+  tasks: { task_key: string; id: string; row_version: number; snapshot: Commitment | null; manual_task: ManualTask | null; start_at: string | null; priority: string; description: string | null; origin: TaskOrigin | null }[]
   drafts: Draft[]
   decisions: HumanDecision[]
   flows: Flow[]
@@ -73,7 +90,7 @@ async function load(orgName: string): Promise<Loaded> {
     rows<any>(db.from('threads').select('external_id, title')),
     rows<any>(db.from('messages').select('external_id, thread_external_id, author_external_id, text, sent_at, reply_to_external_id, mention_external_ids').order('sent_at').limit(5000)),
     rows<any>(db.from('imports').select('file_name, source, created_at, reference_time, labels, issues').eq('status', 'imported').order('created_at')),
-    rows<any>(db.from('tasks').select('id, task_key, row_version, snapshot, manual_task, start_at, priority, description')),
+    rows<any>(db.from('tasks').select('id, task_key, row_version, snapshot, manual_task, start_at, priority, description, origin')),
     rows<any>(db.from('reminder_drafts').select('snapshot')),
     rows<any>(db.from('human_decisions').select('payload').order('recorded_at')),
     rows<any>(db.from('followup_flows').select('definition').order('created_at')),
@@ -183,11 +200,14 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
     const poll = window.setInterval(refetch, 30_000)
     // Reviewers keep the engine current: overdue checks move with the clock
     const engine = me!.profile.role !== 'member' ? window.setInterval(() => void callApi('engine/run', { trigger: 'interval' }).then(refetch), 5 * 60_000) : undefined
+    // Gmail automation round (fetch new mail, process what is due) while a reviewer has the app open
+    const mail = me!.profile.role !== 'member' ? window.setInterval(() => void callApi('automation/tick', {}).then(refetch), 2 * 60_000) : undefined
     return () => {
       void db.removeChannel(channel)
       document.removeEventListener('visibilitychange', onFocus)
       window.clearInterval(poll)
       window.clearInterval(engine)
+      window.clearInterval(mail)
       window.clearTimeout(timer.current)
     }
   }, [active, me, cloud.bump])
@@ -229,7 +249,7 @@ export function CloudEngineProvider({ children }: { children: ReactNode }) {
         ? {
             orgId: me.org.id,
             orgName: me.org.name,
-            taskRows: new Map((loaded?.tasks ?? []).map((t) => [t.task_key, { id: t.id, rowVersion: t.row_version, startAt: t.start_at, priority: t.priority, description: t.description }])),
+            taskRows: new Map((loaded?.tasks ?? []).map((t) => [t.task_key, { id: t.id, rowVersion: t.row_version, startAt: t.start_at, priority: t.priority, description: t.description, origin: t.origin ?? null }])),
             files: loaded?.files ?? [],
             runs: loaded?.runs ?? [],
             lastRun: loaded?.lastRun ?? null,
