@@ -6,6 +6,7 @@ import { ctxForProfile } from './context'
 import { decryptSecret, encryptSecret } from './crypto'
 import { gmailGet, newMessageIds, parseGmailMessage, refreshAccess, RevokedError, TransientError, type Fetch, type GmailMessage } from './gmail'
 import { HttpError } from './http'
+import { saveMinutesPage } from './kb'
 import { auditOp, notificationOps, reviewerIds } from './notify'
 import { decideAs } from './routes/work'
 import { syncSlack } from './slackSync'
@@ -308,6 +309,16 @@ export async function processEmail(row: EmailRow, f: Fetch = fetch): Promise<{ s
       .from('inbound_emails')
       .update({ status, classification: a.classification, ai_mode: reading.mode, ai_model: reading.model, confidence: a.confidence, ai_result: a, decision: { steps: outcomes }, task_keys: taskKeys, processed_at: new Date().toISOString(), last_error: null, attempts: row.attempts + 1 })
       .eq('id', row.id)
+    if (a.classification === 'meeting_minutes' && a.minutes) {
+      // The knowledge base is a side effect: if saving the page fails, the email still counts as processed
+      try {
+        const tickets = new Set(steps.flatMap((s) => (s.kind === 'create' ? [`c_${s.ticketId}`] : [])))
+        const page = await saveMinutesPage(row, a, tickets, connectedBy)
+        if (page.created) await eventOp(orgId, 'minutes_saved', `Meeting minutes saved to the knowledge base as a draft: "${page.title}"`, { emailId: row.id, detail: { pageId: page.pageId } })
+      } catch (err) {
+        await eventOp(orgId, 'minutes_not_saved', `Meeting minutes could not be saved to the knowledge base: ${err instanceof Error ? err.message : 'unknown error'}`, { emailId: row.id })
+      }
+    }
     if (applied > 0) await syncOrg(orgId, connectedBy, 'write')
     if (review > 0) {
       const reviewers = await reviewerIds(orgId, null)

@@ -81,7 +81,7 @@ declare
     'imports', 'threads', 'messages', 'followup_flows', 'tasks', 'task_assignments', 'task_events', 'human_decisions', 'blockers',
     'deadline_requests', 'submissions', 'comments', 'files', 'reminder_drafts', 'reminder_draft_versions', 'suppressions',
     'engine_runs', 'notifications', 'audit_log', 'settings', 'join_requests', 'growth_experiments',
-    'gmail_accounts', 'inbound_emails', 'automation_events',
+    'gmail_accounts', 'inbound_emails', 'automation_events', 'kb_spaces', 'kb_pages', 'kb_page_versions',
     'slack_workspaces', 'slack_channels', 'slack_users'];
 begin
   if jsonb_typeof(p_ops) <> 'array' then

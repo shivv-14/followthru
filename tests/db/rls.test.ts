@@ -237,3 +237,80 @@ describe('slack tables', () => {
     expect(await rows(`select enabled from public.slack_channels where channel_id = 'C1'`)).toEqual([{ enabled: true }])
   })
 })
+
+describe('knowledge base tables', () => {
+  const space = '40000000-0000-4000-8000-000000000001'
+  const spaceB = '40000000-0000-4000-8000-000000000002'
+  const pub = '41000000-0000-4000-8000-000000000001'
+  const draftM2 = '41000000-0000-4000-8000-000000000002'
+  const draftM1 = '41000000-0000-4000-8000-000000000003'
+  const pageB = '41000000-0000-4000-8000-000000000004'
+  const titles = async (user: string) => (await asUser(db, user, () => rows('select title from public.kb_pages order by title'))).map((r) => r.title)
+
+  beforeAll(async () => {
+    await db.exec(`
+      insert into public.kb_spaces (id, org_id, space_key, name) values ('${space}', '${ids.orgA}', 'eng', 'Engineering'), ('${spaceB}', '${ids.orgB}', 'eng', 'B space');
+      insert into public.kb_pages (id, org_id, space_id, slug, title, body_md, status, owner_profile_id) values
+        ('${pub}', '${ids.orgA}', '${space}', 'runbook', 'Runbook', 'How we deploy', 'published', '${ids.coordA}'),
+        ('${draftM2}', '${ids.orgA}', '${space}', 'secret-draft', 'Secret draft', 'member two notes', 'draft', '${ids.member2A}'),
+        ('${draftM1}', '${ids.orgA}', '${space}', 'my-draft', 'My draft', 'member one notes', 'draft', '${ids.memberA}'),
+        ('${pageB}', '${ids.orgB}', '${spaceB}', 'b-page', 'B page', 'org b', 'published', '${ids.coordB}');
+      insert into public.kb_page_versions (org_id, page_id, version, title, body_md, status) values
+        ('${ids.orgA}', '${pub}', 1, 'Runbook', 'How we deploy (draft)', 'draft'),
+        ('${ids.orgA}', '${pub}', 2, 'Runbook', 'How we deploy', 'published'),
+        ('${ids.orgA}', '${draftM2}', 1, 'Secret draft', 'member two notes', 'draft');
+    `)
+  })
+
+  it("shows members published pages and their own drafts, never another member's draft", async () => {
+    expect(await titles(ids.memberA)).toEqual(['My draft', 'Runbook'])
+    expect(await titles(ids.member2A)).toEqual(['Runbook', 'Secret draft'])
+    expect(await asUser(db, ids.memberA, () => rows(`select id from public.kb_pages where id = '${draftM2}'`))).toEqual([])
+  })
+
+  it('shows coordinators and team leads every page of their own workspace', async () => {
+    expect(await titles(ids.coordA)).toEqual(['My draft', 'Runbook', 'Secret draft'])
+    expect(await titles(ids.leadA)).toEqual(['My draft', 'Runbook', 'Secret draft'])
+  })
+
+  it('keeps other workspaces out, even for published pages', async () => {
+    expect(await titles(ids.coordB)).toEqual(['B page'])
+    expect(await asUser(db, ids.coordB, () => rows('select id from public.kb_page_versions'))).toEqual([])
+    expect(await asUser(db, ids.coordB, () => rows('select name from public.kb_spaces'))).toEqual([{ name: 'B space' }])
+  })
+
+  it('shows members only the published history of pages they do not own', async () => {
+    expect(await asUser(db, ids.memberA, () => rows('select page_id, version from public.kb_page_versions order by version'))).toEqual([{ page_id: pub, version: 2 }])
+    expect((await asUser(db, ids.coordA, () => rows('select id from public.kb_page_versions'))).length).toBe(3)
+  })
+
+  it('keeps one row per page version and never changes history', async () => {
+    await expect(db.exec(`insert into public.kb_page_versions (org_id, page_id, version, title, status) values ('${ids.orgA}', '${pub}', 2, 'Dup', 'draft')`)).rejects.toThrow(/duplicate key/)
+    await expect(asService(db, () => db.exec(`update public.kb_page_versions set title = 'changed'`))).rejects.toThrow(/append-only/)
+    await expect(asService(db, () => db.exec(`delete from public.kb_page_versions where page_id = '${pub}'`))).rejects.toThrow(/append-only/)
+  })
+
+  it("rejects browser writes, duplicate slugs in a space and pages in another workspace's space", async () => {
+    await expect(asUser(db, ids.coordA, () => db.exec(`update public.kb_pages set title = 'x'`))).rejects.toThrow(/permission denied/)
+    await expect(db.exec(`insert into public.kb_pages (org_id, space_id, slug, title) values ('${ids.orgA}', '${space}', 'runbook', 'Again')`)).rejects.toThrow(/duplicate key/)
+    await expect(db.exec(`insert into public.kb_pages (org_id, space_id, slug, title) values ('${ids.orgA}', '${spaceB}', 'cross', 'Cross')`)).rejects.toThrow(/foreign key/)
+  })
+
+  it('finds pages with the full-text index and saves through apply_ops with optimistic locking', async () => {
+    expect(await rows(`select title from public.kb_pages where search_tsv @@ websearch_to_tsquery('simple', 'deploy')`)).toEqual([{ title: 'Runbook' }])
+    const save = (rowVersion: number) =>
+      JSON.stringify([
+        { op: 'update', table: 'kb_pages', match: { id: pub, row_version: rowVersion }, set: { body_md: 'How we deploy, v3', version: 3, row_version: rowVersion + 1 }, require_rows: true },
+        { op: 'insert', table: 'kb_page_versions', row: { org_id: ids.orgA, page_id: pub, version: 3, title: 'Runbook', body_md: 'How we deploy, v3', status: 'published' } },
+      ])
+    await asService(db, () => db.query('select public.apply_ops($1::jsonb)', [save(1)]))
+    await expect(asService(db, () => db.query('select public.apply_ops($1::jsonb)', [save(1)]))).rejects.toThrow(/conflict/)
+    expect(await rows(`select version, row_version from public.kb_pages where id = '${pub}'`)).toEqual([{ version: 3, row_version: 2 }])
+  })
+
+  it('allows one minutes page per email', async () => {
+    const ins = (slug: string) => `insert into public.kb_pages (org_id, space_id, slug, title, source) values ('${ids.orgA}', '${space}', '${slug}', 'Minutes', '{"kind":"email","emailId":"e-1","threadId":"t"}')`
+    await db.exec(ins('minutes-a'))
+    await expect(db.exec(ins('minutes-b'))).rejects.toThrow(/duplicate key/)
+  })
+})

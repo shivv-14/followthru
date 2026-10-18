@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, FlaskConical, MessagesSquare, MailCheck, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Workflow, Users, FileCheck2, UserCog, Bell, FlaskConical, MessagesSquare, MailCheck, BookOpen, type LucideIcon } from 'lucide-react'
 import { cloudEnabled } from '../../lib/supabase'
 import type { Role } from '../../engine/types'
 
@@ -25,6 +25,7 @@ const COORDINATOR: NavEntry[] = [
         { to: '/automation', label: 'Email automation', short: 'Email', icon: MailCheck },
         { to: '/people', label: 'People', short: 'People', icon: UserCog },
         { to: '/experiment', label: 'Experiment', short: 'Experiment', icon: FlaskConical },
+        { to: '/knowledge', label: 'Knowledge', short: 'Docs', icon: BookOpen },
       ]
     : []),
 ]
@@ -35,7 +36,12 @@ const MEMBER: NavEntry[] = [
   { to: '/chat', label: 'Team chat', short: 'Chat', icon: MessagesSquare },
   { to: '/commitments', label: 'Commitments', short: 'Items', icon: ListChecks },
   { to: '/evidence', label: 'Evidence', short: 'Evidence', icon: FileCheck2 },
-  ...(cloudEnabled ? [{ to: '/notifications', label: 'Notifications', short: 'Alerts', icon: Bell }] : []),
+  ...(cloudEnabled
+    ? [
+        { to: '/notifications', label: 'Notifications', short: 'Alerts', icon: Bell },
+        { to: '/knowledge', label: 'Knowledge', short: 'Docs', icon: BookOpen },
+      ]
+    : []),
 ]
 
 /** One list per role, shared by the sidebar, the bottom tab bar and the mobile sheet. */
