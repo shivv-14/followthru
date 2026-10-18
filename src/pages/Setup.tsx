@@ -8,6 +8,7 @@ import { useCloud } from '../cloud/session'
 import { validateDataset, validateDatasetJson } from '../schema/validate'
 import { messagesFromCsv } from '../schema/io'
 import { isSimpleChatCsv, simpleChatCsvToDataset } from '../schema/simpleCsv'
+import { pdfLinesToDataset } from '../schema/pdfChat'
 import type { ValidationResult } from '../engine/types'
 import { useActions, useEngine, type DataSource } from '../store'
 import demoDataset from '../mocks/demoDataset.json'
@@ -49,6 +50,19 @@ export default function Setup() {
   async function onFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setCandidate({ name: file.name, source: 'import', validation: { ok: false, issues: [{ code: 'invalid_value', severity: 'error', path: ['file'], message: 'Files must be 10 MB or smaller' }] } })
+      return
+    }
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      try {
+        const { pdfTextLines } = await import('../lib/pdfText')
+        setCandidate({ name: file.name, source: 'import', validation: pdfLinesToDataset(await pdfTextLines(await file.arrayBuffer()), file.name, detectedTimezone) })
+      } catch {
+        setCandidate({ name: file.name, source: 'import', validation: { ok: false, issues: [{ code: 'invalid_value', severity: 'error', path: ['pdf'], message: 'This PDF could not be opened. Check that it is not password-protected or damaged.' }] } })
+      }
+      return
+    }
     const text = await file.text()
     if (file.name.toLowerCase().endsWith('.csv') && isSimpleChatCsv(text)) {
       setCandidate({ name: file.name, source: 'import', validation: simpleChatCsvToDataset(text, detectedTimezone) })
@@ -152,7 +166,7 @@ export default function Setup() {
           <h1 className="font-dot text-4xl leading-tight text-white sm:text-5xl">{cloud ? 'Import conversations' : 'Set up FollowThru'}</h1>
           <p className="mx-auto mt-3 max-w-md text-[15px] text-white/75">
             {cloud
-              ? `Data is saved to your ${cloud.me?.org.name ?? ''} workspace in the cloud. Reminders are drafted for review only; nothing is sent outside the app.`
+              ? `Data is saved to your ${cloud.me?.org?.name ?? ''} workspace in the cloud. Reminders are drafted for review only; nothing is sent outside the app.`
               : 'Data stays in this browser. Reminders are drafted for review only; nothing is ever sent.'}
           </p>
         </div>
@@ -207,8 +221,8 @@ export default function Setup() {
                 <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/product-team-chat-SYNTHETIC.csv" download>
                   Product team chat (CSV)
                 </a>
-                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/demo-team-SYNTHETIC.json" download>
-                  Demo team (JSON)
+                <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/product-team-chat-SYNTHETIC.pdf" download>
+                  Product team chat (PDF)
                 </a>
                 <a className="rounded-full border border-pill-border bg-pill px-4 py-2 text-sm text-pill-text hover:text-white" href="/samples/template.csv" download>
                   Blank template (CSV)
@@ -217,10 +231,10 @@ export default function Setup() {
             </li>
             <li>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-text-primary">
-                {cloud || isMockModeEnabled() ? '3.' : '2.'} Upload your file (CSV or JSON)
+                {cloud || isMockModeEnabled() ? '3.' : '2.'} Upload your file (CSV or PDF)
                 <input
                   type="file"
-                  accept=".json,.csv,application/json,text/csv"
+                  accept=".csv,.pdf,text/csv,application/pdf"
                   onChange={onFile}
                   className="text-sm font-normal text-text-muted file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-black"
                 />
@@ -237,6 +251,9 @@ export default function Setup() {
                   <li>Optional: <b>role</b> (coordinator or member), <b>team</b>, <b>reply_to</b> (the row number of the message being answered)</li>
                 </ul>
                 <p className="mt-1">Save as CSV and upload. People and threads are created from their names automatically.</p>
+                <p className="mt-2">
+                  <b>PDF:</b> one message per line, like <code>2026-10-20 10:00 | Website launch | Asha Rao | Asia/Kolkata | message</code>, or a WhatsApp chat export saved as PDF (<code>20/10/2026, 10:00 - Asha Rao: message</code>). Scanned PDFs (pictures of text) cannot be read.
+                </p>
               </details>
             </li>
             {fixtureLoader ? (

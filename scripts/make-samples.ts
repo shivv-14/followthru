@@ -46,3 +46,26 @@ writeFileSync(
     '2026-10-20 10:20,Website launch,Vikram Das,Asia/Kolkata,"Sure, I will send it by Friday 5pm.",member,web,2\n',
 )
 console.log('wrote public/samples')
+
+// A sample chat PDF in the "time | thread | from | timezone | message" line style (synthetic data)
+async function samplePdf(data: Dataset, file: string) {
+  const { chromium } = await import('@playwright/test')
+  const people = new Map(data.people.map((p) => [p.id, p]))
+  const threads = new Map(data.threads.map((t) => [t.id, t.title ?? t.id]))
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const lines = [...data.messages]
+    .sort((a, b) => a.sentAt.localeCompare(b.sentAt))
+    .map((m) => {
+      const p = people.get(m.authorId)!
+      const w = toWallTime(Date.parse(m.sentAt), p.timezone)
+      return `${w.year}-${pad(w.month)}-${pad(w.day)} ${pad(w.hour)}:${pad(w.minute)} | ${threads.get(m.threadId)} | ${p.name} | ${p.timezone} | ${m.text}`
+    })
+  const html = `<html><body style="font-family:Arial;font-size:10px"><h3>Team chat export (synthetic data)</h3>${lines.map((l) => `<p style="margin:0 0 6px">${esc(l)}</p>`).join('')}</body></html>`
+  const browser = await chromium.launch({ channel: 'chrome' })
+  const page = await browser.newPage()
+  await page.setContent(html)
+  await page.pdf({ path: file, format: 'A4', margin: { top: '12mm', bottom: '12mm', left: '10mm', right: '10mm' } })
+  await browser.close()
+}
+await samplePdf(product, 'public/samples/product-team-chat-SYNTHETIC.pdf')
+console.log('wrote sample PDF')
