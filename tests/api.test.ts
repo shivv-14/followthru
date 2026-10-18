@@ -4,7 +4,7 @@ import sample from './fixtures/sample-valid.json'
 import { handleEvidence, handleHealth, handleProcess, MAX_BODY_BYTES, withCors } from '../api/_lib/handlers'
 import { messagesToCsv } from '../src/schema/io'
 import { validateDataset } from '../src/schema/validate'
-import processRoute from '../api/process'
+import { process as processRoute } from '../api/_lib/entries'
 
 const json = { 'content-type': 'application/json' }
 

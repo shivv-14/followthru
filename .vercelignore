@@ -1,0 +1,12 @@
+# Never upload local secrets or local-only output
+.env*
+!.env.example
+node_modules
+dist
+test-results
+playwright-report
+coverage
+evidence
+docs/*.pdf
+docs/TRACK_A_BACKEND_PROMPT.md
+*.log
