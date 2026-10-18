@@ -5,6 +5,7 @@ import type { AiSignal, Commitment, Draft, EngineConfig, EngineResult, Flow, Hum
 import { fetchAiSignals } from '../ai/gemini'
 import { db, type AppSettings, type StoredDataset } from './db'
 import { DEFAULT_SETTINGS, getSettings, syncDrafts } from './repo'
+import { evaluationTime } from './clock'
 
 /** State of the optional AI pre-pass. Anything but 'ready' means the rules ran alone. */
 export type AiStatus = { state: 'off' } | { state: 'loading' } | { state: 'ready'; signals: AiSignal[]; model: string } | { state: 'failed'; reason: string }
@@ -38,15 +39,6 @@ function useMinuteClock(enabled: boolean): string {
     return () => window.clearInterval(id)
   }, [enabled])
   return now
-}
-
-/** Evaluation clock: the dataset's reference time, the live clock, or a chosen time. */
-export function evaluationTime(settings: AppSettings, dataset: StoredDataset | null, live: string): string {
-  if (settings.clockMode === 'custom' && settings.customNow) return settings.customNow
-  if (settings.clockMode === 'dataset' && dataset) {
-    return dataset.data.referenceTime ?? dataset.data.messages.at(-1)?.sentAt ?? live
-  }
-  return live
 }
 
 const EMPTY_RESULT: EngineResult = { runAt: '', mode: 'Rules', commitments: [], drafts: [], issues: [] }

@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -8,8 +8,23 @@ function apiDevServer(): Plugin {
   return {
     name: 'followthru-api-dev',
     configureServer(server) {
+      // Server-only settings for the cloud routes (never exposed to the browser bundle)
+      const env = loadEnv(server.config.mode, server.config.root, '')
+      for (const key of ['SUPABASE_SECRET_KEY', 'VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY']) {
+        if (env[key] && !process.env[key]) process.env[key] = env[key]
+      }
       server.middlewares.use('/api', async (req, res, next) => {
         const route = (req.url ?? '').split('?')[0].replace(/^\/+/, '')
+        if (route.startsWith('cloud/')) {
+          const chunks: Buffer[] = []
+          for await (const chunk of req) chunks.push(chunk as Buffer)
+          const mod = await server.ssrLoadModule('/api/_lib/cloud/router.ts')
+          const out = await mod.routeCloud(route.slice('cloud/'.length), { method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks).toString('utf8') })
+          res.statusCode = out.status
+          for (const [k, v] of Object.entries(out.headers ?? {})) res.setHeader(k, String(v))
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify(out.body))
+        }
         const handlers = { health: 'handleHealth', process: 'handleProcess', evidence: 'handleEvidence' } as const
         if (!(route in handlers)) return next()
         const chunks: Buffer[] = []

@@ -1,5 +1,6 @@
 // Storage, store hooks and actions. UI code imports from here, never from Dexie.
-export { EngineProvider, useEngine, evaluationTime } from './EngineProvider'
+export { EngineProvider, useEngine } from './EngineProvider'
+export { evaluationTime } from './clock'
 export type { EngineState } from './EngineProvider'
 export { useActions, createActions } from './actions'
 export type { ActionResult, Actions, DecisionInput, NewTaskInput } from './actions'
