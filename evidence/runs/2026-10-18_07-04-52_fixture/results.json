@@ -1,0 +1,723 @@
+{
+  "runAt": "2026-10-24T03:30:00.000Z",
+  "mode": "Rules",
+  "commitments": [
+    {
+      "id": "c_M01",
+      "title": "Validate duplicate prevention",
+      "sourceMessageId": "M01",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "dev",
+      "deadline": {
+        "dueAt": "2026-10-21T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-21",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M11",
+          "threadId": "T01",
+          "at": "2026-10-16T07:30:00.000Z",
+          "quote": "Action A1 deadline correction: 2026-10-21. Owner Dev. Still open.",
+          "rule": "ACTION_RECORD_DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T01"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M01",
+            "threadId": "T01",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A1: Validate duplicate prevention. Owner: Dev. Deadline: 2026-10-20. Sta…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "dev"
+        },
+        {
+          "type": "deadline_changed",
+          "at": "2026-10-16T07:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M11",
+            "threadId": "T01",
+            "at": "2026-10-16T07:30:00.000Z",
+            "quote": "Action A1 deadline correction: 2026-10-21. Owner Dev. Still open.",
+            "rule": "ACTION_RECORD_DEADLINE"
+          },
+          "from": "2026-10-20T18:29:00.000Z",
+          "to": "2026-10-21T18:29:00.000Z"
+        }
+      ],
+      "linkedMessageIds": [
+        "M01",
+        "M11"
+      ]
+    },
+    {
+      "id": "c_M02",
+      "title": "Export catalogue",
+      "sourceMessageId": "M02",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "asha",
+      "deadline": {
+        "dueAt": "2026-10-17T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-17",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M02",
+          "threadId": "T02",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "done",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T02"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M02",
+            "threadId": "T02",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "asha"
+        },
+        {
+          "type": "completed",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M02",
+            "threadId": "T02",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "done"
+        }
+      ],
+      "linkedMessageIds": [
+        "M02"
+      ]
+    },
+    {
+      "id": "c_M03",
+      "title": "Review product sample",
+      "sourceMessageId": "M03",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "mina",
+      "deadline": {
+        "dueAt": "2026-10-18T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-18",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M03",
+          "threadId": "T03",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A3: Review product sample. Owner: Mina. Deadline: 2026-10-18. Status: op…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T03"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M03",
+            "threadId": "T03",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A3: Review product sample. Owner: Mina. Deadline: 2026-10-18. Status: op…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "mina"
+        }
+      ],
+      "linkedMessageIds": [
+        "M03"
+      ]
+    },
+    {
+      "id": "c_M04",
+      "title": "Check order IDs",
+      "sourceMessageId": "M04",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "omar",
+      "deadline": {
+        "dueAt": "2026-10-19T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-19",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M04",
+          "threadId": "T04",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A4: Check order IDs. Owner: Omar. Deadline: 2026-10-19. Status: open.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T04"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M04",
+            "threadId": "T04",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A4: Check order IDs. Owner: Omar. Deadline: 2026-10-19. Status: open.",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "omar"
+        }
+      ],
+      "linkedMessageIds": [
+        "M04"
+      ]
+    },
+    {
+      "id": "c_M05",
+      "title": "Prepare paid campaign",
+      "sourceMessageId": "M05",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "ria",
+      "deadline": {
+        "dueAt": "2026-10-19T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-19",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M05",
+          "threadId": "T05",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "cancelled",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T05"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M05",
+            "threadId": "T05",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "ria"
+        },
+        {
+          "type": "cancelled",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M05",
+            "threadId": "T05",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "cancelled"
+        }
+      ],
+      "linkedMessageIds": [
+        "M05"
+      ]
+    },
+    {
+      "id": "c_M06",
+      "title": "Enable live payment",
+      "sourceMessageId": "M06",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "dev",
+      "deadline": {
+        "dueAt": "2026-10-21T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-21",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M06",
+          "threadId": "T06",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "deferred",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T06"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M06",
+            "threadId": "T06",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "dev"
+        },
+        {
+          "type": "deferred",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M06",
+            "threadId": "T06",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "deferred"
+        }
+      ],
+      "linkedMessageIds": [
+        "M06"
+      ]
+    },
+    {
+      "id": "c_M07",
+      "title": "Check test data",
+      "sourceMessageId": "M07",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "asha",
+      "deadline": {
+        "dueAt": "2026-10-18T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-18",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M07",
+          "threadId": "T07",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "done",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T07"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M07",
+            "threadId": "T07",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "asha"
+        },
+        {
+          "type": "completed",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M07",
+            "threadId": "T07",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "done"
+        }
+      ],
+      "linkedMessageIds": [
+        "M07"
+      ]
+    },
+    {
+      "id": "c_M08",
+      "title": "Review delivery promise",
+      "sourceMessageId": "M08",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "mina",
+      "deadline": {
+        "dueAt": "2026-10-20T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-20",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M08",
+          "threadId": "T08",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A8: Review delivery promise. Owner: Mina. Deadline: 2026-10-20. Status: …",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T08"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M08",
+            "threadId": "T08",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A8: Review delivery promise. Owner: Mina. Deadline: 2026-10-20. Status: …",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "mina"
+        }
+      ],
+      "linkedMessageIds": [
+        "M08"
+      ]
+    },
+    {
+      "id": "c_M09",
+      "title": "Confirm pilot store",
+      "sourceMessageId": "M09",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "omar",
+      "deadline": {
+        "dueAt": "2026-10-22T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-22",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M09",
+          "threadId": "T09",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A9: Confirm pilot store. Owner: Omar. Deadline: 2026-10-22. Status: open.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T09"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M09",
+            "threadId": "T09",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A9: Confirm pilot store. Owner: Omar. Deadline: 2026-10-22. Status: open.",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "omar"
+        }
+      ],
+      "linkedMessageIds": [
+        "M09"
+      ]
+    },
+    {
+      "id": "c_M10",
+      "title": "Review draft report",
+      "sourceMessageId": "M10",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "ria",
+      "deadline": {
+        "dueAt": "2026-10-23T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-23",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M10",
+          "threadId": "T10",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A10: Review draft report. Owner: Ria. Deadline: 2026-10-23. Status: open.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T10"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M10",
+            "threadId": "T10",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A10: Review draft report. Owner: Ria. Deadline: 2026-10-23. Status: open.",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "ria"
+        }
+      ],
+      "linkedMessageIds": [
+        "M10"
+      ]
+    }
+  ],
+  "drafts": [
+    {
+      "id": "d_c_M01",
+      "idempotencyKey": "c_M01",
+      "commitmentId": "c_M01",
+      "kind": "reminder",
+      "recipientId": "dev",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Dev, \"Validate duplicate prevention\" is past its deadline (Wed, 21 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Validate duplicate prevention",
+      "flowId": "flow_default",
+      "step": 1,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 2,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-20T18:29:00.000Z",
+          "recipientId": "dev",
+          "body": "Hi Dev, \"Validate duplicate prevention\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Validate duplicate prevention",
+          "cause": "created"
+        },
+        {
+          "version": 2,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-21T18:29:00.000Z",
+          "recipientId": "dev",
+          "body": "Hi Dev, \"Validate duplicate prevention\" is past its deadline (Wed, 21 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Validate duplicate prevention",
+          "cause": "deadline_changed"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M03",
+      "idempotencyKey": "c_M03",
+      "commitmentId": "c_M03",
+      "kind": "reminder",
+      "recipientId": "mina",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Mina, \"Review product sample\" has been overdue since Sun, 18 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Review product sample",
+      "flowId": "flow_default",
+      "step": 2,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-18T18:29:00.000Z",
+          "recipientId": "mina",
+          "body": "Hi Mina, \"Review product sample\" has been overdue since Sun, 18 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Review product sample",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M04",
+      "idempotencyKey": "c_M04",
+      "commitmentId": "c_M04",
+      "kind": "reminder",
+      "recipientId": "omar",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Omar, \"Check order IDs\" has been overdue since Mon, 19 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Check order IDs",
+      "flowId": "flow_default",
+      "step": 2,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-19T18:29:00.000Z",
+          "recipientId": "omar",
+          "body": "Hi Omar, \"Check order IDs\" has been overdue since Mon, 19 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Check order IDs",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M08",
+      "idempotencyKey": "c_M08",
+      "commitmentId": "c_M08",
+      "kind": "reminder",
+      "recipientId": "mina",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Mina, \"Review delivery promise\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Review delivery promise",
+      "flowId": "flow_default",
+      "step": 2,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-20T18:29:00.000Z",
+          "recipientId": "mina",
+          "body": "Hi Mina, \"Review delivery promise\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Review delivery promise",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M09",
+      "idempotencyKey": "c_M09",
+      "commitmentId": "c_M09",
+      "kind": "reminder",
+      "recipientId": "omar",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Omar, \"Confirm pilot store\" is past its deadline (Thu, 22 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Confirm pilot store",
+      "flowId": "flow_default",
+      "step": 1,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-22T18:29:00.000Z",
+          "recipientId": "omar",
+          "body": "Hi Omar, \"Confirm pilot store\" is past its deadline (Thu, 22 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Confirm pilot store",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M10",
+      "idempotencyKey": "c_M10",
+      "commitmentId": "c_M10",
+      "kind": "reminder",
+      "recipientId": "ria",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Ria, a quick check on \"Review draft report\", which was due Fri, 23 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+      "subject": "Quick check: Review draft report",
+      "flowId": "flow_default",
+      "step": 0,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-23T18:29:00.000Z",
+          "recipientId": "ria",
+          "body": "Hi Ria, a quick check on \"Review draft report\", which was due Fri, 23 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+          "subject": "Quick check: Review draft report",
+          "cause": "created"
+        }
+      ]
+    }
+  ],
+  "issues": []
+}

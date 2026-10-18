@@ -1,595 +1,417 @@
 {
-  "runAt": "2026-10-19T05:30:00.000Z",
+  "runAt": "2026-10-24T03:30:00.000Z",
   "mode": "Rules",
   "commitments": [
     {
-      "id": "c_m_15",
-      "title": "Write the API rate limit docs",
-      "sourceMessageId": "m_15",
+      "id": "c_M01",
+      "title": "Validate duplicate prevention",
+      "sourceMessageId": "M01",
       "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_ben",
+      "requesterId": "action_log",
+      "ownerId": "dev",
       "deadline": {
-        "dueAt": "2026-10-22T06:59:00.000Z",
+        "dueAt": "2026-10-21T18:29:00.000Z",
         "certainty": "firm",
-        "phrase": "Oct 21",
-        "interpretedTz": "America/Los_Angeles",
-        "evidence": {
-          "messageId": "m_17",
-          "threadId": "t_eng",
-          "at": "2026-10-14T15:00:00.000Z",
-          "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
-          "rule": "RESCHEDULE"
-        }
-      },
-      "status": "open",
-      "responseState": "responded",
-      "needsReview": false,
-      "reviewReasons": [],
-      "threadIds": [
-        "t_eng"
-      ],
-      "events": [
-        {
-          "type": "created",
-          "at": "2026-10-12T03:30:00.000Z",
-          "by": "p_priya",
-          "evidence": {
-            "messageId": "m_15",
-            "threadId": "t_eng",
-            "at": "2026-10-12T03:30:00.000Z",
-            "quote": "Ben, can you write the API rate limit docs by Oct 13?",
-            "rule": "REQUEST"
-          },
-          "to": "p_ben"
-        },
-        {
-          "type": "accepted",
-          "at": "2026-10-12T05:00:00.000Z",
-          "by": "p_ben",
-          "evidence": {
-            "messageId": "m_16",
-            "threadId": "t_eng",
-            "at": "2026-10-12T05:00:00.000Z",
-            "quote": "Will do.",
-            "rule": "ACCEPT"
-          }
-        },
-        {
-          "type": "blocker",
-          "at": "2026-10-14T15:00:00.000Z",
-          "by": "p_ben",
-          "evidence": {
-            "messageId": "m_17",
-            "threadId": "t_eng",
-            "at": "2026-10-14T15:00:00.000Z",
-            "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
-            "rule": "BLOCKER"
-          }
-        },
-        {
-          "type": "deadline_changed",
-          "at": "2026-10-14T15:00:00.000Z",
-          "by": "p_ben",
-          "evidence": {
-            "messageId": "m_17",
-            "threadId": "t_eng",
-            "at": "2026-10-14T15:00:00.000Z",
-            "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
-            "rule": "RESCHEDULE"
-          },
-          "from": "2026-10-13T18:29:00.000Z",
-          "to": "2026-10-22T06:59:00.000Z"
-        }
-      ],
-      "linkedMessageIds": [
-        "m_15",
-        "m_16",
-        "m_17"
-      ],
-      "blockers": [
-        {
-          "at": "2026-10-14T15:00:00.000Z",
-          "by": "p_ben",
-          "text": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
-          "resolved": false
-        }
-      ],
-      "teamId": "eng"
-    },
-    {
-      "id": "c_m_18",
-      "title": "Share the homepage mockups",
-      "sourceMessageId": "m_18",
-      "source": "message",
-      "requesterId": null,
-      "ownerId": "p_amir",
-      "deadline": {
-        "dueAt": "2026-10-16T18:29:00.000Z",
-        "certainty": "firm",
-        "phrase": "Friday",
+        "phrase": "2026-10-21",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_18",
-          "threadId": "t_design",
-          "at": "2026-10-13T04:30:00.000Z",
-          "quote": "I'll share the homepage mockups by Friday.",
-          "rule": "DEADLINE"
-        }
-      },
-      "status": "open",
-      "responseState": "responded",
-      "needsReview": false,
-      "reviewReasons": [],
-      "threadIds": [
-        "t_design"
-      ],
-      "events": [
-        {
-          "type": "created",
-          "at": "2026-10-13T04:30:00.000Z",
-          "by": "p_amir",
-          "evidence": {
-            "messageId": "m_18",
-            "threadId": "t_design",
-            "at": "2026-10-13T04:30:00.000Z",
-            "quote": "I'll share the homepage mockups by Friday.",
-            "rule": "COMMIT"
-          },
-          "to": "p_amir"
-        }
-      ],
-      "linkedMessageIds": [
-        "m_18",
-        "m_19"
-      ],
-      "teamId": "design"
-    },
-    {
-      "id": "c_m_13",
-      "title": "Draft the vendor contract renewal",
-      "sourceMessageId": "m_13",
-      "source": "message",
-      "requesterId": null,
-      "ownerId": "p_rahul",
-      "deadline": {
-        "dueAt": "2026-10-14T18:29:00.000Z",
-        "certainty": "firm",
-        "phrase": "Oct 14",
-        "interpretedTz": "Asia/Kolkata",
-        "evidence": {
-          "messageId": "m_13",
-          "threadId": "t_finance",
-          "at": "2026-10-13T05:30:00.000Z",
-          "quote": "I'll draft the vendor contract renewal by Oct 14.",
-          "rule": "DEADLINE"
-        }
-      },
-      "status": "deferred",
-      "responseState": "responded",
-      "needsReview": false,
-      "reviewReasons": [],
-      "threadIds": [
-        "t_finance"
-      ],
-      "events": [
-        {
-          "type": "created",
-          "at": "2026-10-13T05:30:00.000Z",
-          "by": "p_rahul",
-          "evidence": {
-            "messageId": "m_13",
-            "threadId": "t_finance",
-            "at": "2026-10-13T05:30:00.000Z",
-            "quote": "I'll draft the vendor contract renewal by Oct 14.",
-            "rule": "COMMIT"
-          },
-          "to": "p_rahul"
-        },
-        {
-          "type": "deferred",
-          "at": "2026-10-15T04:30:00.000Z",
-          "by": "p_priya",
-          "evidence": {
-            "messageId": "m_14",
-            "threadId": "t_finance",
-            "at": "2026-10-15T04:30:00.000Z",
-            "quote": "Let's put the vendor contract renewal on hold until next quarter.",
-            "rule": "DEFER"
-          },
-          "from": "open",
-          "to": "deferred"
-        }
-      ],
-      "linkedMessageIds": [
-        "m_13",
-        "m_14"
-      ],
-      "teamId": "ops"
-    },
-    {
-      "id": "c_m_01",
-      "title": "Send the Q3 budget report to finance",
-      "sourceMessageId": "m_01",
-      "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_rahul",
-      "deadline": {
-        "dueAt": "2026-10-15T11:30:00.000Z",
-        "certainty": "firm",
-        "phrase": "Thursday 5pm",
-        "interpretedTz": "Asia/Kolkata",
-        "evidence": {
-          "messageId": "m_01",
-          "threadId": "t_finance",
-          "at": "2026-10-14T04:30:00.000Z",
-          "quote": "Rahul, can you send the Q3 budget report to finance by Thursday 5pm?",
-          "rule": "DEADLINE"
+          "messageId": "M11",
+          "threadId": "T01",
+          "at": "2026-10-16T07:30:00.000Z",
+          "quote": "Action A1 deadline correction: 2026-10-21. Owner Dev. Still open.",
+          "rule": "ACTION_RECORD_DEADLINE"
         }
       },
       "status": "open",
       "responseState": "pending",
-      "needsReview": true,
-      "reviewReasons": [
-        "unauthorised_status_claim"
-      ],
+      "needsReview": false,
+      "reviewReasons": [],
       "threadIds": [
-        "t_finance",
-        "t_eng"
+        "T01"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-14T04:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_01",
-            "threadId": "t_finance",
-            "at": "2026-10-14T04:30:00.000Z",
-            "quote": "Rahul, can you send the Q3 budget report to finance by Thursday 5pm?",
-            "rule": "REQUEST"
+            "messageId": "M01",
+            "threadId": "T01",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A1: Validate duplicate prevention. Owner: Dev. Deadline: 2026-10-20. Sta…",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_rahul"
+          "to": "dev"
         },
         {
-          "type": "accepted",
-          "at": "2026-10-14T04:50:00.000Z",
-          "by": "p_rahul",
+          "type": "deadline_changed",
+          "at": "2026-10-16T07:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_02",
-            "threadId": "t_finance",
-            "at": "2026-10-14T04:50:00.000Z",
-            "quote": "Sure, will do.",
-            "rule": "ACCEPT"
-          }
-        },
-        {
-          "type": "review_flagged",
-          "at": "2026-10-16T12:30:00.000Z",
-          "by": "p_dev",
-          "evidence": {
-            "messageId": "m_20",
-            "threadId": "t_eng",
-            "at": "2026-10-16T12:30:00.000Z",
-            "quote": "I think Rahul already sent the Q3 budget report.",
-            "rule": "DONE+LINK_SIMILARITY"
-          }
+            "messageId": "M11",
+            "threadId": "T01",
+            "at": "2026-10-16T07:30:00.000Z",
+            "quote": "Action A1 deadline correction: 2026-10-21. Owner Dev. Still open.",
+            "rule": "ACTION_RECORD_DEADLINE"
+          },
+          "from": "2026-10-20T18:29:00.000Z",
+          "to": "2026-10-21T18:29:00.000Z"
         }
       ],
       "linkedMessageIds": [
-        "m_01",
-        "m_02",
-        "m_20"
-      ],
-      "teamId": "ops"
+        "M01",
+        "M11"
+      ]
     },
     {
-      "id": "c_m_03",
-      "title": "Send the revised pricing deck to the client",
-      "sourceMessageId": "m_03",
+      "id": "c_M02",
+      "title": "Export catalogue",
+      "sourceMessageId": "M02",
       "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_ben",
+      "requesterId": "action_log",
+      "ownerId": "asha",
       "deadline": {
-        "dueAt": "2026-10-16T12:30:00.000Z",
+        "dueAt": "2026-10-17T18:29:00.000Z",
         "certainty": "firm",
-        "phrase": "Friday 6pm",
+        "phrase": "2026-10-17",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_03",
-          "threadId": "t_launch",
-          "at": "2026-10-14T05:00:00.000Z",
-          "quote": "Ben, could you send the revised pricing deck to the client by Friday 6pm?",
+          "messageId": "M02",
+          "threadId": "T02",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
           "rule": "DEADLINE"
         }
       },
       "status": "done",
-      "responseState": "responded",
+      "responseState": "pending",
       "needsReview": false,
       "reviewReasons": [],
       "threadIds": [
-        "t_launch",
-        "t_status"
+        "T02"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-14T05:00:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_03",
-            "threadId": "t_launch",
-            "at": "2026-10-14T05:00:00.000Z",
-            "quote": "Ben, could you send the revised pricing deck to the client by Friday 6pm?",
-            "rule": "REQUEST"
+            "messageId": "M02",
+            "threadId": "T02",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_ben"
-        },
-        {
-          "type": "accepted",
-          "at": "2026-10-14T05:15:00.000Z",
-          "by": "p_ben",
-          "evidence": {
-            "messageId": "m_04",
-            "threadId": "t_launch",
-            "at": "2026-10-14T05:15:00.000Z",
-            "quote": "Sure, Friday works.",
-            "rule": "ACCEPT"
-          }
+          "to": "asha"
         },
         {
           "type": "completed",
-          "at": "2026-10-16T16:00:00.000Z",
-          "by": "p_ben",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_10",
-            "threadId": "t_status",
-            "at": "2026-10-16T16:00:00.000Z",
-            "quote": "Revised pricing deck sent to the client this morning.",
-            "rule": "DONE+LINK_SIMILARITY"
+            "messageId": "M02",
+            "threadId": "T02",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A2: Export catalogue. Owner: Asha. Deadline: 2026-10-17. Status: complet…",
+            "rule": "ACTION_RECORD_STATUS"
           },
           "from": "open",
           "to": "done"
         }
       ],
       "linkedMessageIds": [
-        "m_03",
-        "m_04",
-        "m_10"
-      ],
-      "teamId": "eng"
+        "M02"
+      ]
     },
     {
-      "id": "c_m_05",
-      "title": "Fix the login redirect bug",
-      "sourceMessageId": "m_05",
+      "id": "c_M03",
+      "title": "Review product sample",
+      "sourceMessageId": "M03",
       "source": "message",
-      "requesterId": null,
-      "ownerId": "p_dev",
+      "requesterId": "action_log",
+      "ownerId": "mina",
       "deadline": {
-        "dueAt": "2026-10-16T18:29:00.000Z",
-        "certainty": "tentative",
-        "phrase": "maybe Friday",
+        "dueAt": "2026-10-18T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-18",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_05",
-          "threadId": "t_eng",
-          "at": "2026-10-14T05:30:00.000Z",
-          "quote": "I can maybe fix the login redirect bug Friday.",
-          "rule": "DEADLINE_TENTATIVE"
+          "messageId": "M03",
+          "threadId": "T03",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A3: Review product sample. Owner: Mina. Deadline: 2026-10-18. Status: op…",
+          "rule": "DEADLINE"
         }
       },
       "status": "open",
       "responseState": "pending",
-      "needsReview": true,
-      "reviewReasons": [
-        "tentative_deadline"
-      ],
-      "threadIds": [
-        "t_eng"
-      ],
-      "events": [
-        {
-          "type": "created",
-          "at": "2026-10-14T05:30:00.000Z",
-          "by": "p_dev",
-          "evidence": {
-            "messageId": "m_05",
-            "threadId": "t_eng",
-            "at": "2026-10-14T05:30:00.000Z",
-            "quote": "I can maybe fix the login redirect bug Friday.",
-            "rule": "COMMIT"
-          },
-          "to": "p_dev"
-        }
-      ],
-      "linkedMessageIds": [
-        "m_05"
-      ],
-      "teamId": "eng"
-    },
-    {
-      "id": "c_m_06",
-      "title": "Prepare the onboarding checklist",
-      "sourceMessageId": "m_06",
-      "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_lena",
-      "deadline": {
-        "dueAt": "2026-10-19T22:59:00.000Z",
-        "certainty": "firm",
-        "phrase": "Monday",
-        "interpretedTz": "Europe/London",
-        "evidence": {
-          "messageId": "m_08",
-          "threadId": "t_design",
-          "at": "2026-10-14T08:00:00.000Z",
-          "quote": "Happy to take it, I'll have it ready Monday.",
-          "rule": "DEADLINE_FROM_NEW_OWNER"
-        }
-      },
-      "status": "open",
-      "responseState": "responded",
       "needsReview": false,
       "reviewReasons": [],
       "threadIds": [
-        "t_design"
+        "T03"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-14T06:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_06",
-            "threadId": "t_design",
-            "at": "2026-10-14T06:30:00.000Z",
-            "quote": "Amir, can you prepare the onboarding checklist by Oct 16?",
-            "rule": "REQUEST"
+            "messageId": "M03",
+            "threadId": "T03",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A3: Review product sample. Owner: Mina. Deadline: 2026-10-18. Status: op…",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_amir"
-        },
-        {
-          "type": "review_flagged",
-          "at": "2026-10-14T07:00:00.000Z",
-          "by": "p_amir",
-          "evidence": {
-            "messageId": "m_07",
-            "threadId": "t_design",
-            "at": "2026-10-14T07:00:00.000Z",
-            "quote": "I'm swamped this week, handing this over to Lena.",
-            "rule": "DELEGATE"
-          },
-          "to": "p_lena"
-        },
-        {
-          "type": "delegated",
-          "at": "2026-10-14T08:00:00.000Z",
-          "by": "p_lena",
-          "evidence": {
-            "messageId": "m_08",
-            "threadId": "t_design",
-            "at": "2026-10-14T08:00:00.000Z",
-            "quote": "Happy to take it, I'll have it ready Monday.",
-            "rule": "DELEGATION_ACCEPTED"
-          },
-          "from": "p_amir",
-          "to": "p_lena"
-        },
-        {
-          "type": "deadline_changed",
-          "at": "2026-10-14T08:00:00.000Z",
-          "by": "p_lena",
-          "evidence": {
-            "messageId": "m_08",
-            "threadId": "t_design",
-            "at": "2026-10-14T08:00:00.000Z",
-            "quote": "Happy to take it, I'll have it ready Monday.",
-            "rule": "DEADLINE_FROM_NEW_OWNER"
-          },
-          "from": "2026-10-16T18:29:00.000Z",
-          "to": "2026-10-19T22:59:00.000Z"
+          "to": "mina"
         }
       ],
       "linkedMessageIds": [
-        "m_06",
-        "m_07",
-        "m_08"
-      ],
-      "teamId": "design"
+        "M03"
+      ]
     },
     {
-      "id": "c_m_09",
-      "title": "Set up the staging analytics dashboard",
-      "sourceMessageId": "m_09",
+      "id": "c_M04",
+      "title": "Check order IDs",
+      "sourceMessageId": "M04",
       "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_dev",
+      "requesterId": "action_log",
+      "ownerId": "omar",
       "deadline": {
-        "dueAt": "2026-10-15T18:29:00.000Z",
+        "dueAt": "2026-10-19T18:29:00.000Z",
         "certainty": "firm",
-        "phrase": "Oct 15",
+        "phrase": "2026-10-19",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_09",
-          "threadId": "t_launch",
-          "at": "2026-10-14T08:30:00.000Z",
-          "quote": "Dev, please set up the staging analytics dashboard by Oct 15.",
+          "messageId": "M04",
+          "threadId": "T04",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A4: Check order IDs. Owner: Omar. Deadline: 2026-10-19. Status: open.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T04"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M04",
+            "threadId": "T04",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A4: Check order IDs. Owner: Omar. Deadline: 2026-10-19. Status: open.",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "omar"
+        }
+      ],
+      "linkedMessageIds": [
+        "M04"
+      ]
+    },
+    {
+      "id": "c_M05",
+      "title": "Prepare paid campaign",
+      "sourceMessageId": "M05",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "ria",
+      "deadline": {
+        "dueAt": "2026-10-19T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-19",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M05",
+          "threadId": "T05",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
           "rule": "DEADLINE"
         }
       },
       "status": "cancelled",
-      "responseState": "responded",
+      "responseState": "pending",
       "needsReview": false,
       "reviewReasons": [],
       "threadIds": [
-        "t_launch"
+        "T05"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-14T08:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_09",
-            "threadId": "t_launch",
-            "at": "2026-10-14T08:30:00.000Z",
-            "quote": "Dev, please set up the staging analytics dashboard by Oct 15.",
-            "rule": "REQUEST"
+            "messageId": "M05",
+            "threadId": "T05",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_dev"
-        },
-        {
-          "type": "accepted",
-          "at": "2026-10-14T08:40:00.000Z",
-          "by": "p_dev",
-          "evidence": {
-            "messageId": "m_11",
-            "threadId": "t_launch",
-            "at": "2026-10-14T08:40:00.000Z",
-            "quote": "On it.",
-            "rule": "ACCEPT"
-          }
+          "to": "ria"
         },
         {
           "type": "cancelled",
-          "at": "2026-10-15T10:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_12",
-            "threadId": "t_launch",
-            "at": "2026-10-15T10:30:00.000Z",
-            "quote": "Never mind on the staging analytics dashboard, the client dropped that requirem…",
-            "rule": "CANCEL"
+            "messageId": "M05",
+            "threadId": "T05",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A5: Prepare paid campaign. Owner: Ria. Deadline: 2026-10-19. Status: can…",
+            "rule": "ACTION_RECORD_STATUS"
           },
           "from": "open",
           "to": "cancelled"
         }
       ],
       "linkedMessageIds": [
-        "m_09",
-        "m_11",
-        "m_12"
-      ],
-      "teamId": "eng"
+        "M05"
+      ]
     },
     {
-      "id": "c_m_21",
-      "title": "Send the launch press kit to marketing",
-      "sourceMessageId": "m_21",
+      "id": "c_M06",
+      "title": "Enable live payment",
+      "sourceMessageId": "M06",
       "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_lena",
+      "requesterId": "action_log",
+      "ownerId": "dev",
       "deadline": {
-        "dueAt": "2026-10-15T08:30:00.000Z",
+        "dueAt": "2026-10-21T18:29:00.000Z",
         "certainty": "firm",
-        "phrase": "Oct 15 2pm",
+        "phrase": "2026-10-21",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_21",
-          "threadId": "t_launch",
-          "at": "2026-10-14T09:30:00.000Z",
-          "quote": "Lena, can you send the launch press kit to marketing by Oct 15 2pm?",
+          "messageId": "M06",
+          "threadId": "T06",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "deferred",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T06"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M06",
+            "threadId": "T06",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "dev"
+        },
+        {
+          "type": "deferred",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M06",
+            "threadId": "T06",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A6: Enable live payment. Owner: Dev. Deadline: 2026-10-21. Status: defer…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "deferred"
+        }
+      ],
+      "linkedMessageIds": [
+        "M06"
+      ]
+    },
+    {
+      "id": "c_M07",
+      "title": "Check test data",
+      "sourceMessageId": "M07",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "asha",
+      "deadline": {
+        "dueAt": "2026-10-18T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-18",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M07",
+          "threadId": "T07",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "done",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T07"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M07",
+            "threadId": "T07",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "asha"
+        },
+        {
+          "type": "completed",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M07",
+            "threadId": "T07",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A7: Check test data. Owner: Asha. Deadline: 2026-10-18. Status: complete…",
+            "rule": "ACTION_RECORD_STATUS"
+          },
+          "from": "open",
+          "to": "done"
+        }
+      ],
+      "linkedMessageIds": [
+        "M07"
+      ]
+    },
+    {
+      "id": "c_M08",
+      "title": "Review delivery promise",
+      "sourceMessageId": "M08",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "mina",
+      "deadline": {
+        "dueAt": "2026-10-20T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-20",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M08",
+          "threadId": "T08",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A8: Review delivery promise. Owner: Mina. Deadline: 2026-10-20. Status: …",
           "rule": "DEADLINE"
         }
       },
@@ -598,225 +420,301 @@
       "needsReview": false,
       "reviewReasons": [],
       "threadIds": [
-        "t_launch"
+        "T08"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-14T09:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_21",
-            "threadId": "t_launch",
-            "at": "2026-10-14T09:30:00.000Z",
-            "quote": "Lena, can you send the launch press kit to marketing by Oct 15 2pm?",
-            "rule": "REQUEST"
+            "messageId": "M08",
+            "threadId": "T08",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A8: Review delivery promise. Owner: Mina. Deadline: 2026-10-20. Status: …",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_lena"
+          "to": "mina"
         }
       ],
       "linkedMessageIds": [
-        "m_21"
-      ],
-      "teamId": "design"
+        "M08"
+      ]
     },
     {
-      "id": "c_m_22",
-      "title": "Review Ben's pull request for the export feature",
-      "sourceMessageId": "m_22",
+      "id": "c_M09",
+      "title": "Confirm pilot store",
+      "sourceMessageId": "M09",
       "source": "message",
-      "requesterId": "p_priya",
-      "ownerId": "p_dev",
+      "requesterId": "action_log",
+      "ownerId": "omar",
       "deadline": {
-        "dueAt": "2026-10-16T18:29:00.000Z",
+        "dueAt": "2026-10-22T18:29:00.000Z",
         "certainty": "firm",
-        "phrase": "Oct 16",
+        "phrase": "2026-10-22",
         "interpretedTz": "Asia/Kolkata",
         "evidence": {
-          "messageId": "m_22",
-          "threadId": "t_eng",
-          "at": "2026-10-15T03:30:00.000Z",
-          "quote": "Dev, please review Ben's pull request for the export feature by Oct 16.",
+          "messageId": "M09",
+          "threadId": "T09",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A9: Confirm pilot store. Owner: Omar. Deadline: 2026-10-22. Status: open.",
           "rule": "DEADLINE"
         }
       },
-      "status": "done",
-      "responseState": "responded",
+      "status": "open",
+      "responseState": "pending",
       "needsReview": false,
       "reviewReasons": [],
       "threadIds": [
-        "t_eng"
+        "T09"
       ],
       "events": [
         {
           "type": "created",
-          "at": "2026-10-15T03:30:00.000Z",
-          "by": "p_priya",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
           "evidence": {
-            "messageId": "m_22",
-            "threadId": "t_eng",
-            "at": "2026-10-15T03:30:00.000Z",
-            "quote": "Dev, please review Ben's pull request for the export feature by Oct 16.",
-            "rule": "REQUEST"
+            "messageId": "M09",
+            "threadId": "T09",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A9: Confirm pilot store. Owner: Omar. Deadline: 2026-10-22. Status: open.",
+            "rule": "ACTION_RECORD"
           },
-          "to": "p_dev"
-        },
-        {
-          "type": "completed",
-          "at": "2026-10-16T04:30:00.000Z",
-          "by": "p_dev",
-          "evidence": {
-            "messageId": "m_23",
-            "threadId": "t_eng",
-            "at": "2026-10-16T04:30:00.000Z",
-            "quote": "Done, approved the export feature pull request.",
-            "rule": "DONE"
-          },
-          "from": "open",
-          "to": "done"
+          "to": "omar"
         }
       ],
       "linkedMessageIds": [
-        "m_22",
-        "m_23"
+        "M09"
+      ]
+    },
+    {
+      "id": "c_M10",
+      "title": "Review draft report",
+      "sourceMessageId": "M10",
+      "source": "message",
+      "requesterId": "action_log",
+      "ownerId": "ria",
+      "deadline": {
+        "dueAt": "2026-10-23T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "2026-10-23",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "M10",
+          "threadId": "T10",
+          "at": "2026-10-16T06:30:00.000Z",
+          "quote": "Action A10: Review draft report. Owner: Ria. Deadline: 2026-10-23. Status: open.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "T10"
       ],
-      "teamId": "eng"
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-16T06:30:00.000Z",
+          "by": "action_log",
+          "evidence": {
+            "messageId": "M10",
+            "threadId": "T10",
+            "at": "2026-10-16T06:30:00.000Z",
+            "quote": "Action A10: Review draft report. Owner: Ria. Deadline: 2026-10-23. Status: open.",
+            "rule": "ACTION_RECORD"
+          },
+          "to": "ria"
+        }
+      ],
+      "linkedMessageIds": [
+        "M10"
+      ]
     }
   ],
   "drafts": [
     {
-      "id": "d_c_m_03",
-      "idempotencyKey": "c_m_03",
-      "commitmentId": "c_m_03",
+      "id": "d_c_M01",
+      "idempotencyKey": "c_M01",
+      "commitmentId": "c_M01",
       "kind": "reminder",
-      "recipientId": "p_ben",
+      "recipientId": "dev",
       "recipientRole": "owner",
       "replyState": "pending",
-      "body": "Hi Ben, a quick check on \"Send the revised pricing deck to the client\", which was due Fri, 16 Oct 2026, 05:30 GMT-7. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
-      "subject": "Quick check: Send the revised pricing deck to the client",
+      "body": "Hi Dev, \"Validate duplicate prevention\" is past its deadline (Wed, 21 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Validate duplicate prevention",
       "flowId": "flow_default",
-      "step": 0,
+      "step": 1,
       "recipientConfirmed": false,
-      "state": "suppressed",
-      "version": 1,
-      "createdAt": "2026-10-16T14:00:00.000Z",
-      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "state": "pending_review",
+      "version": 2,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
       "history": [
         {
           "version": 1,
-          "at": "2026-10-16T14:00:00.000Z",
-          "dueAt": "2026-10-16T12:30:00.000Z",
-          "recipientId": "p_ben",
-          "body": "Hi Ben, a quick check on \"Send the revised pricing deck to the client\", which was due Fri, 16 Oct 2026, 05:30 GMT-7. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
-          "subject": "Quick check: Send the revised pricing deck to the client",
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-20T18:29:00.000Z",
+          "recipientId": "dev",
+          "body": "Hi Dev, \"Validate duplicate prevention\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Validate duplicate prevention",
           "cause": "created"
+        },
+        {
+          "version": 2,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-21T18:29:00.000Z",
+          "recipientId": "dev",
+          "body": "Hi Dev, \"Validate duplicate prevention\" is past its deadline (Wed, 21 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Validate duplicate prevention",
+          "cause": "deadline_changed"
         }
-      ],
-      "suppression": {
-        "reason": "completed",
-        "at": "2026-10-19T05:30:00.000Z",
-        "evidence": {
-          "messageId": "m_10",
-          "threadId": "t_status",
-          "at": "2026-10-16T16:00:00.000Z",
-          "quote": "Revised pricing deck sent to the client this morning.",
-          "rule": "DONE+LINK_SIMILARITY"
-        }
-      }
+      ]
     },
     {
-      "id": "d_c_m_05",
-      "idempotencyKey": "c_m_05",
-      "commitmentId": "c_m_05",
-      "kind": "clarify",
-      "recipientId": "p_dev",
+      "id": "d_c_M03",
+      "idempotencyKey": "c_M03",
+      "commitmentId": "c_M03",
+      "kind": "reminder",
+      "recipientId": "mina",
       "recipientRole": "owner",
       "replyState": "pending",
-      "body": "Hi Dev, you mentioned \"maybe Friday\" for \"Fix the login redirect bug\". Could you confirm a firm date so we can plan around it?",
-      "subject": "Date needed: Fix the login redirect bug",
+      "body": "Hi Mina, \"Review product sample\" has been overdue since Sun, 18 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Review product sample",
       "flowId": "flow_default",
-      "step": 0,
+      "step": 2,
       "recipientConfirmed": false,
       "state": "pending_review",
       "version": 1,
-      "createdAt": "2026-10-19T05:30:00.000Z",
-      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
       "history": [
         {
           "version": 1,
-          "at": "2026-10-19T05:30:00.000Z",
-          "dueAt": "2026-10-16T18:29:00.000Z",
-          "recipientId": "p_dev",
-          "body": "Hi Dev, you mentioned \"maybe Friday\" for \"Fix the login redirect bug\". Could you confirm a firm date so we can plan around it?",
-          "subject": "Date needed: Fix the login redirect bug",
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-18T18:29:00.000Z",
+          "recipientId": "mina",
+          "body": "Hi Mina, \"Review product sample\" has been overdue since Sun, 18 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Review product sample",
           "cause": "created"
         }
       ]
     },
     {
-      "id": "d_c_m_18",
-      "idempotencyKey": "c_m_18",
-      "commitmentId": "c_m_18",
+      "id": "d_c_M04",
+      "idempotencyKey": "c_M04",
+      "commitmentId": "c_M04",
       "kind": "reminder",
-      "recipientId": "p_amir",
+      "recipientId": "omar",
       "recipientRole": "owner",
-      "replyState": "responded",
-      "body": "Hi Amir, \"Share the homepage mockups\" is past its deadline (Fri, 16 Oct 2026, 23:59 GMT+5:30). Please send an update today, or tell me what is blocking it.",
-      "subject": "Quick check: Share the homepage mockups",
+      "replyState": "pending",
+      "body": "Hi Omar, \"Check order IDs\" has been overdue since Mon, 19 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Check order IDs",
+      "flowId": "flow_default",
+      "step": 2,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-19T18:29:00.000Z",
+          "recipientId": "omar",
+          "body": "Hi Omar, \"Check order IDs\" has been overdue since Mon, 19 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Check order IDs",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M08",
+      "idempotencyKey": "c_M08",
+      "commitmentId": "c_M08",
+      "kind": "reminder",
+      "recipientId": "mina",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Mina, \"Review delivery promise\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+      "subject": "Quick check: Review delivery promise",
+      "flowId": "flow_default",
+      "step": 2,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-20T18:29:00.000Z",
+          "recipientId": "mina",
+          "body": "Hi Mina, \"Review delivery promise\" has been overdue since Tue, 20 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Looping in Coordinator so we can agree the next step today.",
+          "subject": "Quick check: Review delivery promise",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_M09",
+      "idempotencyKey": "c_M09",
+      "commitmentId": "c_M09",
+      "kind": "reminder",
+      "recipientId": "omar",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Omar, \"Confirm pilot store\" is past its deadline (Thu, 22 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Confirm pilot store",
       "flowId": "flow_default",
       "step": 1,
       "recipientConfirmed": false,
       "state": "pending_review",
       "version": 1,
-      "createdAt": "2026-10-19T05:30:00.000Z",
-      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
       "history": [
         {
           "version": 1,
-          "at": "2026-10-19T05:30:00.000Z",
-          "dueAt": "2026-10-16T18:29:00.000Z",
-          "recipientId": "p_amir",
-          "body": "Hi Amir, \"Share the homepage mockups\" is past its deadline (Fri, 16 Oct 2026, 23:59 GMT+5:30). Please send an update today, or tell me what is blocking it.",
-          "subject": "Quick check: Share the homepage mockups",
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-22T18:29:00.000Z",
+          "recipientId": "omar",
+          "body": "Hi Omar, \"Confirm pilot store\" is past its deadline (Thu, 22 Oct 2026, 23:59 GMT+5:30). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Confirm pilot store",
           "cause": "created"
         }
       ]
     },
     {
-      "id": "d_c_m_21",
-      "idempotencyKey": "c_m_21",
-      "commitmentId": "c_m_21",
+      "id": "d_c_M10",
+      "idempotencyKey": "c_M10",
+      "commitmentId": "c_M10",
       "kind": "reminder",
-      "recipientId": "p_lena",
+      "recipientId": "ria",
       "recipientRole": "owner",
       "replyState": "pending",
-      "body": "Hi Lena, \"Send the launch press kit to marketing\" has been overdue since Thu, 15 Oct 2026, 09:30 BST. I haven't heard back yet. Looping in Priya so we can agree the next step today.",
-      "subject": "Quick check: Send the launch press kit to marketing",
+      "body": "Hi Ria, a quick check on \"Review draft report\", which was due Fri, 23 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+      "subject": "Quick check: Review draft report",
       "flowId": "flow_default",
-      "step": 2,
+      "step": 0,
       "recipientConfirmed": false,
       "state": "pending_review",
-      "version": 2,
-      "createdAt": "2026-10-16T14:00:00.000Z",
-      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "version": 1,
+      "createdAt": "2026-10-24T03:30:00.000Z",
+      "updatedAt": "2026-10-24T03:30:00.000Z",
       "history": [
         {
           "version": 1,
-          "at": "2026-10-16T14:00:00.000Z",
-          "dueAt": "2026-10-15T08:30:00.000Z",
-          "recipientId": "p_lena",
-          "body": "Hi Lena, \"Send the launch press kit to marketing\" is past its deadline (Thu, 15 Oct 2026, 09:30 BST). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
-          "subject": "Quick check: Send the launch press kit to marketing",
+          "at": "2026-10-24T03:30:00.000Z",
+          "dueAt": "2026-10-23T18:29:00.000Z",
+          "recipientId": "ria",
+          "body": "Hi Ria, a quick check on \"Review draft report\", which was due Fri, 23 Oct 2026, 23:59 GMT+5:30. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+          "subject": "Quick check: Review draft report",
           "cause": "created"
-        },
-        {
-          "version": 2,
-          "at": "2026-10-19T05:30:00.000Z",
-          "dueAt": "2026-10-15T08:30:00.000Z",
-          "recipientId": "p_lena",
-          "body": "Hi Lena, \"Send the launch press kit to marketing\" has been overdue since Thu, 15 Oct 2026, 09:30 BST. I haven't heard back yet. Looping in Priya so we can agree the next step today.",
-          "subject": "Quick check: Send the launch press kit to marketing",
-          "cause": "step_changed"
         }
       ]
     }

@@ -1,18 +1,18 @@
 
  RUN  v5.0.5 D:/followthru
 
- ✓ |engine| tests/sanity.test.ts > sanity > runs in node 1ms
- ✓ |engine| tests/time.test.ts > timezone helpers > validates IANA names 14ms
- ✓ |engine| tests/time.test.ts > timezone helpers > computes offsets including half-hour zones and DST 0ms
- ✓ |engine| tests/time.test.ts > timezone helpers > round-trips wall time and UTC 1ms
+ ✓ |engine| tests/sanity.test.ts > sanity > runs in node 2ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > validates IANA names 21ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > computes offsets including half-hour zones and DST 1ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > round-trips wall time and UTC 2ms
  ✓ |engine| tests/time.test.ts > timezone helpers > adds calendar days across month ends 0ms
- ✓ |engine| tests/time.test.ts > timezone helpers > only accepts timestamps with Z or an explicit offset 0ms
- ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads Friday 6pm in IST 16ms
- ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads the same words from a Pacific speaker as a different instant 1ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > only accepts timestamps with Z or an explicit offset 1ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads Friday 6pm in IST 26ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads the same words from a Pacific speaker as a different instant 2ms
  ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > gives date-only deadlines the end of that local day 1ms
  ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads EOD as 18:00 local 0ms
  ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads tomorrow and tonight relative to the speaker day 0ms
- ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > treats the same weekday as today unless the time has passed 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > treats the same weekday as today unless the time has passed 1ms
  ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > moves a bare time that already passed to the next day 0ms
  ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > returns null when there is no deadline phrase 0ms
  ✓ |engine| tests/deadline.test.ts > tentative deadlines > marks "maybe Friday" as tentative and keeps the hedge in the phrase 0ms
@@ -34,7 +34,7 @@
  ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > never treats a tentative deadline as overdue 0ms
  ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > reports state for firm and missing deadlines 0ms
  ✓ |engine| tests/deadline.test.ts > formatting > shows the owner local time 1ms
- ✓ |engine| tests/deadline.test.ts > formatting > shows owner and viewer time side by side 0ms
+ ✓ |engine| tests/deadline.test.ts > formatting > shows owner and viewer time side by side 1ms
  ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > uses Pacific for "by Monday 10am PT" said by an IST speaker 0ms
  ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > moves a bare time with a zone to the next day when it has passed 0ms
  ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "14:00 UTC tomorrow" 0ms
@@ -71,56 +71,92 @@
  ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > keeps "Can we push the API rate limit docs to Oct 21?" firm 0ms
  ✓ |engine| tests/deadline.test.ts > day boundaries > reads "today" in IST when it is still Thursday in UTC 0ms
  ✓ |engine| tests/deadline.test.ts > day boundaries > reads "tomorrow EOD" across a month end 0ms
- ✓ |engine| tests/io.test.ts > formula injection protection > escapes "=1+1" 1ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "=1+1" 2ms
  ✓ |engine| tests/io.test.ts > formula injection protection > escapes "+1" 0ms
  ✓ |engine| tests/io.test.ts > formula injection protection > escapes "-1" 0ms
  ✓ |engine| tests/io.test.ts > formula injection protection > escapes "@SUM(A1)" 0ms
  ✓ |engine| tests/io.test.ts > formula injection protection > escapes "\tcmd" 0ms
  ✓ |engine| tests/io.test.ts > formula injection protection > escapes "\rcmd" 0ms
  ✓ |engine| tests/io.test.ts > formula injection protection > leaves safe text alone 0ms
- ✓ |engine| tests/io.test.ts > formula injection protection > never writes a raw formula cell into report exports 2ms
- ✓ |engine| tests/io.test.ts > message CSV round trip > reads back exactly what it wrote, including quotes, newlines and escaped formulas 1ms
- ✓ |engine| tests/io.test.ts > message CSV round trip > accepts a UTF-8 byte order mark from spreadsheet exports 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > never writes a raw formula cell into report exports 3ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > reads back exactly what it wrote, including quotes, newlines and escaped formulas 2ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > accepts a UTF-8 byte order mark from spreadsheet exports 1ms
  ✓ |engine| tests/io.test.ts > message CSV round trip > reports missing required columns 0ms
  ✓ |engine| tests/io.test.ts > message CSV round trip > reports malformed rows instead of throwing 0ms
  ✓ |engine| tests/io.test.ts > report exports > writes commitments with evidence message ids 1ms
  ✓ |engine| tests/io.test.ts > report exports > writes drafts with version and suppression reason 0ms
  ✓ |engine| tests/io.test.ts > report exports > round-trips results JSON 0ms
  ✓ |engine| tests/io.test.ts > suppressions export > lists suppressed drafts with reason and evidence, formula-escaped 0ms
- ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > accepts it with zero issues 17ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > accepts it with zero issues 29ms
  ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > normalises timestamps to UTC and sorts messages by time then id 1ms
- ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > breaks timestamp ties by id so order is stable 0ms
- ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > adds threads only seen on messages and fills participants from authors 0ms
- ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > treats missing labels as an empty list 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > breaks timestamp ties by id so order is stable 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > adds threads only seen on messages and fills participants from authors 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > treats missing labels as an empty list 1ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > returns stable codes and paths for every problem in the broken sample 1ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports reference warnings as warnings, not errors 1ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports missing required fields with their path 1ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports wrong types and bad enum values 1ms
- ✓ |engine| tests/validate.test.ts > validateDataset with broken input > rejects empty ids 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > rejects empty ids 1ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value null 0ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value 42 0ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value "text" 0ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value undefined 0ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value {} 0ms
  ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports invalid JSON text instead of throwing 0ms
- ✓ |engine| tests/validate.test.ts > validateDataset with broken input > ignores unknown extra fields 0ms
- ✓ |engine| tests/contract.test.ts > published contract > exposes the engine functions 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > ignores unknown extra fields 1ms
+ ✓ |engine| tests/contract.test.ts > published contract > exposes the engine functions 2ms
  ✓ |engine| tests/contract.test.ts > published contract > exposes validation and import export 1ms
  ✓ |engine| tests/contract.test.ts > published contract > keeps key type shapes 0ms
- ✓ |engine| tests/api.test.ts > GET /api/health > reports shadow mode 2ms
- ✓ |engine| tests/api.test.ts > GET /api/health > rejects other methods with 405 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > runs the engine and returns results with a scorecard 30ms
- ✓ |engine| tests/api.test.ts > POST /api/process > accepts a JSON string body and an explicit evaluation time 2ms
- ✓ |engine| tests/api.test.ts > POST /api/process > labels the AI flag as rules fallback 4ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (0) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (1) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (2) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (3) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (4) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (5) 1ms
- ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (6) 0ms
- ✓ |engine| tests/api.test.ts > POST /api/process > never logs message text 5ms
- ✓ |engine| tests/engine.test.ts > signals > Deck sent to the client. → done 1ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > is recognised and loads without errors, with the senderless assumption reported 3ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > scores 10 of 10 with zero wrong reminders and no duplicates (clock 2026-10-16T07:31:00.000Z) 15ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > scores 10 of 10 with zero wrong reminders and no duplicates (clock 2026-10-24T03:30:00.000Z) 8ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > never puts A2, A5, A6 or A7 in the reminder queue and drafts each open action once after its deadline 3ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > keeps A1 as one draft and moves it to version 2 when the deadline correction (M11) arrives 6ms
+ ✓ |engine| tests/fixture.test.ts > C14 starter fixture > ignores the instruction in M12: no commitment, no draft, nothing sent 3ms
+ ✓ |engine| tests/fixture.test.ts > action-log lines > reads key, title, owner, deadline and status from the text 0ms
+ ✓ |engine| tests/fixture.test.ts > action-log lines > ignores prose that only mentions an action 0ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > A: overdue and outstanding creates exactly one reminder draft 43ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > B: completion reported after the deadline closes the work and drafts nothing 3ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > C: a revised deadline in the future replaces the passed one and is not chased 3ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > D: an authorised cancellation suppresses the reminder 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > E: "that part is done" with several tasks asks for review and closes nothing 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > F: a blocker is recorded, the status stays open and no draft claims completion 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > G: completion contradicted later is flagged for review, not chased and not closed 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > H: completion after a draft was written withdraws that draft 3ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > I: one commitment discussed in two threads stays one commitment with one draft 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > J: unknown owner or deadline is flagged and nothing is invented 2ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > K: processing the same history again creates no new commitments or drafts 4ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > L: late-arriving updates are replayed in time order and a withdrawn draft is not revived 7ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > M: an approved reminder is withdrawn when completion arrives before delivery 4ms
+ ✓ |engine| tests/phase11.test.ts > Phase 11 scenarios > treats an instruction inside a message as data: nothing is sent and no work is created 0ms
+ ✓ |engine| tests/phase11.test.ts > chat lines are engine input > a new team-chat line updates the commitment like any other message 1ms
+ ✓ |engine| tests/simpleCsv.test.ts > easy chat CSV > is recognised and told apart from the id-based messages CSV 2ms
+ ✓ |engine| tests/simpleCsv.test.ts > easy chat CSV > turns the demo team chat into the same commitments as the JSON dataset 70ms
+ ✓ |engine| tests/simpleCsv.test.ts > easy chat CSV > reads the second sample and the template without errors 12ms
+ ✓ |engine| tests/simpleCsv.test.ts > easy chat CSV > reads times without an offset in the sender's timezone 1ms
+ ✓ |engine| tests/simpleCsv.test.ts > easy chat CSV > explains missing columns and bad times by row 1ms
+ ✓ |engine| tests/explain.test.ts > explainCommitment > gives at least one sentence for every commitment 5ms
+ ✓ |engine| tests/explain.test.ts > explainCommitment > says closed work is never chased 2ms
+ ✓ |engine| tests/explain.test.ts > explainCommitment > says overdue open work is overdue and that silence keeps it open 1ms
+ ✓ |engine| tests/explain.test.ts > explainCommitment > is deterministic for the same input 2ms
+ ✓ |engine| tests/explain.test.ts > time travel replay > lists event moments in order and ends at now 2ms
+ ✓ |engine| tests/explain.test.ts > time travel replay > does not know a commitment before its source message 1ms
+ ✓ |engine| tests/explain.test.ts > time travel replay > shows closed work as open before it was closed 7ms
+ ✓ |engine| tests/explain.test.ts > time travel replay > matches the live run at the current clock 42ms
+ ✓ |engine| tests/cloud.test.ts > quiet hours for in-app reminders > delivers at once during working hours 22ms
+ ✓ |engine| tests/cloud.test.ts > quiet hours for in-app reminders > holds a late-evening reminder until 09:00 next morning, local time 1ms
+ ✓ |engine| tests/cloud.test.ts > quiet hours for in-app reminders > holds an early-morning reminder until 09:00 the same day 0ms
+ ✓ |engine| tests/cloud.test.ts > quiet hours for in-app reminders > skips the weekend when asked, to Monday 09:00 0ms
+ ✓ |engine| tests/cloud.test.ts > attachment checks > accepts real files of allowed types 2ms
+ ✓ |engine| tests/cloud.test.ts > attachment checks > refuses scripts, SVG, executables and disguised files 1ms
+ ✓ |engine| tests/cloud.test.ts > attachment checks > refuses empty and oversized files 0ms
+ ✓ |engine| tests/cloud.test.ts > engine sync helpers > compares stored JSON regardless of key order 1ms
+ ✓ |engine| tests/cloud.test.ts > engine sync helpers > derives the stored status from the deadline and progress 31ms
+ ✓ |engine| tests/cloud.test.ts > account rules > makes strong temporary passwords that pass the policy 12ms
+ ✓ |engine| tests/cloud.test.ts > account rules > validates usernames and passwords 1ms
+ ✓ |engine| tests/cloud.test.ts > account rules > uses plain lowercase route names 1ms
+ ✓ |engine| tests/cloud.test.ts > stale reminder after approval > cancels a held in-app reminder when the approved draft becomes suppressed 8ms
+ ✓ |engine| tests/engine.test.ts > signals > Deck sent to the client. → done 2ms
  ✓ |engine| tests/engine.test.ts > signals > Never mind, drop it → cancel 0ms
  ✓ |engine| tests/engine.test.ts > signals > Let's put this on hold until next quarter → defer 0ms
  ✓ |engine| tests/engine.test.ts > signals > Can we push the docs to Oct 21? → reschedule 0ms
@@ -134,76 +170,184 @@
  ✓ |engine| tests/engine.test.ts > signals > does not read "Is it done?" as done 0ms
  ✓ |engine| tests/engine.test.ts > signals > does not read "Should be shipped tomorrow" as done 0ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > finds every commitment with owner, deadline and status from the whole history 1ms
- ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > links a completion posted in another thread back to the original 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > links a completion posted in another thread back to the original 1ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > moves ownership only when the delegate accepts, and takes their new date in their timezone 0ms
- ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > keeps an unaccepted delegation in review and the old owner in place 4ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > keeps an unaccepted delegation in review and the old owner in place 11ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > marks "maybe Friday" tentative and asks for a firm date instead of chasing 0ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > sends a completion claim from someone outside the commitment to review, never closing it silently 0ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > keeps silence as silence: no reply means pending, not done 0ms
  ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > reads the deadline in the speaker timezone 0ms
- ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > is deterministic 4ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > is deterministic 12ms
  ✓ |engine| tests/engine.test.ts > draft queue > drafts only for open overdue or tentative-passed work, one per commitment 0ms
  ✓ |engine| tests/engine.test.ts > draft queue > creates zero drafts for completed, cancelled and deferred work 0ms
- ✓ |engine| tests/engine.test.ts > draft queue > re-running with the previous drafts changes nothing 2ms
- ✓ |engine| tests/engine.test.ts > draft queue > a later deadline update changes the same draft with a new version, never a duplicate 5ms
- ✓ |engine| tests/engine.test.ts > draft queue > suppresses an existing reminder as soon as the work is reported done (stale message) 2ms
- ✓ |engine| tests/engine.test.ts > draft queue > moves to the next flow step as time passes, as a new version of the same draft 4ms
- ✓ |engine| tests/engine.test.ts > draft queue > marks unapproved drafts stale after the stale window 2ms
- ✓ |engine| tests/engine.test.ts > approval checks > blocks approval until the recipient is confirmed 0ms
+ ✓ |engine| tests/engine.test.ts > draft queue > re-running with the previous drafts changes nothing 5ms
+ ✓ |engine| tests/engine.test.ts > draft queue > a later deadline update changes the same draft with a new version, never a duplicate 17ms
+ ✓ |engine| tests/engine.test.ts > draft queue > suppresses an existing reminder as soon as the work is reported done (stale message) 5ms
+ ✓ |engine| tests/engine.test.ts > draft queue > moves to the next flow step as time passes, as a new version of the same draft 5ms
+ ✓ |engine| tests/engine.test.ts > draft queue > marks unapproved drafts stale after the stale window 5ms
+ ✓ |engine| tests/engine.test.ts > approval checks > blocks approval until the recipient is confirmed 1ms
  ✓ |engine| tests/engine.test.ts > approval checks > re-checks freshness: work completed after drafting suppresses instead of approving 0ms
  ✓ |engine| tests/engine.test.ts > approval checks > blocks a draft whose deadline or owner changed after it was written 0ms
- ✓ |engine| tests/engine.test.ts > approval checks > warns about recipients outside working hours or after delegation 0ms
- ✓ |engine| tests/engine.test.ts > human decisions and permissions > lets a coordinator resolve review and mark work done, which suppresses any draft 5ms
- ✓ |engine| tests/engine.test.ts > human decisions and permissions > ignores decisions a member is not allowed to make 2ms
- ✓ |engine| tests/engine.test.ts > human decisions and permissions > runs the member submit and coordinator approve flow 4ms
- ✓ |engine| tests/engine.test.ts > human decisions and permissions > a member cannot approve their own submission 2ms
- ✓ |engine| tests/engine.test.ts > human decisions and permissions > handles manual tasks assigned by a coordinator 2ms
+ ✓ |engine| tests/engine.test.ts > approval checks > warns about recipients outside working hours or after delegation 1ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > lets a coordinator resolve review and mark work done, which suppresses any draft 9ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > ignores decisions a member is not allowed to make 4ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > runs the member submit and coordinator approve flow 9ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > a member cannot approve their own submission 6ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > handles manual tasks assigned by a coordinator 6ms
+ ✓ |engine| tests/api.test.ts > GET /api/health > reports shadow mode 3ms
+ ✓ |engine| tests/api.test.ts > GET /api/health > rejects other methods with 405 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > runs the engine and returns results with a scorecard 25ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > accepts a JSON string body and an explicit evaluation time 5ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > labels the AI flag as rules fallback 6ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (0) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (1) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (2) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (3) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (4) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (5) 1ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (6) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > never logs message text 7ms
+ ✓ |engine| tests/api.test.ts > CSV input to /api/process > builds the dataset from a messages CSV and people 9ms
+ ✓ |engine| tests/api.test.ts > CSV input to /api/process > rejects a CSV with missing columns 1ms
+ ✓ |engine| tests/api.test.ts > CSV input to /api/process > accepts "fixture" as another name for "dataset" 6ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > returns the scorecard as JSON, labelled synthetic without the fixture 5ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > scores the challenge fixture when data/fixture.json is present 8ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > returns commitments as CSV 5ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > returns drafts as CSV 3ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > returns suppressions as CSV 3ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > rejects /api/evidence?format=xml with 400 0ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > rejects /api/evidence?kind=everything with 400 0ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > rejects /api/evidence?format=csv&kind=scorecard with 400 0ms
+ ✓ |engine| tests/api.test.ts > GET /api/evidence > rejects POST with 405 0ms
+ ✓ |engine| tests/api.test.ts > CORS > answers preflight with 204 and adds headers to every response 0ms
+ ✓ |engine| tests/store.test.ts > repositories > loads a dataset with default flows and an audit entry 17ms
+ ✓ |engine| tests/store.test.ts > repositories > refuses a dataset with validation errors 5ms
+ ✓ |engine| tests/store.test.ts > repositories > stores drafts once and skips writes when nothing changed 31ms
+ ✓ |engine| tests/store.test.ts > repositories > hashes uploaded evidence files 4ms
+ ✓ |engine| tests/store.test.ts > repositories > reset clears data but keeps the audit history, including the reset itself 4ms
+ ✓ |engine| tests/store.test.ts > actions > approval needs a confirmed recipient, then approves in shadow mode 21ms
+ ✓ |engine| tests/store.test.ts > actions > suppresses with a visible reason when the work was closed before approval 9ms
+ ✓ |engine| tests/ai.test.ts > AI disagreement review > flags open work the AI thinks is finished, without closing it or chasing it 10ms
+ ✓ |engine| tests/ai.test.ts > AI disagreement review > ignores readings below the confidence floor 0ms
+ ✓ |engine| tests/ai.test.ts > AI disagreement review > flags closed work only when the AI reads the closing message differently 1ms
+ ✓ |engine| tests/ai.test.ts > AI disagreement review > labels the run honestly 11ms
+ ✓ |engine| tests/ai.test.ts > AI disagreement review > is deterministic for the same signals 9ms
+ ✓ |engine| tests/ai.test.ts > Gemini pre-pass client > sends the key in a header, asks for JSON and keeps only known message ids 26ms
+ ✓ |engine| tests/ai.test.ts > Gemini pre-pass client > batches long conversations 2ms
+ ✓ |engine| tests/ai.test.ts > Gemini pre-pass client > falls back with a reason instead of throwing 3ms
+ ✓ |engine| tests/ai.test.ts > Gemini pre-pass client > does not call out without a key 1ms
+ ✓ |engine| tests/ai.test.ts > AI key stays local > is never written to the audit log or a backup, and only a coordinator can set it 24ms
  ✓ |engine| tests/engine.test.ts > flows > picks the latest step that is due 0ms
  ✓ |engine| tests/engine.test.ts > flows > validates step order 0ms
- ✓ |engine| tests/engine.test.ts > flows > waits for the first step of a team flow before drafting 2ms
- ✓ |engine| tests/engine.test.ts > evaluation > scores the synthetic sample against its own labels 2ms
- ✓ |engine| tests/engine.test.ts > evaluation > says scoring is unavailable without labels instead of claiming a score 2ms
- ✓ |engine| tests/engine.test.ts > evaluation > fails the reminder check when a closed commitment still has an active draft 2ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > records "still working" after the deadline without changing status 2ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > adds a blocker from an owner message 2ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > treats "almost done" as progress, never completion 2ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > reopens retracted work and reactivates the same draft with a new version 4ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > sends a reopen claim from an unrelated person to review 2ms
- ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > uses an injected extractor 0ms
- ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > words a reminder differently for no reply and for "not yet" 2ms
+ ✓ |engine| tests/engine.test.ts > flows > waits for the first step of a team flow before drafting 4ms
+ ✓ |engine| tests/engine.test.ts > evaluation > scores the synthetic sample against its own labels 5ms
+ ✓ |engine| tests/engine.test.ts > evaluation > says scoring is unavailable without labels instead of claiming a score 5ms
+ ✓ |engine| tests/engine.test.ts > evaluation > fails the reminder check when a closed commitment still has an active draft 5ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > records "still working" after the deadline without changing status 6ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > adds a blocker from an owner message 6ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > treats "almost done" as progress, never completion 6ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > reopens retracted work and reactivates the same draft with a new version 10ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > sends a reopen claim from an unrelated person to review 3ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > uses an injected extractor 1ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > words a reminder differently for no reply and for "not yet" 3ms
  ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > keeps subjects under 60 characters and bodies under 70 words 0ms
  ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > writes the deadline in the recipient timezone 0ms
- ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > escalates to the coordinator as a new version of the same draft, approvable after confirmation 4ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > escalates to the coordinator as a new version of the same draft, approvable after confirmation 6ms
  ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > falls back to the coordinator when a requester step has no requester 0ms
  ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > rejects an unknown flow recipient 0ms
- ✓ |engine| tests/engine.test.ts > product change flags > without stale suppression a draft written before the completion stays pending (the baseline problem) 3ms
- ✓ |engine| tests/engine.test.ts > product change flags > with stale suppression the same draft is suppressed with the completion evidence 3ms
- ✓ |engine| tests/engine.test.ts > product change flags > without recipient review approval does not need a confirmed recipient 2ms
- ✓ |engine| tests/store.test.ts > repositories > loads a dataset with default flows and an audit entry 12ms
- ✓ |engine| tests/store.test.ts > repositories > refuses a dataset with validation errors 5ms
- ✓ |engine| tests/store.test.ts > repositories > stores drafts once and skips writes when nothing changed 20ms
- ✓ |engine| tests/store.test.ts > repositories > hashes uploaded evidence files 3ms
- ✓ |engine| tests/store.test.ts > repositories > reset clears data but keeps the audit history, including the reset itself 2ms
- ✓ |engine| tests/store.test.ts > actions > approval needs a confirmed recipient, then approves in shadow mode 11ms
- ✓ |engine| tests/store.test.ts > actions > suppresses with a visible reason when the work was closed before approval 6ms
- ✓ |engine| tests/store.test.ts > actions > members cannot approve, assign tasks or cancel 4ms
- ✓ |engine| tests/store.test.ts > actions > assigns a task to a whole team as one task per member 8ms
- ✓ |engine| tests/store.test.ts > actions > rejects a task deadline in the past 4ms
+ ✓ |engine| tests/engine.test.ts > product change flags > without stale suppression a draft written before the completion stays pending (the baseline problem) 5ms
+ ✓ |engine| tests/engine.test.ts > product change flags > with stale suppression the same draft is suppressed with the completion evidence 7ms
+ ✓ |engine| tests/engine.test.ts > product change flags > without recipient review approval does not need a confirmed recipient 3ms
+ ✓ |engine| tests/engine.test.ts > reject and edit > keeps a rejected draft rejected across re-runs until a new version is written 6ms
+ ✓ |engine| tests/engine.test.ts > reject and edit > preserves an edit until a new version replaces it, and notes that in history 9ms
+ ✓ |engine| tests/engine.test.ts > reject and edit > validates reasons and text length 1ms
+ ✓ |engine| tests/engine.test.ts > reject and edit > never counts a rejected draft as an active reminder 0ms
+ ✓ |engine| tests/engine.test.ts > extension requests > records a request without changing the deadline or stopping reminders 5ms
+ ✓ |engine| tests/engine.test.ts > extension requests > approving changes the deadline and updates the same draft 4ms
+ ✓ |engine| tests/engine.test.ts > extension requests > only a coordinator can decline, and only the owner can ask 10ms
+ ✓ |engine| tests/engine.test.ts > extension requests > permissions match the roles 0ms
+ ✓ |engine| tests/engine.test.ts > decision order > replays decisions made at the same evaluation time in the order they were recorded 3ms
+ ✓ |engine| tests/engine.test.ts > second promise from the same owner in a thread > opens a new commitment when it names its own task, leaving the first one alone 4ms
+ ✓ |engine| tests/engine.test.ts > second promise from the same owner in a thread > still treats "I'll have it Monday instead" as an update to the existing commitment 3ms
+ ✓ |engine| tests/store.test.ts > actions > members cannot approve, assign tasks or cancel 9ms
+ ✓ |engine| tests/store.test.ts > actions > assigns a task to a whole team as one task per member 18ms
+ ✓ |engine| tests/store.test.ts > actions > rejects a task deadline in the past 6ms
  ✓ |engine| tests/store.test.ts > actions > keeps default flows locked 5ms
- ✓ |ui| tests/app.test.tsx > App > renders the landing page tagline and CTA 85ms
- ✓ |ui| tests/app.test.tsx > App > renders the style guide route 36ms
+ ✓ |engine| tests/store.test.ts > reject and edit actions > lets a coordinator reject with a reason and edit text, both audited 8ms
+ ✓ |engine| tests/store.test.ts > reject and edit actions > does not let a member reject or edit 5ms
+ ✓ |engine| tests/store.test.ts > extension request actions > needs a future date and a reason, and is open to the owner only 14ms
+ ✓ |engine| tests/store.test.ts > backup, restore and evidence > round-trips decisions, tasks, drafts and flows through export, reset and import 15ms
+ ✓ |engine| tests/store.test.ts > backup, restore and evidence > rejects broken backups with issues 2ms
+ ✓ |engine| tests/store.test.ts > backup, restore and evidence > never exports secret settings 2ms
+ ✓ |engine| tests/store.test.ts > backup, restore and evidence > lets only a coordinator restore or delete, and deletion needs a reason 15ms
+ ✓ |engine| tests/store.test.ts > backup, restore and evidence > builds an evidence pack with the scorecard and file hashes 7ms
+ ✓ |engine| tests/store.test.ts > draft sync concurrency > does not overwrite a human change made after the engine took its snapshot 12ms
+ ✓ |engine| tests/pdfChat.test.ts > chat PDF import > reads the sample PDF into people, threads and commitments 339ms
+ ✓ |engine| tests/pdfChat.test.ts > chat PDF import > understands WhatsApp-style lines, 12-hour times and wrapped text 1ms
+ ✓ |engine| tests/pdfChat.test.ts > chat PDF import > says clearly when a PDF has no readable chat 0ms
+ ✓ |ui| tests/errorBoundary.test.tsx > RouteErrorBoundary > shows a recovery screen with Reload and Reset instead of a blank page 113ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > sends a first-time visitor to sign in, which offers to load data 155ms
+ ✓ |ui| tests/app.test.tsx > App > renders the landing page tagline and CTA 179ms
+ ✓ |ui| tests/app.test.tsx > App > renders the style guide route 78ms
  ✓ |ui| tests/app.test.tsx > App > falls back to a not found page for unknown routes 4ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > sends a first-time visitor to setup 101ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > asks for a profile once data is loaded 41ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > shows the coordinator dashboard with engine results 47ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > lists and filters commitments from the URL 42ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > explains a commitment with its evidence timeline 35ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > blocks approval until the recipient is confirmed, then approves in shadow mode 115ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > shows a member only their own work and no approval controls 36ms
- ✓ |ui| tests/ui.test.tsx > app with real engine data > reports that demo data is not scored 25ms
+ ✓ |engine| tests/db/rls.test.ts > migrations > enable row level security on every public table 3ms
+ ✓ |engine| tests/db/rls.test.ts > migrations > give anon nothing and signed-in users read access only 8ms
+ ✓ |engine| tests/db/rls.test.ts > migrations > keep one reminder draft per task 3ms
+ ✓ |engine| tests/db/rls.test.ts > organization isolation > shows a coordinator only their own organization 7ms
+ ✓ |engine| tests/db/rls.test.ts > organization isolation > does not reveal another organization by guessing ids 5ms
+ ✓ |engine| tests/db/rls.test.ts > organization isolation > rejects every direct write from the browser, including into another organization 5ms
+ ✓ |engine| tests/db/rls.test.ts > role scopes > shows a member only their own tasks, threads and decisions 3ms
+ ✓ |engine| tests/db/rls.test.ts > role scopes > never shows members the reminder drafts, audit log or other accounts 5ms
+ ✓ |engine| tests/db/rls.test.ts > role scopes > shows a team lead the tasks and drafts of the teams they lead, not others 3ms
+ ✓ |engine| tests/db/rls.test.ts > role scopes > hides all organization data until a temporary password is changed 4ms
+ ✓ |engine| tests/db/rls.test.ts > role scopes > hides data from disabled accounts 3ms
+ ✓ |engine| tests/db/rls.test.ts > notifications > shows only your own notifications, and quiet-hour reminders only once due 1ms
+ ✓ |engine| tests/db/rls.test.ts > notifications > lets you mark only your own delivered notifications read 2ms
+ ✓ |engine| tests/db/rls.test.ts > audit log > is append-only, even for the server 3ms
+ ✓ |engine| tests/db/rls.test.ts > apply_ops > cannot be called from the browser 1ms
+ ✓ |engine| tests/db/rls.test.ts > apply_ops > applies all operations or none 5ms
+ ✓ |engine| tests/db/rls.test.ts > apply_ops > updates with optimistic locking and upserts idempotently 5ms
+ ✓ |engine| tests/db/rls.test.ts > file storage > allows uploads only into your own organization folder 3ms
+ ✓ |engine| tests/db/rls.test.ts > file storage > lets only people who can read the task download the file 6ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > asks who you are once data is loaded, coordinators first 90ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows the coordinator dashboard with engine results 61ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > lists and filters commitments from the URL 67ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > explains a commitment with its evidence timeline 62ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > blocks approval until the recipient is confirmed, then approves in shadow mode 104ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > rejects a draft with a reason and moves it to the Rejected lane 116ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows a member only their own work and no approval controls 33ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows members only their navigation and redirects them away from coordinator pages 32ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows a coordinator the people grid with local times 33ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > filters the audit log by action 83ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > reports that demo data is not scored 33ms
 
- Test Files  11 passed (11)
-      Tests  200 passed (200)
-   Start at  23:46:05
-   Duration  12.66s (setup 29%, import 20%, environment 19%, transform 18%, tests 14%, worker 1%)
+ Test Files  20 passed (20)
+      Tests  319 passed (319)
+   Start at  12:34:56
+   Duration  20.23s (setup 31%, tests 24%, import 21%, environment 16%, transform 7%, worker 1%)
 
+Error: page exploded
+    at Boom (D:/followthru/tests/errorBoundary.test.tsx:10:9)
+    at renderWithHooks (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (D:\followthru\node_modules\jsdom\lib\generated\idl\EventListener.js:26:30)
+    at innerInvokeEventListeners (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:378:16)
+    at invokeEventListeners (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:320:3)
+    at HTMLUnknownElementImpl._dispatch (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:269:9)
+    at HTMLUnknownElementImpl.dispatchEvent (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:137:17)
+Error: page exploded
+    at Boom (D:/followthru/tests/errorBoundary.test.tsx:10:9)
+    at renderWithHooks (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (D:\followthru\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (D:\followthru\node_modules\jsdom\lib\generated\idl\EventListener.js:26:30)
+    at innerInvokeEventListeners (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:378:16)
+    at invokeEventListeners (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:320:3)
+    at HTMLUnknownElementImpl._dispatch (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:269:9)
+    at HTMLUnknownElementImpl.dispatchEvent (D:\followthru\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:137:17)
+Not implemented: HTMLMediaElement's play() method
+Not implemented: HTMLMediaElement's play() method
+Not implemented: HTMLMediaElement's play() method

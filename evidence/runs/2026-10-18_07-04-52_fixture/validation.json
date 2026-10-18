@@ -1,0 +1,11 @@
+[
+  {
+    "code": "unknown_author",
+    "severity": "warning",
+    "path": [
+      "records",
+      "messages"
+    ],
+    "message": "The fixture names no sender. Its lines are read as entries in the coordinator's action log (\"Coordinator (fixture log)\"), so they may set owner, deadline and status"
+  }
+]
