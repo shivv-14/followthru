@@ -3,7 +3,7 @@ import { admin, applyOps, publicClient, sha256, shortId, uuid, type Op } from '.
 import { PROFILE_COLUMNS, requireUser, type ProfileRow } from '../context'
 import { WORKSPACE_FLOWS, checkEmail, checkPassword, checkTimezone, checkUsername } from '../defaults'
 import { HttpError, bad, bodyOf, clientIp, conflict, header, json, rateLimit, str } from '../http'
-import { DEFAULT_ORG_SETTINGS } from '../orgData'
+import { DEFAULT_ORG_SETTINGS, loadSettings } from '../orgData'
 import { auditOp, notificationOps } from '../notify'
 
 const GENERIC_LOGIN_FAILURE = 'Wrong username, email or password.'
@@ -130,6 +130,7 @@ export async function login(req: ApiRequest) {
   return json(200, {
     session: { access_token: data.session.access_token, refresh_token: data.session.refresh_token },
     mustChangePassword: profile.must_change_password,
+    role: profile.role,
   })
 }
 
@@ -147,7 +148,9 @@ export async function changePassword(req: ApiRequest) {
     { op: 'insert', table: 'auth_events', row: { org_id: ctx.orgId, profile_id: ctx.userId, event: 'password_changed' } },
     auditOp(ctx.orgId, ctx.userId, ctx.person.id, 'account.password_change', 'profile', ctx.userId),
   ])
-  return json(200, { ok: true, message: 'Password changed' })
+  // Supabase ends existing sessions when the password changes; hand back a fresh one
+  const fresh = ctx.profile.email ? (await session(ctx.profile.email, password)).data.session : null
+  return json(200, { ok: true, message: 'Password changed', session: fresh ? { access_token: fresh.access_token, refresh_token: fresh.refresh_token } : null })
 }
 
 export async function logout(req: ApiRequest) {
@@ -160,12 +163,20 @@ export async function logout(req: ApiRequest) {
 /** The signed-in account, its workspace and the engine person it acts as. */
 export async function me(req: ApiRequest) {
   const ctx = await requireUser(req, { allowMustChange: true })
-  const { data: org } = await admin().from('organizations').select('id, name').eq('id', ctx.orgId).single()
+  const [{ data: org }, settings, { data: ref }, { data: last }] = await Promise.all([
+    admin().from('organizations').select('id, name').eq('id', ctx.orgId).single(),
+    loadSettings(ctx.orgId),
+    admin().from('imports').select('reference_time').eq('org_id', ctx.orgId).not('reference_time', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    admin().from('messages').select('sent_at').eq('org_id', ctx.orgId).order('sent_at', { ascending: false }).limit(1).maybeSingle(),
+  ])
   const p = ctx.profile
+  // The data clock for everyone, including members who cannot read the whole import
+  const dataClock = ref?.reference_time ?? last?.sent_at ?? null
   return json(200, {
     profile: { id: p.id, fullName: p.full_name, username: p.username, email: p.email, role: p.role, timezone: p.timezone, personId: p.person_id, mustChangePassword: p.must_change_password },
     org,
     person: ctx.person,
     ledTeams: ctx.ledTeams,
+    dataClock: settings.clockMode === 'dataset' && dataClock ? new Date(dataClock).toISOString() : null,
   })
 }

@@ -42,16 +42,19 @@ export const engineRole = (role: AppRole): Role => (role === 'member' ? 'member'
 export async function requireUser(req: ApiRequest, opts: { allowMustChange?: boolean } = {}): Promise<Ctx> {
   const token = header(req, 'authorization').replace(/^Bearer\s+/i, '')
   if (!token) throw unauthorized()
-  const { data, error } = await admin().auth.getUser(token)
-  if (error || !data.user) throw unauthorized('Your session has expired. Sign in again.')
-  const { data: profile } = await admin().from('profiles').select(PROFILE_COLUMNS).eq('id', data.user.id).maybeSingle<ProfileRow>()
+  // Verifies the JWT signature locally against the project's signing keys (cached), so most
+  // requests skip a round trip to Supabase Auth. Disabled accounts are still caught below.
+  const { data, error } = await admin().auth.getClaims(token)
+  const userId = data?.claims?.sub
+  if (error || !userId) throw unauthorized('Your session has expired. Sign in again.')
+  const [{ data: profile }, { data: teams }] = await Promise.all([
+    admin().from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle<ProfileRow>(),
+    admin().from('teams').select('team_key').eq('lead_profile_id', userId),
+  ])
   if (!profile) throw forbidden('This account has no FollowThru workspace.')
   if (!profile.is_active) throw forbidden('This account is disabled. Ask your coordinator.')
   if (profile.must_change_password && !opts.allowMustChange) throw new HttpError(403, 'must_change_password', 'Choose a new password before continuing.')
-  const [{ data: teams }, { data: person }] = await Promise.all([
-    admin().from('teams').select('team_key').eq('org_id', profile.org_id).eq('lead_profile_id', profile.id),
-    admin().from('external_people').select('external_id, name, timezone, role, team_key').eq('org_id', profile.org_id).eq('external_id', profile.person_id).maybeSingle(),
-  ])
+  const { data: person } = await admin().from('external_people').select('external_id, name, timezone, role, team_key').eq('org_id', profile.org_id).eq('external_id', profile.person_id).maybeSingle()
   return {
     userId: profile.id,
     token,

@@ -4,6 +4,7 @@ import { requireRole, requireUser, type AppRole, type Ctx } from '../context'
 import { checkEmail, checkTimezone, checkUsername, isPlaceholderEmail, placeholderEmail } from '../defaults'
 import { HttpError, bad, bodyOf, conflict, forbidden, json, notFound, rateLimit, str } from '../http'
 import { auditOp, notificationOps } from '../notify'
+import { syncOrg } from '../sync'
 
 const PUBLIC_PROFILE = 'id, full_name, username, email, role, timezone, person_id, is_active, must_change_password, last_login_at, created_at'
 
@@ -104,6 +105,8 @@ export async function createAccount(req: ApiRequest) {
     await admin().auth.admin.deleteUser(userId)
     throw e
   }
+  // Their existing tasks now belong to an account: refresh ownership right away
+  await syncOrg(orgId, ctx.userId, 'write')
   return json(201, {
     account: { id: userId, username, fullName, role },
     temporaryPassword: password,
@@ -199,6 +202,7 @@ export async function linkPerson(req: ApiRequest) {
     { op: 'update', table: 'external_people', match: { org_id: ctx.orgId, external_id: externalId }, set: { linked_profile_id: target.id, role: target.role === 'member' ? 'member' : 'coordinator' } },
     auditOp(ctx.orgId, ctx.userId, ctx.person.id, 'account.link_person', 'profile', target.id, { person: target.person_id }, { person: externalId }),
   ])
+  await syncOrg(ctx.orgId, ctx.userId, 'write')
   return json(200, { ok: true, message: 'Account linked. Their tasks now show on their dashboard.' })
 }
 

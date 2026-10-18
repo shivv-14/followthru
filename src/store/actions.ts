@@ -5,6 +5,8 @@ import { db, type AppSettings, type DataSource } from './db'
 import type { BackupValidation } from '../schema/backup'
 import * as repo from './repo'
 import { useEngine, type EngineState } from './EngineProvider'
+import { useCloudData } from '../cloud/CloudEngineProvider'
+import { createCloudActions } from '../cloud/actions'
 
 export interface ActionResult {
   ok: boolean
@@ -216,5 +218,6 @@ export type Actions = ReturnType<typeof createActions>
 
 export function useActions(): Actions {
   const state = useEngine()
-  return useMemo(() => createActions(state), [state])
+  const cloud = useCloudData()
+  return useMemo(() => (cloud ? createCloudActions(state, cloud) : createActions(state)), [state, cloud])
 }

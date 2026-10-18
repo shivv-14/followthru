@@ -1,34 +1,16 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { evaluate, makeConfig, runEngine } from '../engine'
-import type { AiSignal, Commitment, Draft, EngineConfig, EngineResult, Flow, HumanDecision, ManualTask, Person, Scorecard } from '../engine/types'
+import type { EngineResult } from '../engine/types'
 import { fetchAiSignals } from '../ai/gemini'
-import { db, type AppSettings, type StoredDataset } from './db'
+import { db } from './db'
 import { DEFAULT_SETTINGS, getSettings, syncDrafts } from './repo'
 import { evaluationTime } from './clock'
+import { EngineContext, type AiStatus, type EngineState } from './engineContext'
+export type { AiStatus, EngineState } from './engineContext'
+import { useCloud } from '../cloud/session'
+import { CloudEngineProvider } from '../cloud/CloudEngineProvider'
 
-/** State of the optional AI pre-pass. Anything but 'ready' means the rules ran alone. */
-export type AiStatus = { state: 'off' } | { state: 'loading' } | { state: 'ready'; signals: AiSignal[]; model: string } | { state: 'failed'; reason: string }
-
-export interface EngineState {
-  ready: boolean
-  ai: AiStatus
-  dataset: StoredDataset | null
-  settings: AppSettings
-  now: string
-  config: EngineConfig
-  result: EngineResult
-  scorecard: Scorecard
-  user: Person | null
-  people: Map<string, Person>
-  flows: Flow[]
-  decisions: HumanDecision[]
-  tasks: ManualTask[]
-  commitment: (id: string) => Commitment | undefined
-  draftFor: (commitmentId: string) => Draft | undefined
-}
-
-const EngineContext = createContext<EngineState | null>(null)
 
 function useMinuteClock(enabled: boolean): string {
   const [now, setNow] = useState(() => new Date().toISOString())
@@ -43,7 +25,12 @@ function useMinuteClock(enabled: boolean): string {
 
 const EMPTY_RESULT: EngineResult = { runAt: '', mode: 'Rules', commitments: [], drafts: [], issues: [] }
 
+/** Cloud mode reads Supabase; the browser-only demo mode reads IndexedDB. Pages see the same state either way. */
 export function EngineProvider({ children }: { children: ReactNode }) {
+  return useCloud() ? <CloudEngineProvider>{children}</CloudEngineProvider> : <LocalEngineProvider>{children}</LocalEngineProvider>
+}
+
+function LocalEngineProvider({ children }: { children: ReactNode }) {
   const settings = useLiveQuery(getSettings, [], undefined)
   const datasetRow = useLiveQuery(async () => (await db.datasets.get('current')) ?? null, [], undefined)
   const decisions = useLiveQuery(() => db.decisions.toArray(), [], undefined)

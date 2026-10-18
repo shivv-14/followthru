@@ -39,7 +39,8 @@ export interface EvidenceFile {
   uploadedAt: IsoUtc
   uploadedBy: string
   linkedTo?: string
-  blob: Blob
+  /** Browser mode keeps the bytes here; cloud files live in private Storage and download through a signed link */
+  blob?: Blob
 }
 
 /** Saved engine run. Counts and checks only, never message text. */

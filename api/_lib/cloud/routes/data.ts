@@ -62,6 +62,14 @@ export async function importData(req: ApiRequest) {
       conflict: ['org_id', 'external_id'],
       row: { org_id: ctx.orgId, external_id: p.id, name: p.name, timezone: p.timezone, role: p.role ?? 'member', team_key: p.teamId ?? settings.defaultTeamKey ?? null, email: p.email ?? null, import_id: importId },
     })),
+    // Teams named in the data become real teams (existing ones are left as they are)
+    ...[...new Set(data.people.map((p) => p.teamId).filter((k): k is string => !!k && /^[a-z0-9][a-z0-9_-]{0,39}$/.test(k)))].map((k): Op => ({
+      op: 'upsert',
+      table: 'teams',
+      conflict: ['org_id', 'team_key'],
+      ignore_duplicates: true,
+      row: { org_id: ctx.orgId, team_key: k, name: k.charAt(0).toUpperCase() + k.slice(1), created_by: ctx.userId },
+    })),
     ...data.threads.map((t): Op => ({ op: 'upsert', table: 'threads', conflict: ['org_id', 'external_id'], ignore_duplicates: true, row: { org_id: ctx.orgId, external_id: t.id, title: t.title ?? null, import_id: importId } })),
     ...data.messages.map((m): Op => ({
       op: 'upsert',
