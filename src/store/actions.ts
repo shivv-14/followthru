@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { approveDraft, canDecide, canDo, checkBeforeApproval, editDraft, rejectDraft, suppressDraft, validateFlow } from '../engine'
-import type { DecisionType, Flow, HumanDecision, IsoUtc, ManualTask, TaskProgress, ValidationResult } from '../engine/types'
+import { approveDraft, canDecide, canDo, checkBeforeApproval, editDraft, regenerateDraft, rejectDraft, snoozeDraft, suppressDraft, unsnoozeDraft, validateFlow } from '../engine'
+import type { DecisionType, Draft, Flow, HumanDecision, IsoUtc, ManualTask, TaskProgress, ValidationResult } from '../engine/types'
 import { db, type AppSettings, type DataSource } from './db'
 import type { BackupValidation } from '../schema/backup'
 import * as repo from './repo'
@@ -41,6 +41,18 @@ export function createActions(state: EngineState) {
   const actor = state.user
   const actorId = actor?.id ?? 'setup'
   const role = actor?.role ?? 'member'
+
+  const changeDraft = async (draftId: string, action: string, change: (d: Draft) => Draft, message: string): Promise<ActionResult> => {
+    if (!actor || !canDo(role, 'approve_draft')) return fail('Only a coordinator can change drafts')
+    const draft = await db.drafts.get(draftId)
+    if (!draft) return fail('Draft not found')
+    try {
+      await repo.putDraft(actor.id, action, draft, change(draft))
+      return ok(message)
+    } catch (e) {
+      return fail((e as Error).message)
+    }
+  }
 
   return {
     async decide(commitmentId: string, type: DecisionType, input: DecisionInput = {}): Promise<ActionResult> {
@@ -103,6 +115,20 @@ export function createActions(state: EngineState) {
       } catch (e) {
         return fail((e as Error).message)
       }
+    },
+
+    /** Hides a pending draft until `until` on the evaluation clock. It cannot be approved meanwhile. */
+    async snooze(draftId: string, until: IsoUtc, reason = ''): Promise<ActionResult> {
+      return changeDraft(draftId, 'draft.snooze', (d) => snoozeDraft(d, actorId, state.now, until, reason), 'Snoozed')
+    },
+
+    async unsnooze(draftId: string): Promise<ActionResult> {
+      return changeDraft(draftId, 'draft.unsnooze', (d) => unsnoozeDraft(d), 'Back in the review queue')
+    },
+
+    /** Rewrites the text from the commitment as it is now, as a new version. Never revives a suppressed draft. */
+    async regenerate(draftId: string): Promise<ActionResult> {
+      return changeDraft(draftId, 'draft.regenerate', (d) => regenerateDraft(d, state.commitment(d.commitmentId), state.config, state.people), 'Draft rewritten as a new version')
     },
 
     async createTasks(input: NewTaskInput): Promise<ActionResult> {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ALL_TEAMS, MAX_CHAT_TEXT, canUseChat, chatThreadId, chatTitle } from '../lib/chat'
+import { ALL_TEAMS, MAX_CHAT_TEXT, MAX_SEARCH, canUseChat, chatTeamOf, chatThreadId, chatTitle, matchesSearch, reactionsOf, type Reaction, type Reactions } from '../lib/chat'
 import { callApi } from '../cloud/api'
 import { useCloudData } from '../cloud/CloudEngineProvider'
 import { useCloud } from '../cloud/session'
@@ -19,6 +19,12 @@ export interface ChatLine {
   text: string
   sentAt: string
   replyToId?: string
+  reactions?: Reactions
+}
+
+export interface ChatSearchHit extends ChatLine {
+  teamId: string
+  chatTitle: string
 }
 
 const POLL_MS = 5000
@@ -76,7 +82,7 @@ export function useTeamChat(teamId: string | null) {
     const thread = chatThreadId(teamId)
     return state.dataset.data.messages
       .filter((m) => m.threadId === thread)
-      .map((m) => ({ id: m.id, authorId: m.authorId, authorName: state.people.get(m.authorId)?.name ?? m.authorId, text: m.text, sentAt: m.sentAt, replyToId: m.replyToId }))
+      .map((m) => ({ id: m.id, authorId: m.authorId, authorName: state.people.get(m.authorId)?.name ?? m.authorId, text: m.text, sentAt: m.sentAt, replyToId: m.replyToId, reactions: reactionsOf(m) }))
   }, [cloudData, teamId, state.dataset, state.people])
 
   const post = useCallback(
@@ -106,5 +112,53 @@ export function useTeamChat(teamId: string | null) {
     [teamId, cloudData, load, session, state.user, state.dataset],
   )
 
-  return { lines: cloudData ? cloudLines : localLines, post, error, me: state.user?.id ?? null }
+  /** Adds or removes the current person's reaction. `on` is the wanted end state, so a retry changes nothing. */
+  const react = useCallback(
+    async (messageId: string, emoji: Reaction, on: boolean): Promise<ActionResult> => {
+      if (!teamId) return { ok: false, message: 'Choose a team chat' }
+      if (cloudData) {
+        const res = await callApi<{ message: string; reactions: Reactions }>('chat/react', { teamId, messageId, emoji, on })
+        if (!res.ok) return { ok: false, message: res.error.message }
+        setCloudLines((cur) => cur.map((l) => (l.id === messageId ? { ...l, reactions: res.data.reactions } : l)))
+        return { ok: true, message: res.data.message }
+      }
+      const user = state.user
+      if (!user) return { ok: false, message: 'Choose a profile first' }
+      try {
+        await repo.reactToMessage(user.id, messageId, emoji, on)
+        return { ok: true, message: on ? 'Reaction added' : 'Reaction removed' }
+      } catch (e) {
+        return { ok: false, message: (e as Error).message }
+      }
+    },
+    [teamId, cloudData, state.user],
+  )
+
+  return { lines: cloudData ? cloudLines : localLines, post, react, error, me: state.user?.id ?? null }
+}
+
+/** Searches every chat the person may open. Cloud mode asks the server, which applies the same chat permissions. */
+export function useChatSearch(teams: ChatTeam[]) {
+  const state = useEngine()
+  const cloudData = useCloudData()
+  return useCallback(
+    async (query: string): Promise<{ ok: boolean; message: string; results: ChatSearchHit[] }> => {
+      const q = query.trim()
+      if (q.length < 2) return { ok: false, message: 'Type at least two characters to search', results: [] }
+      if (cloudData) {
+        const res = await callApi<{ results: ChatSearchHit[] }>('chat/search', { query: q })
+        return res.ok ? { ok: true, message: `${res.data.results.length} found`, results: res.data.results } : { ok: false, message: res.error.message, results: [] }
+      }
+      const allowed = new Set(teams.map((t) => t.id))
+      const results = (state.dataset?.data.messages ?? [])
+        .map((m) => ({ m, teamId: chatTeamOf(m.threadId) }))
+        .filter((x): x is { m: (typeof x)['m']; teamId: string } => !!x.teamId && allowed.has(x.teamId))
+        .map(({ m, teamId }) => ({ id: m.id, authorId: m.authorId, authorName: state.people.get(m.authorId)?.name ?? m.authorId, text: m.text, sentAt: m.sentAt, replyToId: m.replyToId, teamId, chatTitle: chatTitle(teamId) }))
+        .filter((l) => matchesSearch(l, q))
+        .reverse()
+        .slice(0, MAX_SEARCH)
+      return { ok: true, message: `${results.length} found`, results }
+    },
+    [cloudData, teams, state.dataset, state.people],
+  )
 }

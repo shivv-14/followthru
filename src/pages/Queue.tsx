@@ -4,6 +4,9 @@ import { Button, Card, Dialog, EmptyState, Select, StatusChip, Tabs, Textarea } 
 import { Notice, PageHeader, useActionNotice } from '../components/domain/parts'
 import { SUPPRESSION_LABEL, draftStateView, personName, shortTime } from '../components/domain/view'
 import { checkBeforeApproval, draftText, MAX_DRAFT_BODY, recipientWarnings } from '../engine/approval'
+import { isSnoozed } from '../engine/drafts'
+import { SnoozeDialog } from '../components/domain/SnoozeDialog'
+import type { ActionResult } from '../store/actions'
 import type { Draft } from '../engine/types'
 import { useActions, useEngine } from '../store'
 
@@ -17,11 +20,19 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
   const [text, setText] = useState(draftText(draft))
   const [rejecting, setRejecting] = useState(false)
   const [reason, setReason] = useState('')
+  const [snoozing, setSnoozing] = useState(false)
   const c = commitment(draft.commitmentId)
+  const isCoordinator = user?.role === 'coordinator'
+  const snoozed = isSnoozed(draft, now)
+  const canRegenerate = isCoordinator && ['pending_review', 'rejected', 'stale'].includes(draft.state) && !snoozed
+  const snooze = async (until: string, why: string) => {
+    let res: ActionResult = { ok: false, message: 'Not saved' }
+    await notice.run(async () => (res = await actions.snooze(draft.id, until, why)))
+    return res
+  }
   const check = checkBeforeApproval(draft, c, config, people)
   const warnings = dataset ? recipientWarnings(draft, c, dataset.data, now) : []
-  const isCoordinator = user?.role === 'coordinator'
-  const view = draftStateView(draft)
+  const view = draftStateView(draft, now)
   const flow = flows.find((f) => f.id === draft.flowId)
   const recipient = people.get(draft.recipientId ?? '')
 
@@ -97,7 +108,21 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
         </p>
       ) : null}
 
-      {draft.state === 'pending_review' ? (
+      {snoozed ? (
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-surface-border p-2 text-sm">
+          <p className="text-text-muted">
+            Snoozed until <span className="text-text-primary">{shortTime(draft.snoozedUntil!)}</span> by {personName(people, draft.snoozedBy)}
+            {draft.snoozeReason ? `: ${draft.snoozeReason}` : ''}
+          </p>
+          {isCoordinator ? (
+            <Button size="sm" variant="secondary" disabled={notice.busy} onClick={() => notice.run(() => actions.unsnooze(draft.id))}>
+              Wake now
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {draft.state === 'pending_review' && !snoozed ? (
         <>
           {warnings.length > 0 ? (
             <ul className="mb-2 list-disc pl-5 text-xs text-status-tentative">
@@ -129,10 +154,18 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
             </Button>
             {isCoordinator ? (
               <>
-                <Button size="sm" variant="secondary" disabled={editing} onClick={() => setEditing(true)}>
+                <Button size="sm" variant="secondary" disabled={editing}
+                  onClick={() => {
+                    setText(draftText(draft))
+                    setEditing(true)
+                  }}
+                >
                   Edit
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => setRejecting(true)}>
+                <Button size="sm" variant="secondary" onClick={() => setSnoozing(true)}>
+                  Snooze
+                </Button>
+                <Button size="sm" variant="ghost" title="Dismiss this draft. It stays rejected until the work changes and a new version is written." onClick={() => setRejecting(true)}>
                   Reject
                 </Button>
               </>
@@ -141,6 +174,12 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
             )}
           </div>
         </>
+      ) : null}
+
+      {canRegenerate ? (
+        <Button size="sm" variant="ghost" className="mt-2" disabled={notice.busy || editing} onClick={() => notice.run(() => actions.regenerate(draft.id))}>
+          Regenerate text
+        </Button>
       ) : null}
 
       {draft.history.length > 1 || showHistory ? (
@@ -161,7 +200,8 @@ function DraftCard({ draft, notice }: { draft: Draft; notice: Notice }) {
         </ol>
       ) : null}
 
-      <Dialog open={rejecting} onClose={() => setRejecting(false)} title="Reject this draft" variant="modal">
+      {snoozing ? <SnoozeDialog open onClose={() => setSnoozing(false)} now={now} busy={notice.busy} onSnooze={snooze} /> : null}
+      <Dialog open={rejecting} onClose={() => setRejecting(false)} title="Reject (dismiss) this draft" variant="modal">
         <div className="flex flex-col gap-3">
           <Textarea label="Reason (kept in the audit log)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: wrong tone for this client" />
           <div className="flex gap-2">
@@ -218,8 +258,11 @@ export default function Queue() {
     return true
   })
   const by = (states: Draft['state'][], kind?: Draft['kind']) => visible.filter((d) => states.includes(d.state) && (!kind || d.kind === kind))
-  const reminders = by(['pending_review'], 'reminder')
-  const clarify = by(['pending_review'], 'clarify')
+  // Snoozed drafts wait in their own tab and come back to review when the evaluation clock passes their wake-up time
+  const awake = (list: Draft[]) => list.filter((d) => !isSnoozed(d, now))
+  const reminders = awake(by(['pending_review'], 'reminder'))
+  const clarify = awake(by(['pending_review'], 'clarify'))
+  const snoozedList = by(['pending_review']).filter((d) => isSnoozed(d, now))
   const closedCheck = scorecard.checks.find((c) => c.name === 'zero_wrong_reminders')
   const activeOnClosed = closedCheck?.pass ? 0 : Number(/^(\d+)/.exec(closedCheck?.detail ?? '')?.[1] ?? 0)
 
@@ -254,6 +297,7 @@ export default function Queue() {
         items={[
           { value: 'review', label: `Needs review (${reminders.length})`, content: <Lane drafts={reminders} empty="No reminders waiting for review" notice={notice} /> },
           { value: 'clarify', label: `Needs clarification (${clarify.length})`, content: <Lane drafts={clarify} empty="No tentative deadlines to confirm" notice={notice} /> },
+          { value: 'snoozed', label: `Snoozed (${snoozedList.length})`, content: <Lane drafts={snoozedList} empty="Nothing snoozed" notice={notice} /> },
           { value: 'approved', label: `Approved (${by(['approved']).length})`, content: <Lane drafts={by(['approved'])} empty="Nothing approved yet" notice={notice} /> },
           { value: 'stale', label: `Stale (${by(['stale']).length})`, content: <Lane drafts={by(['stale'])} empty="No stale drafts" notice={notice} /> },
           { value: 'suppressed', label: `Suppressed (${by(['suppressed']).length})`, content: <Lane drafts={by(['suppressed'])} empty="Nothing suppressed" notice={notice} /> },

@@ -5,6 +5,7 @@ import { DEFAULT_FLAGS, DEFAULT_STALE_HOURS } from '../engine/run'
 import { DEFAULT_FLOWS } from '../engine/flows'
 import { db, type AppSettings, type DataSource, type EvidenceFile, type RunRecord, type StoredDataset } from './db'
 import { isSecretSetting, type BackupFile } from '../schema/backup'
+import { applyReaction, type Reaction, type Reactions } from '../lib/chat'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
@@ -87,6 +88,22 @@ export async function appendMessage(actorId: string, message: Message, threadTit
   })
 }
 
+/** One person's emoji reaction on a chat line, kept on the message object. The engine ignores it. */
+export async function reactToMessage(actorId: string, messageId: string, emoji: Reaction, on?: boolean): Promise<Reactions> {
+  return db.transaction('rw', [db.datasets, db.audit], async () => {
+    const cur = await db.datasets.get('current')
+    if (!cur) throw new Error('Load data first')
+    const target = cur.data.messages.find((m) => m.id === messageId) as (Message & { reactions?: unknown }) | undefined
+    if (!target) throw new Error('Message not found')
+    const reactions = applyReaction(target.reactions, emoji, actorId, on)
+    const messages = cur.data.messages.map((m) => (m.id === messageId ? { ...m, reactions } : m))
+    await db.datasets.put({ ...cur, data: { ...cur.data, messages } })
+    const mine = (reactions[emoji] ?? []).includes(actorId)
+    await audit({ actorId, action: mine ? 'chat.react' : 'chat.unreact', entity: 'data', entityId: messageId, after: { emoji } })
+    return reactions
+  })
+}
+
 export async function resetAllData(actorId: string): Promise<void> {
   // The audit log is kept on purpose so every change stays visible
   await db.transaction('rw', [db.datasets, db.drafts, db.decisions, db.tasks, db.flows, db.runs, db.evidenceFiles, db.settings, db.audit], async () => {
@@ -135,7 +152,15 @@ export async function putDraft(actorId: string, action: string, before: Draft, a
     entity: 'draft',
     entityId: after.id,
     before: { state: before.state, version: before.version, recipientConfirmed: before.recipientConfirmed },
-    after: { state: after.state, version: after.version, recipientConfirmed: after.recipientConfirmed, suppression: after.suppression?.reason, rejectReason: after.rejectReason, edited: after.editedBody !== undefined },
+    after: {
+      state: after.state,
+      version: after.version,
+      recipientConfirmed: after.recipientConfirmed,
+      suppression: after.suppression?.reason,
+      rejectReason: after.rejectReason,
+      edited: after.editedBody !== undefined,
+      ...(after.snoozedUntil || before.snoozedUntil ? { snoozedUntil: after.snoozedUntil ?? null, snoozeReason: after.snoozeReason } : {}),
+    },
   })
 }
 

@@ -1,9 +1,9 @@
-import { approveDraft, canDecide, checkBeforeApproval, editDraft, rejectDraft, suppressDraft } from '../../../../src/engine'
+import { approveDraft, canDecide, checkBeforeApproval, editDraft, regenerateDraft, rejectDraft, snoozeDraft, suppressDraft, unsnoozeDraft } from '../../../../src/engine'
 import type { Commitment, DecisionType, Draft, HumanDecision, ManualTask, TaskProgress } from '../../../../src/engine/types'
 import type { ApiRequest } from '../../handlers'
 import { admin, applyOps, shortId, uuid, type Op } from '../admin'
 import { canReview, engineRole, requireRole, requireUser, type Ctx } from '../context'
-import { bad, bodyOf, conflict, forbidden, json, notFound, rateLimit, str } from '../http'
+import { HttpError, bad, bodyOf, conflict, forbidden, json, notFound, rateLimit, str } from '../http'
 import { auditOp, deliverAfter, notificationOps, reviewerIds } from '../notify'
 import { syncOrg } from '../sync'
 
@@ -209,7 +209,7 @@ export async function decideAs(ctx: Ctx, b: Record<string, unknown>) {
   return json(200, { ok: true, message: 'Saved' })
 }
 
-const DRAFT_ACTIONS = ['confirm', 'unconfirm', 'approve', 'reject', 'edit'] as const
+const DRAFT_ACTIONS = ['confirm', 'unconfirm', 'approve', 'reject', 'edit', 'snooze', 'unsnooze', 'regenerate'] as const
 
 /** Reminder review. Approval re-checks freshness against a fresh engine run; approved reminders become in-app notifications only. */
 export async function draftAction(req: ApiRequest) {
@@ -254,6 +254,23 @@ export async function draftAction(req: ApiRequest) {
       // Edits are kept on the draft until the engine writes a new version; the audit log records each edit
       message = 'Draft text saved'
       break
+    case 'snooze':
+    case 'unsnooze':
+    case 'regenerate': {
+      const people = new Map(outcome.input.dataset.people.map((p) => [p.id, p]))
+      try {
+        if (action === 'snooze') {
+          const until = isoOrNull(b.until, 'until')
+          if (!until) throw new Error('Choose a wake-up time')
+          next = snoozeDraft(draft, ctx.person.id, now, until, str(b, 'reason', { max: 300, optional: true }))
+        } else next = action === 'unsnooze' ? unsnoozeDraft(draft) : regenerateDraft(draft, c, outcome.input.config, people)
+      } catch (e) {
+        throw e instanceof HttpError ? e : action === 'snooze' ? bad((e as Error).message) : conflict((e as Error).message)
+      }
+      message = action === 'snooze' ? `Snoozed until ${next.snoozedUntil}` : action === 'unsnooze' ? 'Back in the review queue' : 'Draft rewritten as a new version'
+      if (action === 'regenerate') extra.push(versionOp(ctx.orgId, stored!.id, next, ctx.userId))
+      break
+    }
     case 'approve': {
       const people = new Map(outcome.input.dataset.people.map((p) => [p.id, p]))
       const check = checkBeforeApproval(draft, c, outcome.input.config, people)
@@ -297,6 +314,12 @@ async function writeDraft(ctx: Ctx, stored: { id: string; row_version: number },
         body: next.editedBody ?? next.body,
         approved_by_person: next.approvedBy ?? null,
         approved_at: next.approvedAt ?? null,
+        version: next.version,
+        kind: next.kind,
+        recipient_person: next.recipientId,
+        subject: next.subject ?? null,
+        flow_key: next.flowId ?? null,
+        stage: next.step ?? null,
         snapshot: next,
         row_version: stored.row_version + 1,
       },
@@ -313,8 +336,21 @@ async function writeDraft(ctx: Ctx, stored: { id: string; row_version: number },
       suppression: next.suppression?.reason,
       rejectReason: next.rejectReason,
       edited: next.editedBody !== undefined,
+      ...(next.snoozedUntil || before.snoozedUntil ? { snoozedUntil: next.snoozedUntil ?? null, snoozeReason: next.snoozeReason } : {}),
     }),
   ])
+}
+
+/** The version row for a draft rewritten by hand (engine-written versions are saved by the sync). */
+function versionOp(orgId: string, draftId: string, d: Draft, editor: string): Op {
+  const v = d.history[d.history.length - 1]
+  return {
+    op: 'upsert',
+    table: 'reminder_draft_versions',
+    conflict: ['draft_id', 'version'],
+    ignore_duplicates: true,
+    row: { org_id: orgId, draft_id: draftId, version: v.version, change_note: v.cause, subject: v.subject ?? null, body: v.body, recipient_person: v.recipientId, editor_profile_id: editor },
+  }
 }
 
 // ---------------------------------------------------------------------------

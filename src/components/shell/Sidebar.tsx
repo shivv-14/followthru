@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { NavItem } from '../ui'
 import { useEngine } from '../../store'
+import { isSnoozed } from '../../engine/drafts'
 import { navFor } from './nav'
 
 export interface SidebarProps {
@@ -11,8 +12,8 @@ export interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  const { user, result } = useEngine()
-  const pending = result.drafts.filter((d) => d.state === 'pending_review').length
+  const { user, result, now } = useEngine()
+  const pending = result.drafts.filter((d) => d.state === 'pending_review' && !isSnoozed(d, now)).length
 
   return (
     <aside

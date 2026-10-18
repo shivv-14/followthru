@@ -2,7 +2,7 @@ import type { Commitment, Draft, DraftKind, EngineConfig, Evidence, FlowTone, Is
 import { deadlineState, formatDeadline } from './deadline'
 import { elapsedHours, flowFor, stepFor } from './flows'
 
-type Desired =
+export type Desired =
   | { active: true; kind: DraftKind; tone: FlowTone; flowId: string; step: number; recipientRole: RecipientRole }
   | { active: false; reason: SuppressionReason; evidence?: Evidence }
 
@@ -103,6 +103,28 @@ function lastDueAt(d: Draft): IsoUtc | null {
   return d.history.length > 0 ? d.history[d.history.length - 1].dueAt : null
 }
 
+/** A pending draft a coordinator put aside until a later evaluation time. */
+export function isSnoozed(d: Draft, now: IsoUtc): boolean {
+  return d.state === 'pending_review' && !!d.snoozedUntil && Date.parse(d.snoozedUntil) > Date.parse(now)
+}
+
+/** Hours a pending draft has waited for review. Time spent snoozed does not count. */
+export function reviewAgeHours(d: Draft, now: IsoUtc): number {
+  const since = Math.max(Date.parse(d.updatedAt), d.snoozedUntil ? Date.parse(d.snoozedUntil) : 0)
+  return (Date.parse(now) - since) / 3_600_000
+}
+
+export const NO_SNOOZE = { snoozedUntil: undefined, snoozedBy: undefined, snoozedAt: undefined, snoozeReason: undefined } as const
+
+/** The wording and routing of an active draft for the commitment as it is now. */
+export function draftFields(c: Commitment, want: Extract<Desired, { active: true }>, people: Map<string, Person>) {
+  const recipientId = expectedRecipient(c, want.recipientRole, people)
+  const reply = replyState(c)
+  const body = composeBody(c, want.kind, want.tone, people, recipientId, reply)
+  const subject = composeSubject(c, want.kind, want.recipientRole, reply)
+  return { kind: want.kind, recipientId, recipientRole: want.recipientRole, replyState: reply, body, subject, flowId: want.flowId, step: want.step }
+}
+
 /**
  * One draft per commitment (idempotency key = commitment id). A changed
  * deadline, recipient, kind, flow step or owner reply updates the same draft
@@ -124,11 +146,8 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
     const want = desiredDraft(c, config, people)
 
     if (want.active) {
-      const recipientId = expectedRecipient(c, want.recipientRole, people)
-      const reply = replyState(c)
-      const body = composeBody(c, want.kind, want.tone, people, recipientId, reply)
-      const subject = composeSubject(c, want.kind, want.recipientRole, reply)
-      const fields = { kind: want.kind, recipientId, recipientRole: want.recipientRole, replyState: reply, body, subject, flowId: want.flowId, step: want.step }
+      const fields = draftFields(c, want, people)
+      const { recipientId, body, subject, replyState: reply } = fields
       if (!p) {
         out.push({
           id: `d_${c.id}`,
@@ -178,12 +197,13 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
           editedBody: undefined,
           editedBy: undefined,
           editedAt: undefined,
+          // A snooze waits out flow steps that only follow elapsed time; any real change brings the draft back now
+          ...(cause === 'step_changed' ? {} : NO_SNOOZE),
           history: [...p.history, { version, at: now, dueAt: c.deadline.dueAt, recipientId, body, subject, cause: note }],
         })
         continue
       }
-      const ageHours = (Date.parse(now) - Date.parse(p.updatedAt)) / 3_600_000
-      if (config.flags.staleSuppression && p.state === 'pending_review' && ageHours > config.staleAfterHours) {
+      if (config.flags.staleSuppression && p.state === 'pending_review' && reviewAgeHours(p, now) > config.staleAfterHours) {
         out.push({ ...p, state: 'stale', suppression: { reason: 'stale', at: now } })
       } else out.push(p)
       continue
@@ -201,7 +221,7 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
       }
     }
     if (next.state !== 'suppressed' || next.suppression?.reason !== want.reason || next !== p) {
-      next = { ...next, state: 'suppressed', suppression: { reason: want.reason, at: next === p ? now : next.updatedAt, evidence: want.evidence }, updatedAt: now }
+      next = { ...next, ...NO_SNOOZE, state: 'suppressed', suppression: { reason: want.reason, at: next === p ? now : next.updatedAt, evidence: want.evidence }, updatedAt: now }
     }
     out.push(next)
   }
@@ -212,7 +232,7 @@ export function buildDrafts(commitments: Commitment[], previous: Draft[], config
       out.push(p)
       continue
     }
-    out.push(p.state === 'suppressed' && p.suppression?.reason === 'superseded' ? p : { ...p, state: 'suppressed', suppression: { reason: 'superseded', at: now }, updatedAt: now })
+    out.push(p.state === 'suppressed' && p.suppression?.reason === 'superseded' ? p : { ...p, ...NO_SNOOZE, state: 'suppressed', suppression: { reason: 'superseded', at: now }, updatedAt: now })
   }
   return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 }

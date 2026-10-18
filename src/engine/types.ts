@@ -316,6 +316,11 @@ export interface Draft {
   editedBody?: string
   editedBy?: string
   editedAt?: IsoUtc
+  /** Hidden from review and not approvable until this evaluation-clock time. Only pending drafts are snoozed. */
+  snoozedUntil?: IsoUtc
+  snoozedBy?: string
+  snoozedAt?: IsoUtc
+  snoozeReason?: string
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 import type { Commitment, Draft, Person, ReviewReason, SuppressionReason } from '../../engine/types'
 import { deadlineState } from '../../engine/deadline'
+import { isSnoozed } from '../../engine/drafts'
 import type { StatusColorKey } from '../../styles/tokens'
 
 export interface StatusView {
@@ -18,7 +19,8 @@ export function statusView(c: Commitment, now: string): StatusView {
   return { key: 'open', label: 'Open' }
 }
 
-export function draftStateView(d: Draft): StatusView {
+export function draftStateView(d: Draft, now?: string): StatusView {
+  if (now && isSnoozed(d, now)) return { key: 'tentative', label: 'Snoozed' }
   if (d.state === 'approved') return { key: 'done', label: 'Approved (shadow)' }
   if (d.state === 'pending_review') return { key: 'overdue', label: 'Needs review' }
   if (d.state === 'stale') return { key: 'tentative', label: 'Stale' }

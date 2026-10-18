@@ -35,6 +35,9 @@ export function createCloudActions(state: EngineState, cloud: CloudData): Action
     approve: (draftId: string) => draftAction(draftId, 'approve'),
     reject: (draftId: string, reason: string) => (reason.trim() ? draftAction(draftId, 'reject', { reason }) : Promise.resolve({ ok: false, message: 'Give a reason for rejecting the draft' })),
     edit: (draftId: string, body: string) => draftAction(draftId, 'edit', { body }),
+    snooze: (draftId: string, until: string, reason = '') => draftAction(draftId, 'snooze', { until, reason }),
+    unsnooze: (draftId: string) => draftAction(draftId, 'unsnooze'),
+    regenerate: (draftId: string) => draftAction(draftId, 'regenerate'),
     async createTasks(input: NewTaskInput) {
       return done(await callApi('tasks/create', input))
     },
