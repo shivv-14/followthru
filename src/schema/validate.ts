@@ -2,6 +2,7 @@ import type * as z from 'zod'
 import type { Dataset, IssueCode, Message, Thread, ValidationIssue, ValidationResult } from '../engine/types'
 import { isValidTimeZone, parseIsoWithOffset } from '../engine/time'
 import { datasetInputSchema, type DatasetInput } from './input'
+import { adaptC14Fixture, isC14Fixture } from './fixtureC14'
 
 type Path = (string | number)[]
 
@@ -83,6 +84,7 @@ function checkSemantics(input: DatasetInput): { issues: ValidationIssue[]; data:
     if (!messageIds.has(l.sourceMessageId)) issues.push(issue('label_unknown_message', 'error', ['labels', i, 'sourceMessageId'], l.sourceMessageId))
     if (!personIds.has(l.ownerId)) issues.push(issue('label_unknown_owner', 'error', ['labels', i, 'ownerId'], l.ownerId))
     if (l.dueAt !== null && !parseIsoWithOffset(l.dueAt)) issues.push(issue('invalid_timestamp', 'error', ['labels', i, 'dueAt'], l.dueAt))
+    if (l.timezone && !isValidTimeZone(l.timezone)) issues.push(issue('unknown_timezone', 'error', ['labels', i, 'timezone'], l.timezone))
   })
 
   // Stable order: time, then id. Equal timestamps never reorder between runs.
@@ -112,7 +114,16 @@ function deriveThreads(declared: Thread[], messages: Message[]): Thread[] {
 }
 
 /** Validates unknown input. Never throws. */
-export function validateDataset(input: unknown): ValidationResult {
+export function validateDataset(raw: unknown): ValidationResult {
+  // The C14 starter fixture has its own shape; map it first and keep the adapter's notes
+  const adapted = isC14Fixture(raw) ? adaptC14Fixture(raw) : null
+  const input = adapted ? adapted.input : raw
+  const result = validateCanonical(input)
+  if (!adapted) return result
+  return { ...result, issues: [...adapted.issues, ...result.issues] }
+}
+
+function validateCanonical(input: unknown): ValidationResult {
   const parsed = datasetInputSchema.safeParse(input, {
     error: (i) => (i.input === undefined ? 'missing_field' : undefined),
   })

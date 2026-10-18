@@ -87,8 +87,9 @@ Two roles, as local demo profiles taken from the loaded data (no real login):
 - npm run e2e: Playwright browser tests
 
 ## Data
-- Challenge fixture goes to data/fixture.json. It is not in the repository
-  yet. The canonical input format is in docs/fixture-notes.md.
+- Challenge fixture is data/fixture.json (copied unchanged on 18 Oct 2026).
+  src/schema/fixtureC14.ts maps its shape; notes in docs/fixture-notes.md.
+  npm run evidence:fixture writes the scored evidence run.
 - src/mocks/demoDataset.json is synthetic, has no labels and is never scored.
   The demo option shows in dev or when VITE_DEMO_MODE=true.
 

@@ -48,6 +48,13 @@ export interface CommitmentLabel {
   dueAt: IsoUtc | null
   status: CommitmentStatus
   note?: string
+  /** Date-only label (YYYY-MM-DD): the deadline is checked as a calendar day in `timezone` */
+  dueDate?: string
+  timezone?: TimeZoneId
+  /** Whether the label says this action may enter the reminder queue */
+  reminderEligible?: boolean
+  /** Action-log key, for example "A1" */
+  actionKey?: string
 }
 
 /** Validated, normalised input. Messages are sorted by sentAt, then id. */
@@ -449,6 +456,8 @@ export interface LabelCheck {
   deadlineOk: boolean
   statusOk: boolean
   evidenceMessageIds: string[]
+  /** Set when the label states reminder eligibility: the engine agrees and no closed action has an active draft */
+  reminderOk?: boolean
 }
 
 export interface ScoreCheck {

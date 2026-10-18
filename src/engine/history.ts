@@ -15,13 +15,14 @@ import { parseDeadline } from './deadline'
 import { escapeRe, has, keywords, overlap, quote, titleFrom, type Signal } from './signals'
 import { canDecide } from './permissions'
 import { rulesExtractor, type Extractor } from './extractor'
+import { parseActionRecord, type ActionRecord } from './actionRecord'
 
 // Linking thresholds: share of the commitment's keywords found in a message
 // from another thread. Strong links can change status; weak links only flag review.
 export const STRONG_LINK = 0.5
 export const WEAK_LINK = 0.3
 
-const NUDGE = /\b(any update|status update|how'?s (it|that|the \w+) going|where are we|eta\b|following up|checking in|gentle reminder)\b/i
+const NUDGE = /\b(any update|status update|how'?s (it|that|the \w+) going|where are we|eta\b|following up|checking in|gentle reminder|update me|keep me posted|still pending)\b/i
 
 interface Working {
   c: Commitment
@@ -39,6 +40,8 @@ interface Ctx {
   open: Working[]
   messages: Map<string, Message>
   extractor: Extractor
+  /** Action-log keys ("A1") to the commitment they opened */
+  actions: Map<string, Working>
 }
 
 function tzOf(ctx: Ctx, personId: string | null | undefined): string {
@@ -122,7 +125,9 @@ function findTarget(ctx: Ctx, m: Message, signals: Signal[]): Target {
   // 3. Another thread: only for status-changing messages, by keyword similarity.
   // Authority is checked later, so a claim from someone else is flagged rather than ignored.
   const statusSignal = signals.some((s) => ['done', 'cancel', 'defer', 'reschedule', 'delegate', 'reopen'].includes(s.kind))
-  const cross = statusSignal
+  // Owner progress notes ("still not finished") may also continue a commitment from another thread; they never change status
+  const ownerNote = signals.some((s) => ['not_done', 'blocker', 'progress'].includes(s.kind)) && ctx.open.some((w) => w.c.ownerId === m.authorId)
+  const cross = statusSignal || ownerNote
     ? ctx.open
         .filter((w) => !w.c.threadIds.includes(m.threadId))
         .map((w) => ({ w, s: overlap(w.words, words), hits: w.words.filter((x) => words.includes(x)).length }))
@@ -238,6 +243,11 @@ function applyUpdate(ctx: Ctx, w: Working, m: Message, signals: Signal[], linkRu
     const s = has(signals, kind)
     if (!s || !isActingOwner) continue
     addEvent(w, { type: kind, at: m.sentAt, by: a, evidence: evidence(m, rule(s)) })
+    // "Not finished" after a completion message: the evidence conflicts, so the work is open again and waits for review
+    if (kind === 'not_done' && c.status === 'done' && !has(signals, 'done')) {
+      setStatus(w, m, 'open', 'reopened', 'CONFLICT_NOT_DONE')
+      w.reasons.add('conflicting_evidence')
+    }
     if (kind === 'blocker') c.blockers = [...(c.blockers ?? []), { at: m.sentAt, by: a, text: quote(m.text), resolved: false }]
   }
 
@@ -302,7 +312,65 @@ function restateDeadline(ctx: Ctx, w: Working, m: Message, d: Deadline, rule: st
   if (d.certainty === 'tentative' && prev.certainty === 'firm') changeDeadline(w, m, { ...prev, certainty: 'tentative', phrase: d.phrase }, rule)
 }
 
+const RECORD_EVENT = { done: 'completed', cancelled: 'cancelled', deferred: 'deferred', open: 'reopened' } as const
+
+/** A name from an action-log line: full name or id first, then a unique first name. Null when nobody matches. */
+function personByName(ctx: Ctx, name: string): string | null {
+  const n = name.toLowerCase().trim()
+  const people = [...ctx.people.values()]
+  const exact = people.filter((p) => p.name.toLowerCase() === n || p.id.toLowerCase() === n)
+  if (exact.length === 1) return exact[0].id
+  const first = people.filter((p) => p.name.split(/\s+/)[0].toLowerCase() === n)
+  return first.length === 1 ? first[0].id : null
+}
+
+/**
+ * Action-log lines carry their own key, owner, deadline and status. The first
+ * line for a key opens the commitment; later lines with the same key update it,
+ * subject to the same authority rule as any other message.
+ */
+function processActionRecord(ctx: Ctx, m: Message, rec: ActionRecord) {
+  const ownerId = rec.ownerName === undefined ? undefined : personByName(ctx, rec.ownerName)
+  const deadline = rec.deadlineText ? parseDeadline(rec.deadlineText, { saidAt: m.sentAt, tz: tzOf(ctx, m.authorId) }) : null
+  const existing = ctx.actions.get(rec.key)
+  if (!existing) {
+    const w = newCommitment(ctx, m, ownerId ?? null, m.authorId, 'ACTION_RECORD', deadline)
+    if (rec.title) {
+      w.c.title = rec.title
+      w.words = keywords(rec.title)
+    }
+    if (!deadline) w.reasons.add('missing_deadline')
+    if (rec.unknownStatus) w.reasons.add('conflicting_evidence')
+    if (rec.status && rec.status !== 'open') setStatus(w, m, rec.status, RECORD_EVENT[rec.status], 'ACTION_RECORD_STATUS')
+    ctx.actions.set(rec.key, w)
+    return
+  }
+  const w = existing
+  const c = w.c
+  const a = m.authorId
+  link(ctx, w, m)
+  if (a !== c.ownerId && a !== c.requesterId && !ctx.coordinators.has(a)) {
+    w.reasons.add('unauthorised_status_claim')
+    addEvent(w, { type: 'review_flagged', at: m.sentAt, by: a, evidence: evidence(m, 'ACTION_RECORD_UNAUTHORISED') })
+    return
+  }
+  if (ownerId && ownerId !== c.ownerId) {
+    const from = c.ownerId
+    c.ownerId = ownerId
+    w.reasons.delete('unclear_owner')
+    addEvent(w, { type: 'delegated', at: m.sentAt, by: a, evidence: evidence(m, 'ACTION_RECORD_OWNER'), from, to: ownerId })
+  } else if (ownerId === null) w.reasons.add('unclear_owner')
+  if (deadline) {
+    changeDeadline(w, m, deadline, 'ACTION_RECORD_DEADLINE')
+    w.reasons.delete('missing_deadline')
+  }
+  if (rec.unknownStatus) w.reasons.add('conflicting_evidence')
+  if (rec.status) setStatus(w, m, rec.status, RECORD_EVENT[rec.status], 'ACTION_RECORD_STATUS')
+}
+
 function processMessage(ctx: Ctx, m: Message) {
+  const record = parseActionRecord(m.text)
+  if (record) return processActionRecord(ctx, m, record)
   const signals = ctx.extractor.detect(m.text)
   const a = m.authorId
   const target = findTarget(ctx, m, signals)
@@ -514,6 +582,7 @@ export function resolveCommitments(
     open: [],
     messages: new Map(dataset.messages.map((m) => [m.id, m])),
     extractor,
+    actions: new Map(),
   }
   for (const m of dataset.messages) processMessage(ctx, m)
 

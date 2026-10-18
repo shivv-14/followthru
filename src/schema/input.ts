@@ -40,6 +40,10 @@ export const labelSchema = z.object({
   dueAt: z.string().nullable(),
   status: statusSchema,
   note: z.string().optional(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  timezone: z.string().optional(),
+  reminderEligible: z.boolean().optional(),
+  actionKey: z.string().optional(),
 }) satisfies z.ZodType<CommitmentLabel>
 
 export const datasetInputSchema = z.object({

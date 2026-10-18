@@ -29,7 +29,7 @@ const DECLINE = /\b(can'?t|cannot|won'?t be able|not able to|unable to)\b.{0,30}
 const DONE = /\b(done|completed?|finished|sent|shipped|delivered|submitted|merged|deployed|uploaded|shared|published|wrapped up|closed out|fixed|resolved|signed off)\b/i
 // Future or negated completion words are not completion: "will be done", "not sent yet", "almost finished".
 const DONE_NEGATED =
-  /\b(not|n'?t|never|yet to|still|almost|nearly|will|'ll|going to|gonna|should|might|may|hope to|plan to|try to|once|when|until|if|before)\b[^.!?]{0,25}\b(done|completed?|finished|sent|shipped|delivered|submitted|merged|deployed|uploaded|shared|published|fixed|resolved)\b|\b(done|sent|finished|shipped|submitted)\b[^.!?]{0,6}\byet\b|\?\s*$/i
+  /\b(not|n'?t|never|yet to|still|almost|nearly|will|'ll|going to|gonna|should|might|may|hope to|plan to|try to|once|when|until|if|before|please|pls|kindly|must|need to|needs to|have to|has to|can you|could you|would you)\b[^.!?]{0,25}\b(done|completed?|finished|sent|shipped|delivered|submitted|merged|deployed|uploaded|shared|published|fixed|resolved)\b|\b(done|sent|finished|shipped|submitted)\b[^.!?]{0,6}\byet\b|\?\s*$/i
 
 const CANCEL = /\b(cancel(l?ed|ling)?|no longer needed|not needed any ?more|don'?t need (it|this|that) any ?more|drop (it|this|that)|scrap(ped)?( it| this| that)?|never ?mind|call(ed)? (it )?off|kill (it|this))\b/i
 const DEFER =

@@ -8,6 +8,7 @@
 //   --now <ISO>               evaluation clock (default: the dataset reference time)
 //   --simulate-later <ISO>    first run with messages up to this time, then a second run
 //                             with all messages and the first run's drafts; writes stale-report.md
+//   --simulate-now <ISO>      clock for that first run (default: the cutoff time)
 //   --skip-tests              do not write test-report.txt
 import { execSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -60,7 +61,8 @@ let first: EngineResult | undefined
 if (cutoffArg) {
   const cutoff = new Date(cutoffArg).toISOString()
   const early: Dataset = { ...data, messages: data.messages.filter((m) => m.sentAt <= cutoff) }
-  first = runEngine({ dataset: early }, makeConfig(cutoff, { flags }))
+  const firstNow = arg('simulate-now') ? new Date(arg('simulate-now')!).toISOString() : cutoff
+  first = runEngine({ dataset: early }, makeConfig(firstNow, { flags }))
 }
 const result = runEngine({ dataset: data, previousDrafts: first?.drafts }, config)
 const rerun = runEngine({ dataset: data, previousDrafts: result.drafts }, config)
@@ -103,7 +105,7 @@ function staleReport(): string {
     if (!d) continue
     const check = checkBeforeApproval({ ...d, state: 'pending_review', recipientConfirmed: true }, c, truth)
     const reason = check.suppressWith ? check.blockers[0].message : ''
-    if (!reason && d.state === d0.state) continue
+    if (!reason && d.state === d0.state && d.version === d0.version) continue
     outdated++
     const stillActive = d.state === 'pending_review' || d.state === 'approved'
     if (stillActive && reason) wronglySendable++
@@ -144,12 +146,14 @@ const lines = [
   '',
   '## Labelled commitments',
   '',
-  scorecard.labelChecks.length === 0 ? 'No labels in this dataset.' : '| Source message | Expected owner / due / status | Actual | OK | Evidence |',
-  ...(scorecard.labelChecks.length === 0 ? [] : ['|---|---|---|---|---|']),
-  ...scorecard.labelChecks.map(
-    (l) =>
-      `| ${l.sourceMessageId} | ${l.expected.ownerId} / ${l.expected.dueAt ?? 'none'} / ${l.expected.status} | ${l.actual ? `${l.actual.ownerId} / ${l.actual.dueAt ?? 'none'} / ${l.actual.status}` : 'not found'} | ${[l.ownerOk ? 'owner' : '', l.deadlineOk ? 'deadline' : '', l.statusOk ? 'status' : ''].filter(Boolean).join(', ') || 'none'} | ${l.evidenceMessageIds.join(', ')} |`,
-  ),
+  scorecard.labelChecks.length === 0 ? 'No labels in this dataset.' : '| Action | Source message | Expected owner / due / status | Actual | OK | Reminder eligibility | Active draft | Evidence |',
+  ...(scorecard.labelChecks.length === 0 ? [] : ['|---|---|---|---|---|---|---|---|']),
+  ...scorecard.labelChecks.map((l) => {
+    const c = result.commitments.find((x) => x.sourceMessageId === l.sourceMessageId)
+    const d = c ? result.drafts.find((x) => x.commitmentId === c.id) : undefined
+    const eligible = l.expected.reminderEligible === undefined ? 'not labelled' : `${l.expected.reminderEligible ? 'eligible' : 'not eligible'}: ${l.reminderOk ? 'agrees' : 'DISAGREES'}`
+    return `| ${l.expected.actionKey ?? ''} | ${l.sourceMessageId} | ${l.expected.ownerId} / ${l.expected.dueDate ?? l.expected.dueAt ?? 'none'} / ${l.expected.status} | ${l.actual ? `${l.actual.ownerId} / ${l.actual.dueAt ?? 'none'} / ${l.actual.status}` : 'not found'} | ${[l.ownerOk ? 'owner' : '', l.deadlineOk ? 'deadline' : '', l.statusOk ? 'status' : ''].filter(Boolean).join(', ') || 'none'} | ${eligible} | ${d ? `${d.state} v${d.version}` : 'none'} | ${l.evidenceMessageIds.join(', ')} |`
+  }),
   '',
   '## Suppressed or closed work',
   '',

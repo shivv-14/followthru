@@ -83,11 +83,17 @@ describe('CSV input to /api/process', () => {
 describe('GET /api/evidence', () => {
   const get = (url: string) => handleEvidence({ method: 'GET', url, headers: {}, body: undefined })
   it('returns the scorecard as JSON, labelled synthetic without the fixture', () => {
-    const out = get('/api/evidence?format=json&kind=scorecard')
+    const synthetic = () => ({ data: validateDataset(demo).data!, synthetic: true })
+    const out = handleEvidence({ method: 'GET', url: '/api/evidence?format=json&kind=scorecard', headers: {}, body: undefined }, synthetic)
     expect(out.status).toBe(200)
     expect(out.headers?.['X-FollowThru-Dataset']).toBe('synthetic-demo')
     expect(out.body).toMatchObject({ dataset: 'synthetic demo (not challenge data)', kind: 'scorecard' })
     expect(out.headers?.['Content-Disposition']).toMatch(/attachment; filename="followthru-scorecard-.+\.json"/)
+  })
+  it('scores the challenge fixture when data/fixture.json is present', () => {
+    const out = get('/api/evidence?format=json&kind=scorecard')
+    expect(out.headers?.['X-FollowThru-Dataset']).toBe('challenge-fixture')
+    expect(JSON.stringify(out.body)).toContain('10 of 10 labelled commitments')
   })
   it.each(['commitments', 'drafts', 'suppressions'])('returns %s as CSV', (kind) => {
     const out = get(`/api/evidence?format=csv&kind=${kind}`)

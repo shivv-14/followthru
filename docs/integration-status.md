@@ -46,6 +46,8 @@ Later additive changes:
 
 - AI second opinion (optional, off by default): `EngineInput` gained optional `aiSignals`; new types `AiSignal` and `AiSignalKind`; `ReviewReason` gained `ai_disagreement`. New exports `applyAiSignals` and `AI_MIN_CONFIDENCE` (0.7). `modeLabel(flags, aiUsed?)` now returns 'AI assisted' only when signals were actually passed in with the flag on. A confident disagreement on a linked message adds `ai_disagreement` and a `review_flagged` event; it never changes status, owner or deadline. The network call lives outside the engine in `src/ai/gemini.ts` (model `gemini-3.5-flash-lite`, key sent in the `x-goog-api-key` header). `AppSettings` gained optional `aiApiKey`; it is coordinator-only, excluded from backups and recorded in the audit log only as `[set]` or `[cleared]`.
 
+- C14 fixture and action-log lines (18 Oct 2026): `CommitmentLabel` gained optional `dueDate`, `timezone`, `reminderEligible` and `actionKey`; `LabelCheck` gained optional `reminderOk`. A label with `dueDate` is checked as a calendar day in its timezone instead of an exact instant. New engine module `src/engine/actionRecord.ts` (not exported from the index) reads "Action <key>: … Owner … Deadline … Status …" lines. Signals: imperative phrasing ("please complete", "need to finish") is no longer read as completion; an owner's "not finished" after a completion reopens the work with `conflicting_evidence`; owner progress notes may link across threads. `validateDataset` maps the starter-fixture shape first (`src/schema/fixtureC14.ts`).
+
 No engine contract change came with the explain and replay tools: `src/components/domain/explain.ts` and `timeTravel.ts` only read engine output, and replay re-runs `runEngine` on a filtered copy of the data.
 
 ## Tooling fixes
@@ -57,8 +59,6 @@ No engine contract change came with the explain and replay tools: `src/component
 
 | Item | Why |
 |---|---|
-| Scoring the 10 labelled commitments | `Starter_Data/C14/fixture.json` is not in the repo or on this laptop. Accuracy has not been measured, and the app shows "Not scored" |
-| Mapping the real fixture | Its field names are unknown. If they differ from the canonical format, a small adapter is needed |
 | AI second opinion | Built and tested against a mocked Gemini endpoint only. No real key was used, so its agreement rate with the rules on real data has not been measured |
 | Real sending | Out of scope by design (shadow mode) |
 | Growth experiment and MBA deliverables | Not software. Not started here |

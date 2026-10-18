@@ -8,6 +8,16 @@ function sameInstant(a: IsoUtc | null, b: IsoUtc | null): boolean {
   return Math.abs(Date.parse(a) - Date.parse(b)) <= DEADLINE_TOLERANCE_MS
 }
 
+/** Calendar day of an instant in a timezone, as YYYY-MM-DD. */
+function localDay(iso: IsoUtc, tz: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso))
+}
+
+function deadlineMatches(actual: IsoUtc | null, label: CommitmentLabel): boolean {
+  if (label.dueDate) return actual !== null && localDay(actual, label.timezone ?? 'UTC') === label.dueDate
+  return sameInstant(actual, label.dueAt)
+}
+
 function findCommitment(label: CommitmentLabel, commitments: Commitment[]): Commitment | undefined {
   return (
     commitments.find((c) => c.sourceMessageId === label.sourceMessageId) ??
@@ -24,17 +34,26 @@ function evidenceIds(c: Commitment): string[] {
  * official checks. Labels are read here only, never by the engine rules.
  */
 export function evaluate(commitments: Commitment[], drafts: Draft[], labels: CommitmentLabel[], runAt: IsoUtc): Scorecard {
+  const activeDraft = (commitmentId: string) => drafts.some((d) => d.commitmentId === commitmentId && ACTIVE.includes(d.state))
   const labelChecks: LabelCheck[] = labels.map((label) => {
     const c = findCommitment(label, commitments)
     const actual = c ? { ownerId: c.ownerId, dueAt: c.deadline.dueAt, status: c.status } : null
+    // Eligible means open work the queue may chase; ineligible work must never hold an active draft
+    const reminderOk =
+      label.reminderEligible === undefined || !c
+        ? undefined
+        : label.reminderEligible
+          ? c.status === 'open'
+          : c.status !== 'open' && !activeDraft(c.id)
     return {
       sourceMessageId: label.sourceMessageId,
       expected: label,
       actual,
       ownerOk: actual?.ownerId === label.ownerId,
-      deadlineOk: actual ? sameInstant(actual.dueAt, label.dueAt) : false,
+      deadlineOk: actual ? deadlineMatches(actual.dueAt, label) : false,
       statusOk: actual?.status === label.status,
       evidenceMessageIds: c ? evidenceIds(c) : [],
+      ...(reminderOk === undefined ? {} : { reminderOk }),
     }
   })
   const correct = labelChecks.filter((l) => l.ownerOk && l.deadlineOk && l.statusOk).length
