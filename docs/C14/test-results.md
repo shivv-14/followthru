@@ -1,13 +1,13 @@
 # Test results
 
-Run on 2026-10-18 (UTC) on branch `full-integration`, updated after the fixture and team chat work.
+Run on 2026-10-19 (UTC) on branch `full-integration`, after the Gmail automation, knowledge base, Slack, queue snooze and chat work.
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit, engine, store, UI, server helpers, CSV/PDF import, fixture, Phase 11 scenarios A–M | `npm test` | **319 passed, 0 failed** |
+| Unit, engine, store, UI, server helpers, CSV/PDF import, fixture, Phase 11 scenarios A–M, Gmail pipeline (mocked Gmail and AI), Slack (mocked), knowledge base, queue, chat | `npm test` | **427 passed, 0 failed** |
 | Database migrations and RLS in a local Postgres (included above) | `npm run test:db` | 19 passed |
-| Browser tests (demo mode) incl. accessibility, screen widths, fixture import and team chat | `npx playwright test` | **24 passed** |
-| Live API checks against the real Supabase project | `npm run cloud:smoke` (local) and `SMOKE_BASE=https://followthru-ruby.vercel.app npm run cloud:smoke` (production) | **67 of 67 passed on both** (throwaway workspace created and deleted) |
+| Browser tests (demo mode) incl. accessibility, screen widths, fixture import, team chat, reactions and draft snooze | `npx playwright test` | **26 passed** |
+| Live API checks against the real Supabase project | `npm run cloud:smoke` (local) and `SMOKE_BASE=https://followthru-ruby.vercel.app npm run cloud:smoke` (production) | **80 of 80 passed on production** (throwaway workspace created and deleted; includes the email automation pipeline with test emails) |
 | Type check and production build | `npm run typecheck`, `npm run build` | passed |
 
 ## Official ten labelled commitments (C14 starter fixture)
@@ -79,3 +79,10 @@ Accuracy metrics beyond these checks (precision and recall across a large labell
 ## Team chat (live, in the 67)
 
 Coordinator sees every team chat; a member sees only the workspace chat and their own team; another team's chat is refused (403); a member's chat promise ("I'll send the onboarding checklist by Friday.") becomes a tracked commitment owned by them; empty messages are refused.
+
+## Mocks, synthetic data and tests not run
+
+- Synthetic: the C14 fixture (`data/fixture.json`, marked synthetic by the organisers), the demo dataset, the Phase 11 scenarios and all test emails.
+- Mocked: Gmail API and AI provider responses in `tests/automation.test.ts`; Slack Web API in `tests/slack.test.ts`.
+- Live but limited: Gmail is connected for one pilot mailbox (read-only); the rules reader is used because no AI key is configured. Slack has no app credentials yet, so it has not run against real Slack.
+- Not measured: precision and recall over a large labelled set (only 10 official labels and 13 synthetic scenarios exist). The growth experiment has 0 of 10 results recorded.
