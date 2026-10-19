@@ -207,6 +207,14 @@ describe('Gmail API and retries', () => {
     const recovers = (async () => (++n < 2 ? new Response('{}', { status: 500 }) : new Response(JSON.stringify({ historyId: '9' }), { status: 200 }))) as typeof fetch
     await expect(gmailGet<{ historyId: string }>('/profile', 't', recovers)).resolves.toEqual({ historyId: '9' })
   })
+  it('picks up new mail and mail moved into the inbox later (Not spam), never spam itself', async () => {
+    const f = (async (url: string) => {
+      if (url.includes('/profile')) return new Response(JSON.stringify({ historyId: '200' }), { status: 200 })
+      return new Response(JSON.stringify({ history: [{ messagesAdded: [{ message: { id: 'new1', labelIds: ['INBOX'] } }, { message: { id: 'spam1', labelIds: ['SPAM'] } }] }, { labelsAdded: [{ message: { id: 'moved1' }, labelIds: ['INBOX'] }, { message: { id: 'starred' }, labelIds: ['STARRED'] }] }] }), { status: 200 })
+    }) as typeof fetch
+    const { newMessageIds } = await import('../api/_lib/cloud/gmail')
+    expect(await newMessageIds('t', '100', 7, f)).toEqual({ ids: ['new1', 'moved1'], historyId: '200', fullResync: false })
+  })
   it('backs off exponentially up to an hour between processing retries', () => {
     expect([1, 2, 3, 10].map(retryDelayMs)).toEqual([120_000, 240_000, 480_000, 3_600_000])
   })

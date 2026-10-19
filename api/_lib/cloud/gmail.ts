@@ -176,9 +176,17 @@ export async function newMessageIds(
     try {
       let page: string | undefined
       do {
-        const q = new URLSearchParams({ startHistoryId: historyId, historyTypes: 'messageAdded', maxResults: '500', ...(page ? { pageToken: page } : {}) })
-        const h = await gmailGet<{ history?: { messagesAdded?: { message: { id: string; labelIds?: string[] } }[] }[]; nextPageToken?: string }>(`/history?${q}`, accessToken, f)
-        for (const rec of h.history ?? []) for (const a of rec.messagesAdded ?? []) if (!a.message.labelIds?.includes('DRAFT') && !ids.includes(a.message.id)) ids.push(a.message.id)
+        const q = new URLSearchParams({ startHistoryId: historyId, maxResults: '500', ...(page ? { pageToken: page } : {}) })
+        q.append('historyTypes', 'messageAdded')
+        q.append('historyTypes', 'labelAdded')
+        type Change = { message: { id: string; labelIds?: string[] }; labelIds?: string[] }
+        const h = await gmailGet<{ history?: { messagesAdded?: Change[]; labelsAdded?: Change[] }[]; nextPageToken?: string }>(`/history?${q}`, accessToken, f)
+        const add = (id: string) => !ids.includes(id) && ids.push(id)
+        for (const rec of h.history ?? []) {
+          for (const a of rec.messagesAdded ?? []) if (!a.message.labelIds?.some((l) => l === 'DRAFT' || l === 'SPAM')) add(a.message.id)
+          // Mail moved into the inbox later (for example "Not spam") arrives as a label change
+          for (const a of rec.labelsAdded ?? []) if (a.labelIds?.includes('INBOX')) add(a.message.id)
+        }
         page = h.nextPageToken
       } while (page && ids.length < cap)
       return { ids: ids.slice(0, cap), historyId: profile.historyId, fullResync: false }
