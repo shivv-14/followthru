@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { CreditBar } from './components/shell/CreditBar'
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { AppShell } from './components/shell/AppShell'
 import { EngineProvider } from './store'
@@ -81,6 +82,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
+      <CreditBar />
     </EngineProvider>
     </MaybeCloud>
   )

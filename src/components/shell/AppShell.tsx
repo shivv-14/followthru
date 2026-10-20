@@ -52,7 +52,7 @@ export function AppShell() {
             Your workspace has no conversations yet. <a href="/setup" className="font-medium text-accent hover:underline">Import data or load the demo</a> to find commitments.
           </p>
         ) : null}
-        <main id="main-content" key={location.pathname} className="app-enter flex-1 px-3 pb-24 pt-5 sm:px-6 md:pb-8">
+        <main id="main-content" key={location.pathname} className="app-enter flex-1 px-3 pb-32 pt-5 sm:px-6 md:pb-12">
           <Suspense fallback={<LoadingState label="Loading page" />}>
             <Outlet />
           </Suspense>

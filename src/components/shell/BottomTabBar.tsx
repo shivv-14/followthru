@@ -13,7 +13,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-20 flex rounded-full border border-surface-border bg-[#0b0b0d]/85 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl md:hidden"
+      className="fixed inset-x-3 bottom-[calc(max(12px,env(safe-area-inset-bottom))+28px)] z-20 flex rounded-full border border-surface-border bg-[#0b0b0d]/85 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl md:hidden"
     >
       {items.map(({ to, short, icon: Icon, badge }) => (
         <NavLink

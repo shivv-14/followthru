@@ -55,6 +55,11 @@ body {
   font-family: var(--font-body);
 }
 
+/* Room for the fixed credit bar */
+body {
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+
 h1,
 h2,
 h3,
