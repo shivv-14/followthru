@@ -56,12 +56,13 @@ test.describe('responsive sweep', () => {
 })
 
 test.describe('reduced motion', () => {
-  test('landing shows the story statically and keeps videos still', async ({ page }) => {
+  test('landing shows the story statically and keeps motion still', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
     await expect(page.getByText("Chase what's late.")).toBeVisible()
     await expect(page.locator('.sc--static')).toHaveCount(1)
     await expect(page.getByText('Quiet never')).toBeVisible()
-    expect(await page.locator('.lh-video').evaluate((v: HTMLVideoElement) => v.paused)).toBe(true)
+    // The hero dial does not rotate when the user asks for reduced motion
+    expect(await page.locator('.do-ring').evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
   })
 })

@@ -12,7 +12,8 @@ describe('App', () => {
         <App />
       </MemoryRouter>,
     )
-    expect(screen.getByText(/Chase what's late\./)).toBeInTheDocument()
+    // "late." and "done." are styled separately, so match the whole heading
+    expect(screen.getByRole('heading', { level: 1, name: /Chase what's late\.\s*Never what's done\./ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Open app' })).toBeInTheDocument()
   })
 
