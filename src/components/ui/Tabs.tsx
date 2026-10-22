@@ -43,7 +43,7 @@ export function Tabs({ items, defaultValue, className }: TabsProps) {
 
   return (
     <div className={className}>
-      <div role="tablist" className="flex gap-1 border-b border-surface-border">
+      <div role="tablist" className="inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-surface-border bg-surface p-1 [scrollbar-width:none]">
         {items.map((item) => {
           const selected = item.value === active
           return (
@@ -58,10 +58,8 @@ export function Tabs({ items, defaultValue, className }: TabsProps) {
               onClick={() => setActive(item.value)}
               onKeyDown={onKeyDown}
               className={clsx(
-                'px-3 py-2 text-sm font-medium transition-colors duration-200',
-                selected
-                  ? 'border-b-2 border-accent text-text-primary'
-                  : 'border-b-2 border-transparent text-text-muted hover:text-text-primary',
+                'shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors duration-200',
+                selected ? 'bg-white text-black' : 'text-text-muted hover:text-text-primary',
               )}
             >
               {item.label}

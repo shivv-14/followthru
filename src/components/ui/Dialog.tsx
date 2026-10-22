@@ -62,7 +62,7 @@ export function Dialog({ open, onClose, title, children, variant = 'auto' }: Dia
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
           <motion.div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -80,11 +80,11 @@ export function Dialog({ open, onClose, title, children, variant = 'auto' }: Dia
             exit={sheet ? { y: '100%' } : { opacity: 0, scale: 0.96 }}
             transition={transition}
             className={clsx(
-              'glass-surface relative z-10 w-full max-h-[85dvh] overflow-y-auto p-5',
+              'relative z-10 w-full max-h-[85dvh] overflow-y-auto border border-surface-border bg-[#0b0b0d]/95 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl',
               'pb-[calc(1.25rem+env(safe-area-inset-bottom))]',
               sheet
-                ? 'rounded-t-xl sm:max-w-md sm:rounded-xl sm:mb-0'
-                : 'max-w-md rounded-xl',
+                ? 'rounded-t-[28px] sm:max-w-md sm:rounded-[28px] sm:mb-0'
+                : 'max-w-md rounded-[28px]',
             )}
           >
             <div className="mb-4 flex items-center justify-between gap-2">
@@ -95,7 +95,7 @@ export function Dialog({ open, onClose, title, children, variant = 'auto' }: Dia
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="rounded-md p-1.5 text-text-muted hover:bg-surface-hover hover:text-text-primary"
+                className="grid size-8 place-items-center rounded-full bg-pill text-pill-text hover:bg-[#323234] hover:text-white"
               >
                 ✕
               </button>

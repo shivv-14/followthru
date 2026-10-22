@@ -1,0 +1,17 @@
+time,thread,from,timezone,message,role,team,reply_to
+2026-10-19 01:00,Build channel,Kate Wilson,America/New_York,On it.,member,eng,5
+2026-10-19 08:00,Client Acme,Omar Haddad,Asia/Dubai,"Sure, will do.",member,sales,4
+2026-10-19 09:00,Client Acme,Maya Rao,Asia/Kolkata,"Omar, can you send the Acme renewal quote by Wednesday 5pm?",coordinator,pm,
+2026-10-19 10:00,Build channel,Maya Rao,Asia/Kolkata,"Kate, please fix the login timeout bug by 10am ET Thursday.",coordinator,pm,
+2026-10-19 11:00,Build channel,Ravi Iyer,Asia/Kolkata,I'll maybe finish the API pagination Friday.,member,eng,
+2026-10-20 07:00,Q4 planning,Sofia Marin,Europe/Berlin,"I'm overloaded this week, handing this over to Ravi.",member,design,8
+2026-10-20 10:00,Q4 planning,Maya Rao,Asia/Kolkata,"Sofia, can you prepare the Q4 roadmap slides by 22/10?",coordinator,pm,
+2026-10-20 13:00,Q4 planning,Ravi Iyer,Asia/Kolkata,"Happy to take it, I'll have it ready in 2 days.",member,eng,7
+2026-10-21 10:00,Q4 planning,Maya Rao,Asia/Kolkata,"Kate, can you set up the staging database next week?",coordinator,pm,
+2026-10-21 11:00,Client Acme,Maya Rao,Asia/Kolkata,"Omar, please book the Acme site visit by Oct 22.",coordinator,pm,
+2026-10-21 12:00,Build channel,Ravi Iyer,Asia/Kolkata,I'll write the release notes by Thursday.,member,eng,
+2026-10-22 09:00,Build channel,Kate Wilson,America/New_York,"Still working on it, need more time, the fix broke the session tests.",member,eng,5
+2026-10-22 09:00,Client Acme,Maya Rao,Asia/Kolkata,"Never mind the Acme site visit, they moved to a video call.",coordinator,pm,
+2026-10-22 10:00,General,Omar Haddad,Asia/Dubai,Acme renewal quote sent to their procurement team.,member,sales,
+2026-10-22 15:00,Build channel,Maya Rao,Asia/Kolkata,Let's put the release notes on hold until after launch.,coordinator,pm,
+2026-10-23 08:00,Build channel,Maya Rao,Asia/Kolkata,"Kate, any update on the login timeout bug?",coordinator,pm,

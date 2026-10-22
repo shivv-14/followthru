@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": { "api/cloud.js": { "maxDuration": 60 } },
+  "crons": [{ "path": "/api/cloud/cron/gmail", "schedule": "0 6 * * *" }],
+  "rewrites": [
+    { "source": "/api/cloud/:route*", "destination": "/api/cloud?route=:route*" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

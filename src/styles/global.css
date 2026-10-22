@@ -1,32 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #07060D;
-  --color-surface: rgba(255, 255, 255, 0.04);
-  --color-surface-hover: rgba(255, 255, 255, 0.07);
-  --color-surface-border: rgba(255, 255, 255, 0.08);
-  --color-accent: #7C5CFF;
-  --color-accent-muted: rgba(124, 92, 255, 0.32);
+  --color-bg: #000000;
+  --color-surface: rgba(255, 255, 255, 0.045);
+  --color-surface-hover: rgba(255, 255, 255, 0.09);
+  --color-surface-border: rgba(255, 255, 255, 0.11);
+  /* Lavender from the landing meadow; primary actions are white pills like the landing CTA */
+  --color-accent: #C3BDFF;
+  --color-accent-muted: rgba(195, 189, 255, 0.16);
+  --color-pill: #28282A;
+  --color-pill-border: rgba(255, 255, 255, 0.28);
+  --color-pill-text: #C8C8C8;
   --color-text-primary: #F5F4F8;
   --color-text-muted: rgba(245, 244, 248, 0.64);
-  --color-text-faint: rgba(245, 244, 248, 0.38);
+  --color-text-faint: rgba(245, 244, 248, 0.58);
 
   --color-status-done: #3EE6B0;
   --color-status-overdue: #FF5D6C;
   --color-status-tentative: #FFB547;
   --color-status-deferred: #5CC8FF;
   --color-status-cancelled: #8A8799;
+  --color-status-open: #F5F4F8;
 
-  --font-display: 'Space Grotesk Variable', 'Space Grotesk', sans-serif;
+  --font-display: 'Inter Variable', 'Inter', sans-serif;
+  --font-dot: 'BubbledotICG-FinePos', 'Geist Pixel Circle', monospace;
   --font-body: 'Inter Variable', 'Inter', sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-glass: 0 1px 1px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.36);
-  --shadow-glow: 0 0 0 1px rgba(124, 92, 255, 0.4), 0 0 24px rgba(124, 92, 255, 0.28);
+  --shadow-glass: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 22px rgba(255, 255, 255, 0.28), 0 0 44px rgba(255, 255, 255, 0.1);
 
   --breakpoint-sm: 480px;
   --breakpoint-md: 768px;
@@ -49,25 +55,81 @@ body {
   font-family: var(--font-body);
 }
 
+/* Room for the fixed credit bar */
+body {
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+
 h1,
 h2,
 h3,
 h4 {
   font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Page titles use the landing's dot-matrix face */
+.font-dot {
+  font-family: var(--font-dot);
+  font-weight: 400;
+  letter-spacing: -0.04em;
 }
 
 /* Keyboard-only focus ring. Mouse/touch interaction never shows it. */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 .glass-surface {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
   border: 1px solid var(--color-surface-border);
   box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+}
+
+/* App backdrop: the hero video's dusk glow and grain, painted once behind every app page */
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 18% -5%, rgba(196, 160, 255, 0.3), transparent 70%),
+    radial-gradient(50% 40% at 95% 0%, rgba(255, 150, 170, 0.18), transparent 70%),
+    radial-gradient(70% 50% at 50% 110%, rgba(140, 150, 255, 0.1), transparent 70%),
+    #000;
+}
+.app-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.6'/></svg>");
+}
+
+/* Landing-style entrance: each block of a page rises out of a soft blur, one after another */
+@keyframes app-reveal {
+  from { opacity: 0; transform: translateY(16px) scale(0.985); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.app-enter > * > * {
+  animation: app-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.app-enter > * > *:nth-child(2) { animation-delay: 0.06s; }
+.app-enter > * > *:nth-child(3) { animation-delay: 0.12s; }
+.app-enter > * > *:nth-child(4) { animation-delay: 0.18s; }
+.app-enter > * > *:nth-child(5) { animation-delay: 0.24s; }
+.app-enter > * > *:nth-child(n + 6) { animation-delay: 0.3s; }
+
+/* Primary action: the landing's glowing white pill */
+.pill-glow {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 18px rgba(255, 255, 255, 0.22);
+}
+.pill-glow:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 26px rgba(255, 255, 255, 0.38), 0 0 54px rgba(255, 255, 255, 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {

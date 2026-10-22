@@ -1,0 +1,44 @@
+{
+  "_about": "SYNTHETIC sample for testing the import screen. Not the C14 challenge fixture. Labels were written by hand for this sample only.",
+  "referenceTime": "2026-10-23T10:00:00+05:30",
+  "people": [
+    { "id": "p_maya", "name": "Maya Rao", "timezone": "Asia/Kolkata", "role": "coordinator", "teamId": "pm" },
+    { "id": "p_omar", "name": "Omar Haddad", "timezone": "Asia/Dubai", "role": "member", "teamId": "sales" },
+    { "id": "p_kate", "name": "Kate Wilson", "timezone": "America/New_York", "role": "member", "teamId": "eng" },
+    { "id": "p_ravi", "name": "Ravi Iyer", "timezone": "Asia/Kolkata", "role": "member", "teamId": "eng" },
+    { "id": "p_sofia", "name": "Sofia Marin", "timezone": "Europe/Berlin", "role": "member", "teamId": "design" }
+  ],
+  "threads": [
+    { "id": "t_q4", "title": "Q4 planning" },
+    { "id": "t_client", "title": "Client Acme" },
+    { "id": "t_build", "title": "Build channel" },
+    { "id": "t_misc", "title": "General" }
+  ],
+  "messages": [
+    { "id": "s01", "threadId": "t_client", "authorId": "p_maya", "sentAt": "2026-10-19T09:00:00+05:30", "text": "Omar, can you send the Acme renewal quote by Wednesday 5pm?" },
+    { "id": "s02", "threadId": "t_client", "authorId": "p_omar", "sentAt": "2026-10-19T08:00:00+04:00", "text": "Sure, will do.", "replyToId": "s01" },
+    { "id": "s04", "threadId": "t_build", "authorId": "p_maya", "sentAt": "2026-10-19T10:00:00+05:30", "text": "Kate, please fix the login timeout bug by 10am ET Thursday." },
+    { "id": "s05", "threadId": "t_build", "authorId": "p_kate", "sentAt": "2026-10-19T01:00:00-04:00", "text": "On it.", "replyToId": "s04" },
+    { "id": "s07", "threadId": "t_build", "authorId": "p_ravi", "sentAt": "2026-10-19T11:00:00+05:30", "text": "I'll maybe finish the API pagination Friday." },
+    { "id": "s08", "threadId": "t_q4", "authorId": "p_maya", "sentAt": "2026-10-20T10:00:00+05:30", "text": "Sofia, can you prepare the Q4 roadmap slides by 22/10?" },
+    { "id": "s09", "threadId": "t_q4", "authorId": "p_sofia", "sentAt": "2026-10-20T07:00:00+02:00", "text": "I'm overloaded this week, handing this over to Ravi.", "replyToId": "s08" },
+    { "id": "s10", "threadId": "t_q4", "authorId": "p_ravi", "sentAt": "2026-10-20T13:00:00+05:30", "text": "Happy to take it, I'll have it ready in 2 days.", "replyToId": "s09" },
+    { "id": "s11", "threadId": "t_q4", "authorId": "p_maya", "sentAt": "2026-10-21T10:00:00+05:30", "text": "Kate, can you set up the staging database next week?" },
+    { "id": "s12", "threadId": "t_client", "authorId": "p_maya", "sentAt": "2026-10-21T11:00:00+05:30", "text": "Omar, please book the Acme site visit by Oct 22." },
+    { "id": "s14", "threadId": "t_build", "authorId": "p_ravi", "sentAt": "2026-10-21T12:00:00+05:30", "text": "I'll write the release notes by Thursday." },
+    { "id": "s03", "threadId": "t_misc", "authorId": "p_omar", "sentAt": "2026-10-22T10:00:00+04:00", "text": "Acme renewal quote sent to their procurement team." },
+    { "id": "s13", "threadId": "t_client", "authorId": "p_maya", "sentAt": "2026-10-22T09:00:00+05:30", "text": "Never mind the Acme site visit, they moved to a video call." },
+    { "id": "s06", "threadId": "t_build", "authorId": "p_kate", "sentAt": "2026-10-22T09:00:00-04:00", "text": "Still working on it, need more time, the fix broke the session tests.", "replyToId": "s04" },
+    { "id": "s15", "threadId": "t_build", "authorId": "p_maya", "sentAt": "2026-10-22T15:00:00+05:30", "text": "Let's put the release notes on hold until after launch." },
+    { "id": "s17", "threadId": "t_build", "authorId": "p_maya", "sentAt": "2026-10-23T08:00:00+05:30", "text": "Kate, any update on the login timeout bug?" }
+  ],
+  "labels": [
+    { "sourceMessageId": "s01", "ownerId": "p_omar", "dueAt": "2026-10-21T11:30:00Z", "status": "done", "note": "completed in another thread (s03)" },
+    { "sourceMessageId": "s04", "ownerId": "p_kate", "dueAt": "2026-10-22T14:00:00Z", "status": "open", "note": "10am ET; owner replied not yet" },
+    { "sourceMessageId": "s07", "ownerId": "p_ravi", "dueAt": "2026-10-23T18:29:00Z", "status": "open", "note": "maybe Friday, tentative" },
+    { "sourceMessageId": "s08", "ownerId": "p_ravi", "dueAt": "2026-10-22T18:29:00Z", "status": "open", "note": "delegated from Sofia, accepted by Ravi" },
+    { "sourceMessageId": "s11", "ownerId": "p_kate", "dueAt": "2026-10-26T18:29:00Z", "status": "open", "note": "next week, no reply yet" },
+    { "sourceMessageId": "s12", "ownerId": "p_omar", "dueAt": "2026-10-22T18:29:00Z", "status": "cancelled" },
+    { "sourceMessageId": "s14", "ownerId": "p_ravi", "dueAt": "2026-10-22T18:29:00Z", "status": "deferred" }
+  ]
+}

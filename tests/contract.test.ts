@@ -1,0 +1,85 @@
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import * as engine from '../src/engine'
+import * as schema from '../src/schema'
+import type { Commitment, Deadline, Draft, EngineModeLabel, EngineResult, ValidationResult } from '../src/engine'
+
+// Guards the public surface Track B builds against. A failure here means a
+// contract change that must be announced in docs/track-a-status.md.
+describe('published contract', () => {
+  it('exposes the engine functions', () => {
+    expect(Object.keys(engine).sort()).toEqual(
+      [
+        'DATE_ONLY_TIME',
+        'END_OF_DAY_TIME',
+        'addDays',
+        'deadlineState',
+        'formatDeadline',
+        'formatDeadlineDual',
+        'isHedged',
+        'isOverdue',
+        'isValidTimeZone',
+        'offsetMs',
+        'parseDeadline',
+        'parseIsoWithOffset',
+        'toWallTime',
+        'wallTimeToUtc',
+        'wallTimeToUtcMs',
+        // Added during integration (additive, see docs/track-a-status.md)
+        'DEFAULT_FLAGS',
+        'DEFAULT_FLOW',
+        'DEFAULT_FLOWS',
+        'DEFAULT_STALE_HOURS',
+        'approveDraft',
+        'blockingReviewReasons',
+        'buildDrafts',
+        'canDecide',
+        'canDo',
+        'checkBeforeApproval',
+        'composeBody',
+        'detectSignals',
+        'evaluate',
+        'flowFor',
+        'makeConfig',
+        'mentionedPeople',
+        'modeLabel',
+        'recipientWarnings',
+        'resolveCommitments',
+        'runEngine',
+        'stepFor',
+        'suppressDraft',
+        'validateFlow',
+        'rulesExtractor',
+        'composeSubject',
+        'expectedRecipient',
+        'replyState',
+        'draftText',
+        'AI_MIN_CONFIDENCE',
+        'applyAiSignals',
+        'editDraft',
+        'MAX_DRAFT_BODY',
+        'rejectDraft',
+        // Queue actions: snooze and regenerate (additive, see docs/integration-status.md)
+        'isSnoozed',
+        'MAX_SNOOZE_DAYS',
+        'regenerateDraft',
+        'snoozeDraft',
+        'unsnoozeDraft',
+      ].sort(),
+    )
+  })
+
+  it('exposes validation and import export', () => {
+    for (const name of ['validateDataset', 'validateDatasetJson', 'messagesFromCsv', 'messagesToCsv', 'commitmentsToCsv', 'draftsToCsv', 'resultsToJson']) {
+      expect(typeof (schema as Record<string, unknown>)[name]).toBe('function')
+    }
+  })
+
+  it('keeps key type shapes', () => {
+    expectTypeOf<Commitment['status']>().toEqualTypeOf<'open' | 'done' | 'cancelled' | 'deferred'>()
+    expectTypeOf<Deadline['certainty']>().toEqualTypeOf<'firm' | 'tentative' | 'none'>()
+    expectTypeOf<Draft['state']>().toEqualTypeOf<'pending_review' | 'approved' | 'suppressed' | 'stale' | 'rejected'>()
+    expectTypeOf<EngineModeLabel>().toEqualTypeOf<'Rules' | 'Rules (fallback)' | 'AI assisted'>()
+    expectTypeOf<EngineResult['drafts']>().toEqualTypeOf<Draft[]>()
+    expectTypeOf<ValidationResult['ok']>().toEqualTypeOf<boolean>()
+  })
+})

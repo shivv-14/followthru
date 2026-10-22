@@ -48,6 +48,13 @@ export interface CommitmentLabel {
   dueAt: IsoUtc | null
   status: CommitmentStatus
   note?: string
+  /** Date-only label (YYYY-MM-DD): the deadline is checked as a calendar day in `timezone` */
+  dueDate?: string
+  timezone?: TimeZoneId
+  /** Whether the label says this action may enter the reminder queue */
+  reminderEligible?: boolean
+  /** Action-log key, for example "A1" */
+  actionKey?: string
 }
 
 /** Validated, normalised input. Messages are sorted by sentAt, then id. */
@@ -146,6 +153,10 @@ export type CommitmentEventType =
   | 'reopened'
   | 'review_flagged'
   | 'human_decision'
+  | 'progress'
+  | 'not_done'
+  | 'blocker'
+  | 'extension_requested'
 
 export interface CommitmentEvent {
   type: CommitmentEventType
@@ -160,6 +171,7 @@ export interface CommitmentEvent {
 }
 
 export type ReviewReason =
+  | 'unauthorised_status_claim'
   | 'ambiguous_completion'
   | 'tentative_deadline'
   | 'unclear_owner'
@@ -167,12 +179,56 @@ export type ReviewReason =
   | 'conflicting_evidence'
   | 'weak_cross_thread_link'
   | 'missing_deadline'
+  /** The optional AI pre-pass read a linked message differently from the rules */
+  | 'ai_disagreement'
+  /** The optional AI pre-pass read a linked message differently from the rules */
+  | 'ai_disagreement'
+
+/** not_started to submitted is the member's own progress report. Status still changes only through evidence or a coordinator decision. */
+export type TaskProgress = 'not_started' | 'in_progress' | 'blocked' | 'submitted'
+
+export interface Blocker {
+  at: IsoUtc
+  by: string
+  text: string
+  resolved: boolean
+}
+
+export interface Submission {
+  id: string
+  at: IsoUtc
+  by: string
+  note: string
+  fileIds: string[]
+  state: 'pending' | 'approved' | 'rejected'
+  decidedBy?: string
+  decidedAt?: IsoUtc
+}
+
+export interface ExtensionRequest {
+  dueAt: IsoUtc
+  by: string
+  at: IsoUtc
+  note: string
+  state: 'pending' | 'approved' | 'declined'
+}
 
 export interface Commitment {
-  /** 'c_' + source message id */
+  /** 'c_' + source message id, or 'c_' + task id for manual tasks */
   id: string
   title: string
+  /** Empty string for manual tasks */
   sourceMessageId: string
+  /** Where the commitment came from. Missing means 'message'. */
+  source?: 'message' | 'manual'
+  teamId?: string
+  progress?: TaskProgress
+  blockers?: Blocker[]
+  submissions?: Submission[]
+  /** A member's request for more time. Never changes the deadline until a coordinator approves it. */
+  extensionRequest?: ExtensionRequest
+  /** Every message linked to this commitment, in time order */
+  linkedMessageIds?: string[]
   requesterId: string | null
   ownerId: string | null
   deadline: Deadline
@@ -191,7 +247,7 @@ export interface Commitment {
 export type DraftKind = 'reminder' | 'clarify'
 
 /** pending_review: waiting for a coordinator. approved: approved in shadow mode, nothing is sent. */
-export type DraftState = 'pending_review' | 'approved' | 'suppressed' | 'stale'
+export type DraftState = 'pending_review' | 'approved' | 'suppressed' | 'stale' | 'rejected'
 
 export type SuppressionReason =
   | 'completed'
@@ -215,9 +271,16 @@ export interface DraftVersion {
   dueAt: IsoUtc | null
   recipientId: string | null
   body: string
+  subject?: string
   /** Why this version was written, for example 'created' or 'deadline_changed' */
   cause: string
 }
+
+/** Who a flow step writes to. Missing means the owner. */
+export type RecipientRole = 'owner' | 'requester' | 'coordinator'
+
+/** What the owner has said since the deadline: nothing, something, or "not yet" with a progress note. */
+export type ReplyState = 'pending' | 'responded' | 'not_done'
 
 export interface Draft {
   /** 'd_' + commitment id */
@@ -235,6 +298,123 @@ export interface Draft {
   updatedAt: IsoUtc
   suppression?: Suppression
   history: DraftVersion[]
+  /** Follow-up flow and step that produced this draft */
+  flowId?: string
+  step?: number
+  approvedBy?: string
+  approvedAt?: IsoUtc
+  /** Short subject line, under 60 characters */
+  subject?: string
+  /** Role of the recipient for this draft's flow step */
+  recipientRole?: RecipientRole
+  /** Owner reply state the wording was written for */
+  replyState?: ReplyState
+  rejectedBy?: string
+  rejectedAt?: IsoUtc
+  rejectReason?: string
+  /** Coordinator's edited text; kept until a new version replaces it */
+  editedBody?: string
+  editedBy?: string
+  editedAt?: IsoUtc
+  /** Hidden from review and not approvable until this evaluation-clock time. Only pending drafts are snoozed. */
+  snoozedUntil?: IsoUtc
+  snoozedBy?: string
+  snoozedAt?: IsoUtc
+  snoozeReason?: string
+}
+
+// ---------------------------------------------------------------------------
+// Follow-up flows
+// ---------------------------------------------------------------------------
+
+export type FlowTone = 'gentle' | 'firm' | 'escalate'
+
+export interface FlowStep {
+  /** Hours after the deadline before this step's reminder is drafted */
+  afterHours: number
+  tone: FlowTone
+  /** Who receives this step's draft. Missing means the owner. */
+  recipient?: RecipientRole
+}
+
+export interface Flow {
+  id: string
+  name: string
+  /** Default flows are locked; copy them to change */
+  isDefault: boolean
+  /** 'all', or a team id */
+  appliesTo: string
+  /** Sorted by afterHours ascending */
+  steps: FlowStep[]
+  skipWeekends: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Human decisions and manual tasks (engine inputs next to messages)
+// ---------------------------------------------------------------------------
+
+export type DecisionType =
+  | 'mark_done'
+  | 'cancel'
+  | 'defer'
+  | 'reopen'
+  | 'reassign'
+  | 'change_deadline'
+  | 'resolve_review'
+  | 'set_progress'
+  | 'report_blocker'
+  | 'resolve_blocker'
+  | 'submit_work'
+  | 'approve_submission'
+  | 'reject_submission'
+  | 'request_extension'
+  | 'decline_extension'
+
+export interface HumanDecision {
+  id: string
+  commitmentId: string
+  type: DecisionType
+  /** Evaluation-clock time of the decision */
+  at: IsoUtc
+  /** Wall-clock time it was recorded; orders decisions made at the same evaluation time */
+  recordedAt?: IsoUtc
+  by: string
+  note?: string
+  ownerId?: string
+  dueAt?: IsoUtc | null
+  progress?: TaskProgress
+  submissionId?: string
+  fileIds?: string[]
+}
+
+export interface ManualTask {
+  id: string
+  title: string
+  ownerId: string
+  requesterId: string
+  teamId?: string
+  dueAt: IsoUtc | null
+  createdAt: IsoUtc
+}
+
+export interface EngineInput {
+  dataset: Dataset
+  decisions?: HumanDecision[]
+  manualTasks?: ManualTask[]
+  /** Drafts from the previous run, so updates keep the same draft and bump its version */
+  previousDrafts?: Draft[]
+  /** Optional AI reading of messages. Used only when flags.ai is on; it can flag work for review, never change status. */
+  aiSignals?: AiSignal[]
+}
+
+export type AiSignalKind = 'commitment' | 'completion' | 'cancellation' | 'deferral' | 'other'
+
+/** What an AI model thought one message was. Produced outside the engine and passed in. */
+export interface AiSignal {
+  messageId: string
+  kind: AiSignalKind
+  /** 0 to 1 */
+  confidence: number
 }
 
 // ---------------------------------------------------------------------------
@@ -257,6 +437,8 @@ export interface EngineConfig {
   flags: EngineFlags
   /** Unapproved drafts older than this become stale */
   staleAfterHours: number
+  /** Active follow-up flows. Missing means the built-in default flow. */
+  flows?: Flow[]
 }
 
 export interface EngineResult {
@@ -279,6 +461,8 @@ export interface LabelCheck {
   deadlineOk: boolean
   statusOk: boolean
   evidenceMessageIds: string[]
+  /** Set when the label states reminder eligibility: the engine agrees and no closed action has an active draft */
+  reminderOk?: boolean
 }
 
 export interface ScoreCheck {

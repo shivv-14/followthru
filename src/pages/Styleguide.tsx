@@ -64,7 +64,7 @@ export default function Styleguide() {
       </Section>
 
       <Section title="Typography">
-        <p className="font-display text-4xl text-text-primary">Space Grotesk display</p>
+        <p className="font-dot text-4xl text-text-primary">Dot-matrix titles</p>
         <p className="font-body text-base text-text-primary">
           Inter body text — the quick brown fox jumps over the lazy dog.
         </p>

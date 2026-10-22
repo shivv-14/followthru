@@ -1,0 +1,11 @@
+id,title,ownerId,requesterId,status,dueAt,certainty,deadlinePhrase,interpretedTz,responseState,needsReview,reviewReasons,evidenceMessageIds
+c_M01,Validate duplicate prevention,dev,action_log,open,2026-10-21T18:29:00.000Z,firm,2026-10-21,Asia/Kolkata,pending,false,,M01;M11
+c_M02,Export catalogue,asha,action_log,done,2026-10-17T18:29:00.000Z,firm,2026-10-17,Asia/Kolkata,pending,false,,M02
+c_M03,Review product sample,mina,action_log,open,2026-10-18T18:29:00.000Z,firm,2026-10-18,Asia/Kolkata,pending,false,,M03
+c_M04,Check order IDs,omar,action_log,open,2026-10-19T18:29:00.000Z,firm,2026-10-19,Asia/Kolkata,pending,false,,M04
+c_M05,Prepare paid campaign,ria,action_log,cancelled,2026-10-19T18:29:00.000Z,firm,2026-10-19,Asia/Kolkata,pending,false,,M05
+c_M06,Enable live payment,dev,action_log,deferred,2026-10-21T18:29:00.000Z,firm,2026-10-21,Asia/Kolkata,pending,false,,M06
+c_M07,Check test data,asha,action_log,done,2026-10-18T18:29:00.000Z,firm,2026-10-18,Asia/Kolkata,pending,false,,M07
+c_M08,Review delivery promise,mina,action_log,open,2026-10-20T18:29:00.000Z,firm,2026-10-20,Asia/Kolkata,pending,false,,M08
+c_M09,Confirm pilot store,omar,action_log,open,2026-10-22T18:29:00.000Z,firm,2026-10-22,Asia/Kolkata,pending,false,,M09
+c_M10,Review draft report,ria,action_log,open,2026-10-23T18:29:00.000Z,firm,2026-10-23,Asia/Kolkata,pending,false,,M10

@@ -1,0 +1,3 @@
+id,thread,author,text
+x1,t_build,p_maya,This CSV uses the wrong column names and has no timestamps.
+x2,t_build,p_kate,It should be rejected with missing column errors.

@@ -1,0 +1,805 @@
+{
+  "runAt": "2026-10-19T05:30:00.000Z",
+  "mode": "Rules",
+  "commitments": [
+    {
+      "id": "c_m_15",
+      "title": "Write the API rate limit docs",
+      "sourceMessageId": "m_15",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_ben",
+      "deadline": {
+        "dueAt": "2026-10-22T06:59:00.000Z",
+        "certainty": "firm",
+        "phrase": "Oct 21",
+        "interpretedTz": "America/Los_Angeles",
+        "evidence": {
+          "messageId": "m_17",
+          "threadId": "t_eng",
+          "at": "2026-10-14T15:00:00.000Z",
+          "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
+          "rule": "RESCHEDULE"
+        }
+      },
+      "status": "open",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_eng"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-12T03:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_15",
+            "threadId": "t_eng",
+            "at": "2026-10-12T03:30:00.000Z",
+            "quote": "Ben, can you write the API rate limit docs by Oct 13?",
+            "rule": "REQUEST"
+          },
+          "to": "p_ben"
+        },
+        {
+          "type": "accepted",
+          "at": "2026-10-12T05:00:00.000Z",
+          "by": "p_ben",
+          "evidence": {
+            "messageId": "m_16",
+            "threadId": "t_eng",
+            "at": "2026-10-12T05:00:00.000Z",
+            "quote": "Will do.",
+            "rule": "ACCEPT"
+          }
+        },
+        {
+          "type": "blocker",
+          "at": "2026-10-14T15:00:00.000Z",
+          "by": "p_ben",
+          "evidence": {
+            "messageId": "m_17",
+            "threadId": "t_eng",
+            "at": "2026-10-14T15:00:00.000Z",
+            "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
+            "rule": "BLOCKER"
+          }
+        },
+        {
+          "type": "deadline_changed",
+          "at": "2026-10-14T15:00:00.000Z",
+          "by": "p_ben",
+          "evidence": {
+            "messageId": "m_17",
+            "threadId": "t_eng",
+            "at": "2026-10-14T15:00:00.000Z",
+            "quote": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
+            "rule": "RESCHEDULE"
+          },
+          "from": "2026-10-13T18:29:00.000Z",
+          "to": "2026-10-22T06:59:00.000Z"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_15",
+        "m_16",
+        "m_17"
+      ],
+      "blockers": [
+        {
+          "at": "2026-10-14T15:00:00.000Z",
+          "by": "p_ben",
+          "text": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
+          "resolved": false
+        }
+      ],
+      "teamId": "eng"
+    },
+    {
+      "id": "c_m_18",
+      "title": "Share the homepage mockups",
+      "sourceMessageId": "m_18",
+      "source": "message",
+      "requesterId": null,
+      "ownerId": "p_amir",
+      "deadline": {
+        "dueAt": "2026-10-16T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "Friday",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_18",
+          "threadId": "t_design",
+          "at": "2026-10-13T04:30:00.000Z",
+          "quote": "I'll share the homepage mockups by Friday.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_design"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-13T04:30:00.000Z",
+          "by": "p_amir",
+          "evidence": {
+            "messageId": "m_18",
+            "threadId": "t_design",
+            "at": "2026-10-13T04:30:00.000Z",
+            "quote": "I'll share the homepage mockups by Friday.",
+            "rule": "COMMIT"
+          },
+          "to": "p_amir"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_18",
+        "m_19"
+      ],
+      "teamId": "design"
+    },
+    {
+      "id": "c_m_13",
+      "title": "Draft the vendor contract renewal",
+      "sourceMessageId": "m_13",
+      "source": "message",
+      "requesterId": null,
+      "ownerId": "p_rahul",
+      "deadline": {
+        "dueAt": "2026-10-14T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "Oct 14",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_13",
+          "threadId": "t_finance",
+          "at": "2026-10-13T05:30:00.000Z",
+          "quote": "I'll draft the vendor contract renewal by Oct 14.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "deferred",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_finance"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-13T05:30:00.000Z",
+          "by": "p_rahul",
+          "evidence": {
+            "messageId": "m_13",
+            "threadId": "t_finance",
+            "at": "2026-10-13T05:30:00.000Z",
+            "quote": "I'll draft the vendor contract renewal by Oct 14.",
+            "rule": "COMMIT"
+          },
+          "to": "p_rahul"
+        },
+        {
+          "type": "deferred",
+          "at": "2026-10-15T04:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_14",
+            "threadId": "t_finance",
+            "at": "2026-10-15T04:30:00.000Z",
+            "quote": "Let's put the vendor contract renewal on hold until next quarter.",
+            "rule": "DEFER"
+          },
+          "from": "open",
+          "to": "deferred"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_13",
+        "m_14"
+      ],
+      "teamId": "ops"
+    },
+    {
+      "id": "c_m_01",
+      "title": "Send the Q3 budget report to finance",
+      "sourceMessageId": "m_01",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_rahul",
+      "deadline": {
+        "dueAt": "2026-10-15T11:30:00.000Z",
+        "certainty": "firm",
+        "phrase": "Thursday 5pm",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_01",
+          "threadId": "t_finance",
+          "at": "2026-10-14T04:30:00.000Z",
+          "quote": "Rahul, can you send the Q3 budget report to finance by Thursday 5pm?",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": true,
+      "reviewReasons": [
+        "unauthorised_status_claim"
+      ],
+      "threadIds": [
+        "t_finance",
+        "t_eng"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T04:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_01",
+            "threadId": "t_finance",
+            "at": "2026-10-14T04:30:00.000Z",
+            "quote": "Rahul, can you send the Q3 budget report to finance by Thursday 5pm?",
+            "rule": "REQUEST"
+          },
+          "to": "p_rahul"
+        },
+        {
+          "type": "accepted",
+          "at": "2026-10-14T04:50:00.000Z",
+          "by": "p_rahul",
+          "evidence": {
+            "messageId": "m_02",
+            "threadId": "t_finance",
+            "at": "2026-10-14T04:50:00.000Z",
+            "quote": "Sure, will do.",
+            "rule": "ACCEPT"
+          }
+        },
+        {
+          "type": "review_flagged",
+          "at": "2026-10-16T12:30:00.000Z",
+          "by": "p_dev",
+          "evidence": {
+            "messageId": "m_20",
+            "threadId": "t_eng",
+            "at": "2026-10-16T12:30:00.000Z",
+            "quote": "I think Rahul already sent the Q3 budget report.",
+            "rule": "DONE+LINK_SIMILARITY"
+          }
+        }
+      ],
+      "linkedMessageIds": [
+        "m_01",
+        "m_02",
+        "m_20"
+      ],
+      "teamId": "ops"
+    },
+    {
+      "id": "c_m_03",
+      "title": "Send the revised pricing deck to the client",
+      "sourceMessageId": "m_03",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_ben",
+      "deadline": {
+        "dueAt": "2026-10-16T12:30:00.000Z",
+        "certainty": "firm",
+        "phrase": "Friday 6pm",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_03",
+          "threadId": "t_launch",
+          "at": "2026-10-14T05:00:00.000Z",
+          "quote": "Ben, could you send the revised pricing deck to the client by Friday 6pm?",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "done",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_launch",
+        "t_status"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T05:00:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_03",
+            "threadId": "t_launch",
+            "at": "2026-10-14T05:00:00.000Z",
+            "quote": "Ben, could you send the revised pricing deck to the client by Friday 6pm?",
+            "rule": "REQUEST"
+          },
+          "to": "p_ben"
+        },
+        {
+          "type": "accepted",
+          "at": "2026-10-14T05:15:00.000Z",
+          "by": "p_ben",
+          "evidence": {
+            "messageId": "m_04",
+            "threadId": "t_launch",
+            "at": "2026-10-14T05:15:00.000Z",
+            "quote": "Sure, Friday works.",
+            "rule": "ACCEPT"
+          }
+        },
+        {
+          "type": "completed",
+          "at": "2026-10-16T16:00:00.000Z",
+          "by": "p_ben",
+          "evidence": {
+            "messageId": "m_10",
+            "threadId": "t_status",
+            "at": "2026-10-16T16:00:00.000Z",
+            "quote": "Revised pricing deck sent to the client this morning.",
+            "rule": "DONE+LINK_SIMILARITY"
+          },
+          "from": "open",
+          "to": "done"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_03",
+        "m_04",
+        "m_10"
+      ],
+      "teamId": "eng"
+    },
+    {
+      "id": "c_m_05",
+      "title": "Fix the login redirect bug",
+      "sourceMessageId": "m_05",
+      "source": "message",
+      "requesterId": null,
+      "ownerId": "p_dev",
+      "deadline": {
+        "dueAt": "2026-10-16T18:29:00.000Z",
+        "certainty": "tentative",
+        "phrase": "maybe Friday",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_05",
+          "threadId": "t_eng",
+          "at": "2026-10-14T05:30:00.000Z",
+          "quote": "I can maybe fix the login redirect bug Friday.",
+          "rule": "DEADLINE_TENTATIVE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": true,
+      "reviewReasons": [
+        "tentative_deadline"
+      ],
+      "threadIds": [
+        "t_eng"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T05:30:00.000Z",
+          "by": "p_dev",
+          "evidence": {
+            "messageId": "m_05",
+            "threadId": "t_eng",
+            "at": "2026-10-14T05:30:00.000Z",
+            "quote": "I can maybe fix the login redirect bug Friday.",
+            "rule": "COMMIT"
+          },
+          "to": "p_dev"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_05"
+      ],
+      "teamId": "eng"
+    },
+    {
+      "id": "c_m_06",
+      "title": "Prepare the onboarding checklist",
+      "sourceMessageId": "m_06",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_lena",
+      "deadline": {
+        "dueAt": "2026-10-19T22:59:00.000Z",
+        "certainty": "firm",
+        "phrase": "Monday",
+        "interpretedTz": "Europe/London",
+        "evidence": {
+          "messageId": "m_08",
+          "threadId": "t_design",
+          "at": "2026-10-14T08:00:00.000Z",
+          "quote": "Happy to take it, I'll have it ready Monday.",
+          "rule": "DEADLINE_FROM_NEW_OWNER"
+        }
+      },
+      "status": "open",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_design"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T06:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_06",
+            "threadId": "t_design",
+            "at": "2026-10-14T06:30:00.000Z",
+            "quote": "Amir, can you prepare the onboarding checklist by Oct 16?",
+            "rule": "REQUEST"
+          },
+          "to": "p_amir"
+        },
+        {
+          "type": "review_flagged",
+          "at": "2026-10-14T07:00:00.000Z",
+          "by": "p_amir",
+          "evidence": {
+            "messageId": "m_07",
+            "threadId": "t_design",
+            "at": "2026-10-14T07:00:00.000Z",
+            "quote": "I'm swamped this week, handing this over to Lena.",
+            "rule": "DELEGATE"
+          },
+          "to": "p_lena"
+        },
+        {
+          "type": "delegated",
+          "at": "2026-10-14T08:00:00.000Z",
+          "by": "p_lena",
+          "evidence": {
+            "messageId": "m_08",
+            "threadId": "t_design",
+            "at": "2026-10-14T08:00:00.000Z",
+            "quote": "Happy to take it, I'll have it ready Monday.",
+            "rule": "DELEGATION_ACCEPTED"
+          },
+          "from": "p_amir",
+          "to": "p_lena"
+        },
+        {
+          "type": "deadline_changed",
+          "at": "2026-10-14T08:00:00.000Z",
+          "by": "p_lena",
+          "evidence": {
+            "messageId": "m_08",
+            "threadId": "t_design",
+            "at": "2026-10-14T08:00:00.000Z",
+            "quote": "Happy to take it, I'll have it ready Monday.",
+            "rule": "DEADLINE_FROM_NEW_OWNER"
+          },
+          "from": "2026-10-16T18:29:00.000Z",
+          "to": "2026-10-19T22:59:00.000Z"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_06",
+        "m_07",
+        "m_08"
+      ],
+      "teamId": "design"
+    },
+    {
+      "id": "c_m_09",
+      "title": "Set up the staging analytics dashboard",
+      "sourceMessageId": "m_09",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_dev",
+      "deadline": {
+        "dueAt": "2026-10-15T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "Oct 15",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_09",
+          "threadId": "t_launch",
+          "at": "2026-10-14T08:30:00.000Z",
+          "quote": "Dev, please set up the staging analytics dashboard by Oct 15.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "cancelled",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_launch"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T08:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_09",
+            "threadId": "t_launch",
+            "at": "2026-10-14T08:30:00.000Z",
+            "quote": "Dev, please set up the staging analytics dashboard by Oct 15.",
+            "rule": "REQUEST"
+          },
+          "to": "p_dev"
+        },
+        {
+          "type": "accepted",
+          "at": "2026-10-14T08:40:00.000Z",
+          "by": "p_dev",
+          "evidence": {
+            "messageId": "m_11",
+            "threadId": "t_launch",
+            "at": "2026-10-14T08:40:00.000Z",
+            "quote": "On it.",
+            "rule": "ACCEPT"
+          }
+        },
+        {
+          "type": "cancelled",
+          "at": "2026-10-15T10:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_12",
+            "threadId": "t_launch",
+            "at": "2026-10-15T10:30:00.000Z",
+            "quote": "Never mind on the staging analytics dashboard, the client dropped that requirem…",
+            "rule": "CANCEL"
+          },
+          "from": "open",
+          "to": "cancelled"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_09",
+        "m_11",
+        "m_12"
+      ],
+      "teamId": "eng"
+    },
+    {
+      "id": "c_m_21",
+      "title": "Send the launch press kit to marketing",
+      "sourceMessageId": "m_21",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_lena",
+      "deadline": {
+        "dueAt": "2026-10-15T08:30:00.000Z",
+        "certainty": "firm",
+        "phrase": "Oct 15 2pm",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_21",
+          "threadId": "t_launch",
+          "at": "2026-10-14T09:30:00.000Z",
+          "quote": "Lena, can you send the launch press kit to marketing by Oct 15 2pm?",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "open",
+      "responseState": "pending",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_launch"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-14T09:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_21",
+            "threadId": "t_launch",
+            "at": "2026-10-14T09:30:00.000Z",
+            "quote": "Lena, can you send the launch press kit to marketing by Oct 15 2pm?",
+            "rule": "REQUEST"
+          },
+          "to": "p_lena"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_21"
+      ],
+      "teamId": "design"
+    },
+    {
+      "id": "c_m_22",
+      "title": "Review Ben's pull request for the export feature",
+      "sourceMessageId": "m_22",
+      "source": "message",
+      "requesterId": "p_priya",
+      "ownerId": "p_dev",
+      "deadline": {
+        "dueAt": "2026-10-16T18:29:00.000Z",
+        "certainty": "firm",
+        "phrase": "Oct 16",
+        "interpretedTz": "Asia/Kolkata",
+        "evidence": {
+          "messageId": "m_22",
+          "threadId": "t_eng",
+          "at": "2026-10-15T03:30:00.000Z",
+          "quote": "Dev, please review Ben's pull request for the export feature by Oct 16.",
+          "rule": "DEADLINE"
+        }
+      },
+      "status": "done",
+      "responseState": "responded",
+      "needsReview": false,
+      "reviewReasons": [],
+      "threadIds": [
+        "t_eng"
+      ],
+      "events": [
+        {
+          "type": "created",
+          "at": "2026-10-15T03:30:00.000Z",
+          "by": "p_priya",
+          "evidence": {
+            "messageId": "m_22",
+            "threadId": "t_eng",
+            "at": "2026-10-15T03:30:00.000Z",
+            "quote": "Dev, please review Ben's pull request for the export feature by Oct 16.",
+            "rule": "REQUEST"
+          },
+          "to": "p_dev"
+        },
+        {
+          "type": "completed",
+          "at": "2026-10-16T04:30:00.000Z",
+          "by": "p_dev",
+          "evidence": {
+            "messageId": "m_23",
+            "threadId": "t_eng",
+            "at": "2026-10-16T04:30:00.000Z",
+            "quote": "Done, approved the export feature pull request.",
+            "rule": "DONE"
+          },
+          "from": "open",
+          "to": "done"
+        }
+      ],
+      "linkedMessageIds": [
+        "m_22",
+        "m_23"
+      ],
+      "teamId": "eng"
+    }
+  ],
+  "drafts": [
+    {
+      "id": "d_c_m_03",
+      "idempotencyKey": "c_m_03",
+      "commitmentId": "c_m_03",
+      "kind": "reminder",
+      "recipientId": "p_ben",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Ben, a quick check on \"Send the revised pricing deck to the client\", which was due Fri, 16 Oct 2026, 05:30 GMT-7. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+      "subject": "Quick check: Send the revised pricing deck to the client",
+      "flowId": "flow_default",
+      "step": 0,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-16T14:00:00.000Z",
+      "updatedAt": "2026-10-16T14:00:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-16T14:00:00.000Z",
+          "dueAt": "2026-10-16T12:30:00.000Z",
+          "recipientId": "p_ben",
+          "body": "Hi Ben, a quick check on \"Send the revised pricing deck to the client\", which was due Fri, 16 Oct 2026, 05:30 GMT-7. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?",
+          "subject": "Quick check: Send the revised pricing deck to the client",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_m_05",
+      "idempotencyKey": "c_m_05",
+      "commitmentId": "c_m_05",
+      "kind": "clarify",
+      "recipientId": "p_dev",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Dev, you mentioned \"maybe Friday\" for \"Fix the login redirect bug\". Could you confirm a firm date so we can plan around it?",
+      "subject": "Date needed: Fix the login redirect bug",
+      "flowId": "flow_default",
+      "step": 0,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-19T05:30:00.000Z",
+      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-19T05:30:00.000Z",
+          "dueAt": "2026-10-16T18:29:00.000Z",
+          "recipientId": "p_dev",
+          "body": "Hi Dev, you mentioned \"maybe Friday\" for \"Fix the login redirect bug\". Could you confirm a firm date so we can plan around it?",
+          "subject": "Date needed: Fix the login redirect bug",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_m_18",
+      "idempotencyKey": "c_m_18",
+      "commitmentId": "c_m_18",
+      "kind": "reminder",
+      "recipientId": "p_amir",
+      "recipientRole": "owner",
+      "replyState": "responded",
+      "body": "Hi Amir, \"Share the homepage mockups\" is past its deadline (Fri, 16 Oct 2026, 23:59 GMT+5:30). Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Share the homepage mockups",
+      "flowId": "flow_default",
+      "step": 1,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-19T05:30:00.000Z",
+      "updatedAt": "2026-10-19T05:30:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-19T05:30:00.000Z",
+          "dueAt": "2026-10-16T18:29:00.000Z",
+          "recipientId": "p_amir",
+          "body": "Hi Amir, \"Share the homepage mockups\" is past its deadline (Fri, 16 Oct 2026, 23:59 GMT+5:30). Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Share the homepage mockups",
+          "cause": "created"
+        }
+      ]
+    },
+    {
+      "id": "d_c_m_21",
+      "idempotencyKey": "c_m_21",
+      "commitmentId": "c_m_21",
+      "kind": "reminder",
+      "recipientId": "p_lena",
+      "recipientRole": "owner",
+      "replyState": "pending",
+      "body": "Hi Lena, \"Send the launch press kit to marketing\" is past its deadline (Thu, 15 Oct 2026, 09:30 BST). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+      "subject": "Quick check: Send the launch press kit to marketing",
+      "flowId": "flow_default",
+      "step": 1,
+      "recipientConfirmed": false,
+      "state": "pending_review",
+      "version": 1,
+      "createdAt": "2026-10-16T14:00:00.000Z",
+      "updatedAt": "2026-10-16T14:00:00.000Z",
+      "history": [
+        {
+          "version": 1,
+          "at": "2026-10-16T14:00:00.000Z",
+          "dueAt": "2026-10-15T08:30:00.000Z",
+          "recipientId": "p_lena",
+          "body": "Hi Lena, \"Send the launch press kit to marketing\" is past its deadline (Thu, 15 Oct 2026, 09:30 BST). I haven't heard back yet. Please send an update today, or tell me what is blocking it.",
+          "subject": "Quick check: Send the launch press kit to marketing",
+          "cause": "created"
+        }
+      ]
+    }
+  ],
+  "issues": []
+}

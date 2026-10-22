@@ -1,0 +1,14 @@
+{
+  "_about": "Synthetic broken sample for validation tests. Each problem maps to one expected issue code in tests/validate.test.ts.",
+  "referenceTime": "yesterday",
+  "people": [
+    { "id": "p_asha", "name": "Asha", "timezone": "Asia/Kolkata" },
+    { "id": "p_asha", "name": "Asha again", "timezone": "Mars/Olympus" }
+  ],
+  "threads": [{ "id": "t_launch" }],
+  "messages": [
+    { "id": "m_1", "threadId": "t_launch", "authorId": "p_asha", "sentAt": "2026-10-14T10:30:00", "text": "Send the deck Friday" },
+    { "id": "m_1", "threadId": "t_missing", "authorId": "p_ghost", "sentAt": "2026-10-14T11:00:00Z", "text": "  ", "replyToId": "m_404", "mentionIds": ["p_nobody"] }
+  ],
+  "labels": [{ "sourceMessageId": "m_999", "ownerId": "p_ghost", "dueAt": "Friday", "status": "open" }]
+}

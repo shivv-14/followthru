@@ -1,0 +1,241 @@
+{
+  "_about": "Synthetic demo conversations written for FollowThru. Not the C14 challenge fixture. No labels, so it is never scored.",
+  "referenceTime": "2026-10-19T11:00:00+05:30",
+  "people": [
+    {
+      "id": "p_priya",
+      "name": "Priya Sharma",
+      "timezone": "Asia/Kolkata",
+      "role": "coordinator",
+      "teamId": "ops"
+    },
+    {
+      "id": "p_rahul",
+      "name": "Rahul Mehta",
+      "timezone": "Asia/Kolkata",
+      "role": "member",
+      "teamId": "ops"
+    },
+    {
+      "id": "p_dev",
+      "name": "Dev Patel",
+      "timezone": "Asia/Kolkata",
+      "role": "member",
+      "teamId": "eng"
+    },
+    {
+      "id": "p_ben",
+      "name": "Ben Carter",
+      "timezone": "America/Los_Angeles",
+      "role": "member",
+      "teamId": "eng"
+    },
+    {
+      "id": "p_amir",
+      "name": "Amir Khan",
+      "timezone": "Asia/Kolkata",
+      "role": "member",
+      "teamId": "design"
+    },
+    {
+      "id": "p_lena",
+      "name": "Lena Ortiz",
+      "timezone": "Europe/London",
+      "role": "member",
+      "teamId": "design"
+    }
+  ],
+  "threads": [
+    {
+      "id": "t_launch",
+      "title": "Launch prep"
+    },
+    {
+      "id": "t_eng",
+      "title": "Engineering standup"
+    },
+    {
+      "id": "t_finance",
+      "title": "Finance"
+    },
+    {
+      "id": "t_design",
+      "title": "Design reviews"
+    },
+    {
+      "id": "t_status",
+      "title": "Friday wrap-up"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m_15",
+      "threadId": "t_eng",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-12T09:00:00+05:30",
+      "text": "Ben, can you write the API rate limit docs by Oct 13?"
+    },
+    {
+      "id": "m_16",
+      "threadId": "t_eng",
+      "authorId": "p_ben",
+      "sentAt": "2026-10-11T22:00:00-07:00",
+      "text": "Will do.",
+      "replyToId": "m_15"
+    },
+    {
+      "id": "m_18",
+      "threadId": "t_design",
+      "authorId": "p_amir",
+      "sentAt": "2026-10-13T10:00:00+05:30",
+      "text": "I'll share the homepage mockups by Friday."
+    },
+    {
+      "id": "m_13",
+      "threadId": "t_finance",
+      "authorId": "p_rahul",
+      "sentAt": "2026-10-13T11:00:00+05:30",
+      "text": "I'll draft the vendor contract renewal by Oct 14."
+    },
+    {
+      "id": "m_01",
+      "threadId": "t_finance",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-14T10:00:00+05:30",
+      "text": "Rahul, can you send the Q3 budget report to finance by Thursday 5pm?"
+    },
+    {
+      "id": "m_02",
+      "threadId": "t_finance",
+      "authorId": "p_rahul",
+      "sentAt": "2026-10-14T10:20:00+05:30",
+      "text": "Sure, will do.",
+      "replyToId": "m_01"
+    },
+    {
+      "id": "m_03",
+      "threadId": "t_launch",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-14T10:30:00+05:30",
+      "text": "Ben, could you send the revised pricing deck to the client by Friday 6pm?"
+    },
+    {
+      "id": "m_04",
+      "threadId": "t_launch",
+      "authorId": "p_ben",
+      "sentAt": "2026-10-13T22:15:00-07:00",
+      "text": "Sure, Friday works.",
+      "replyToId": "m_03"
+    },
+    {
+      "id": "m_05",
+      "threadId": "t_eng",
+      "authorId": "p_dev",
+      "sentAt": "2026-10-14T11:00:00+05:30",
+      "text": "I can maybe fix the login redirect bug Friday."
+    },
+    {
+      "id": "m_06",
+      "threadId": "t_design",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-14T12:00:00+05:30",
+      "text": "Amir, can you prepare the onboarding checklist by Oct 16?"
+    },
+    {
+      "id": "m_07",
+      "threadId": "t_design",
+      "authorId": "p_amir",
+      "sentAt": "2026-10-14T12:30:00+05:30",
+      "text": "I'm swamped this week, handing this over to Lena.",
+      "replyToId": "m_06"
+    },
+    {
+      "id": "m_08",
+      "threadId": "t_design",
+      "authorId": "p_lena",
+      "sentAt": "2026-10-14T09:00:00+01:00",
+      "text": "Happy to take it, I'll have it ready Monday.",
+      "replyToId": "m_07"
+    },
+    {
+      "id": "m_09",
+      "threadId": "t_launch",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-14T14:00:00+05:30",
+      "text": "Dev, please set up the staging analytics dashboard by Oct 15."
+    },
+    {
+      "id": "m_11",
+      "threadId": "t_launch",
+      "authorId": "p_dev",
+      "sentAt": "2026-10-14T14:10:00+05:30",
+      "text": "On it.",
+      "replyToId": "m_09"
+    },
+    {
+      "id": "m_17",
+      "threadId": "t_eng",
+      "authorId": "p_ben",
+      "sentAt": "2026-10-14T08:00:00-07:00",
+      "text": "Can we push the API rate limit docs to Oct 21? Waiting on the final limits.",
+      "replyToId": "m_16"
+    },
+    {
+      "id": "m_21",
+      "threadId": "t_launch",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-14T15:00:00+05:30",
+      "text": "Lena, can you send the launch press kit to marketing by Oct 15 2pm?"
+    },
+    {
+      "id": "m_22",
+      "threadId": "t_eng",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-15T09:00:00+05:30",
+      "text": "Dev, please review Ben's pull request for the export feature by Oct 16."
+    },
+    {
+      "id": "m_14",
+      "threadId": "t_finance",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-15T10:00:00+05:30",
+      "text": "Let's put the vendor contract renewal on hold until next quarter."
+    },
+    {
+      "id": "m_12",
+      "threadId": "t_launch",
+      "authorId": "p_priya",
+      "sentAt": "2026-10-15T16:00:00+05:30",
+      "text": "Never mind on the staging analytics dashboard, the client dropped that requirement."
+    },
+    {
+      "id": "m_23",
+      "threadId": "t_eng",
+      "authorId": "p_dev",
+      "sentAt": "2026-10-16T10:00:00+05:30",
+      "text": "Done, approved the export feature pull request.",
+      "replyToId": "m_22"
+    },
+    {
+      "id": "m_10",
+      "threadId": "t_status",
+      "authorId": "p_ben",
+      "sentAt": "2026-10-16T09:00:00-07:00",
+      "text": "Revised pricing deck sent to the client this morning."
+    },
+    {
+      "id": "m_20",
+      "threadId": "t_eng",
+      "authorId": "p_dev",
+      "sentAt": "2026-10-16T18:00:00+05:30",
+      "text": "I think Rahul already sent the Q3 budget report."
+    },
+    {
+      "id": "m_19",
+      "threadId": "t_design",
+      "authorId": "p_amir",
+      "sentAt": "2026-10-17T10:00:00+05:30",
+      "text": "Still polishing the homepage mockups, need one more day."
+    }
+  ]
+}

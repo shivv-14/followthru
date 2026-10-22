@@ -1,0 +1,209 @@
+
+ RUN  v5.0.5 D:/followthru
+
+ ✓ |engine| tests/sanity.test.ts > sanity > runs in node 2ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > validates IANA names 14ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > computes offsets including half-hour zones and DST 0ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > round-trips wall time and UTC 1ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > adds calendar days across month ends 0ms
+ ✓ |engine| tests/time.test.ts > timezone helpers > only accepts timestamps with Z or an explicit offset 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads Friday 6pm in IST 16ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads the same words from a Pacific speaker as a different instant 1ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > gives date-only deadlines the end of that local day 1ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads EOD as 18:00 local 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > reads tomorrow and tonight relative to the speaker day 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > treats the same weekday as today unless the time has passed 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > moves a bare time that already passed to the next day 0ms
+ ✓ |engine| tests/deadline.test.ts > parseDeadline in the speaker timezone > returns null when there is no deadline phrase 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > marks "maybe Friday" as tentative and keeps the hedge in the phrase 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags hopefully by Friday as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags I will try to get it done Friday as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags probably Oct 20 as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags Fridayish as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags around 5ish as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > flags should be able to send tomorrow as hedged 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > keeps I will publish it by Friday firm 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > keeps Finish the English draft by Oct 20 firm 0ms
+ ✓ |engine| tests/deadline.test.ts > tentative deadlines > keeps Sending it Friday 6pm firm 0ms
+ ✓ |engine| tests/deadline.test.ts > daylight saving edge cases (America/Los_Angeles) > moves a time in the spring-forward gap forward, never earlier 0ms
+ ✓ |engine| tests/deadline.test.ts > daylight saving edge cases (America/Los_Angeles) > picks the later instant for an ambiguous fall-back time 0ms
+ ✓ |engine| tests/deadline.test.ts > daylight saving edge cases (America/Los_Angeles) > uses the new offset for a deadline after the change 0ms
+ ✓ |engine| tests/deadline.test.ts > daylight saving edge cases (America/Los_Angeles) > IST has no DST, so the same local time keeps the same UTC hour 0ms
+ ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > is not overdue exactly at the due instant 0ms
+ ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > is never overdue for done, cancelled or deferred work 0ms
+ ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > never treats a tentative deadline as overdue 0ms
+ ✓ |engine| tests/deadline.test.ts > isOverdue and deadlineState > reports state for firm and missing deadlines 0ms
+ ✓ |engine| tests/deadline.test.ts > formatting > shows the owner local time 1ms
+ ✓ |engine| tests/deadline.test.ts > formatting > shows owner and viewer time side by side 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > uses Pacific for "by Monday 10am PT" said by an IST speaker 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > moves a bare time with a zone to the next day when it has passed 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "14:00 UTC tomorrow" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "10am GMT Friday" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "6pm BST on Oct 20" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "9am ET Oct 20" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "4pm CET Oct 20" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > reads "11am SGT Oct 20" 0ms
+ ✓ |engine| tests/deadline.test.ts > explicit timezones in the phrase > keeps the speaker zone when no zone is written 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "in 2 days" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "within a week" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "in a week" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "in 3 hours" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "within 48 hours" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "next week" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "by end of next week" from Wednesday morning IST 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > reads "next week" said on a Monday as the following Monday 0ms
+ ✓ |engine| tests/deadline.test.ts > relative durations and weeks > counts "in 2 days" in calendar days across the Pacific DST change 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 12/10" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 13/10" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 10/13" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 12/10/2026" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 12-10-2026" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > numeric dates > reads "due 25/12/26" as day/month unless impossible 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "I think Friday works" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "around Oct 20" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "roughly by Friday" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "approx Oct 20" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "approximately Friday" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "Friday?" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > marks "by Friday?" tentative 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > keeps "by Friday at the latest" firm 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > keeps "by Friday sharp" firm 0ms
+ ✓ |engine| tests/deadline.test.ts > more hedges and firm negatives > keeps "Can we push the API rate limit docs to Oct 21?" firm 0ms
+ ✓ |engine| tests/deadline.test.ts > day boundaries > reads "today" in IST when it is still Thursday in UTC 0ms
+ ✓ |engine| tests/deadline.test.ts > day boundaries > reads "tomorrow EOD" across a month end 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "=1+1" 1ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "+1" 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "-1" 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "@SUM(A1)" 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "\tcmd" 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > escapes "\rcmd" 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > leaves safe text alone 0ms
+ ✓ |engine| tests/io.test.ts > formula injection protection > never writes a raw formula cell into report exports 2ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > reads back exactly what it wrote, including quotes, newlines and escaped formulas 1ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > accepts a UTF-8 byte order mark from spreadsheet exports 0ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > reports missing required columns 0ms
+ ✓ |engine| tests/io.test.ts > message CSV round trip > reports malformed rows instead of throwing 0ms
+ ✓ |engine| tests/io.test.ts > report exports > writes commitments with evidence message ids 1ms
+ ✓ |engine| tests/io.test.ts > report exports > writes drafts with version and suppression reason 0ms
+ ✓ |engine| tests/io.test.ts > report exports > round-trips results JSON 0ms
+ ✓ |engine| tests/io.test.ts > suppressions export > lists suppressed drafts with reason and evidence, formula-escaped 0ms
+ ✓ |engine| tests/contract.test.ts > published contract > exposes the engine functions 1ms
+ ✓ |engine| tests/contract.test.ts > published contract > exposes validation and import export 0ms
+ ✓ |engine| tests/contract.test.ts > published contract > keeps key type shapes 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > accepts it with zero issues 18ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > normalises timestamps to UTC and sorts messages by time then id 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > breaks timestamp ties by id so order is stable 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > adds threads only seen on messages and fills participants from authors 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with a valid sample > treats missing labels as an empty list 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > returns stable codes and paths for every problem in the broken sample 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports reference warnings as warnings, not errors 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports missing required fields with their path 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports wrong types and bad enum values 1ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > rejects empty ids 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value null 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value 42 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value "text" 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value undefined 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > does not crash on top-level value {} 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > reports invalid JSON text instead of throwing 0ms
+ ✓ |engine| tests/validate.test.ts > validateDataset with broken input > ignores unknown extra fields 0ms
+ ✓ |engine| tests/api.test.ts > GET /api/health > reports shadow mode 2ms
+ ✓ |engine| tests/api.test.ts > GET /api/health > rejects other methods with 405 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > runs the engine and returns results with a scorecard 30ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > accepts a JSON string body and an explicit evaluation time 2ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > labels the AI flag as rules fallback 3ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (0) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (1) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (2) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (3) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (4) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (5) 1ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > returns a consistent error shape (6) 0ms
+ ✓ |engine| tests/api.test.ts > POST /api/process > never logs message text 4ms
+ ✓ |engine| tests/engine.test.ts > signals > Deck sent to the client. → done 1ms
+ ✓ |engine| tests/engine.test.ts > signals > Never mind, drop it → cancel 0ms
+ ✓ |engine| tests/engine.test.ts > signals > Let's put this on hold until next quarter → defer 0ms
+ ✓ |engine| tests/engine.test.ts > signals > Can we push the docs to Oct 21? → reschedule 0ms
+ ✓ |engine| tests/engine.test.ts > signals > Handing this over to Lena → delegate 0ms
+ ✓ |engine| tests/engine.test.ts > signals > Sure, will do. → accept 0ms
+ ✓ |engine| tests/engine.test.ts > signals > Ben, can you send the deck? → request 0ms
+ ✓ |engine| tests/engine.test.ts > signals > I'll share the mockups Friday → commit 0ms
+ ✓ |engine| tests/engine.test.ts > signals > does not read "Not sent yet" as done 0ms
+ ✓ |engine| tests/engine.test.ts > signals > does not read "It will be done by Friday" as done 0ms
+ ✓ |engine| tests/engine.test.ts > signals > does not read "Almost finished" as done 0ms
+ ✓ |engine| tests/engine.test.ts > signals > does not read "Is it done?" as done 0ms
+ ✓ |engine| tests/engine.test.ts > signals > does not read "Should be shipped tomorrow" as done 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > finds every commitment with owner, deadline and status from the whole history 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > links a completion posted in another thread back to the original 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > moves ownership only when the delegate accepts, and takes their new date in their timezone 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > keeps an unaccepted delegation in review and the old owner in place 4ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > marks "maybe Friday" tentative and asks for a firm date instead of chasing 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > sends a completion claim from someone outside the commitment to review, never closing it silently 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > keeps silence as silence: no reply means pending, not done 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > reads the deadline in the speaker timezone 0ms
+ ✓ |engine| tests/engine.test.ts > history replay on the demo conversations > is deterministic 5ms
+ ✓ |engine| tests/engine.test.ts > draft queue > drafts only for open overdue or tentative-passed work, one per commitment 0ms
+ ✓ |engine| tests/engine.test.ts > draft queue > creates zero drafts for completed, cancelled and deferred work 0ms
+ ✓ |engine| tests/engine.test.ts > draft queue > re-running with the previous drafts changes nothing 2ms
+ ✓ |engine| tests/engine.test.ts > draft queue > a later deadline update changes the same draft with a new version, never a duplicate 4ms
+ ✓ |engine| tests/engine.test.ts > draft queue > suppresses an existing reminder as soon as the work is reported done (stale message) 2ms
+ ✓ |engine| tests/engine.test.ts > draft queue > moves to the next flow step as time passes, as a new version of the same draft 2ms
+ ✓ |engine| tests/engine.test.ts > draft queue > marks unapproved drafts stale after the stale window 2ms
+ ✓ |engine| tests/engine.test.ts > approval checks > blocks approval until the recipient is confirmed 0ms
+ ✓ |engine| tests/engine.test.ts > approval checks > re-checks freshness: work completed after drafting suppresses instead of approving 0ms
+ ✓ |engine| tests/engine.test.ts > approval checks > blocks a draft whose deadline or owner changed after it was written 0ms
+ ✓ |engine| tests/engine.test.ts > approval checks > warns about recipients outside working hours or after delegation 0ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > lets a coordinator resolve review and mark work done, which suppresses any draft 4ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > ignores decisions a member is not allowed to make 2ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > runs the member submit and coordinator approve flow 4ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > a member cannot approve their own submission 2ms
+ ✓ |engine| tests/engine.test.ts > human decisions and permissions > handles manual tasks assigned by a coordinator 2ms
+ ✓ |engine| tests/engine.test.ts > flows > picks the latest step that is due 0ms
+ ✓ |engine| tests/engine.test.ts > flows > validates step order 0ms
+ ✓ |engine| tests/engine.test.ts > flows > waits for the first step of a team flow before drafting 2ms
+ ✓ |engine| tests/engine.test.ts > evaluation > scores the synthetic sample against its own labels 2ms
+ ✓ |engine| tests/engine.test.ts > evaluation > says scoring is unavailable without labels instead of claiming a score 2ms
+ ✓ |engine| tests/engine.test.ts > evaluation > fails the reminder check when a closed commitment still has an active draft 2ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > records "still working" after the deadline without changing status 2ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > adds a blocker from an owner message 2ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > treats "almost done" as progress, never completion 2ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > reopens retracted work and reactivates the same draft with a new version 4ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > sends a reopen claim from an unrelated person to review 2ms
+ ✓ |engine| tests/engine.test.ts > progress, not done, blockers and reopen > uses an injected extractor 0ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > words a reminder differently for no reply and for "not yet" 2ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > keeps subjects under 60 characters and bodies under 70 words 0ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > writes the deadline in the recipient timezone 0ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > escalates to the coordinator as a new version of the same draft, approvable after confirmation 4ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > falls back to the coordinator when a requester step has no requester 0ms
+ ✓ |engine| tests/engine.test.ts > draft wording, subjects and escalation > rejects an unknown flow recipient 0ms
+ ✓ |engine| tests/engine.test.ts > product change flags > without stale suppression a draft written before the completion stays pending (the baseline problem) 4ms
+ ✓ |engine| tests/engine.test.ts > product change flags > with stale suppression the same draft is suppressed with the completion evidence 4ms
+ ✓ |engine| tests/engine.test.ts > product change flags > without recipient review approval does not need a confirmed recipient 2ms
+ ✓ |engine| tests/store.test.ts > repositories > loads a dataset with default flows and an audit entry 14ms
+ ✓ |engine| tests/store.test.ts > repositories > refuses a dataset with validation errors 2ms
+ ✓ |engine| tests/store.test.ts > repositories > stores drafts once and skips writes when nothing changed 17ms
+ ✓ |engine| tests/store.test.ts > repositories > hashes uploaded evidence files 3ms
+ ✓ |engine| tests/store.test.ts > repositories > reset clears data but keeps the audit history, including the reset itself 2ms
+ ✓ |engine| tests/store.test.ts > actions > approval needs a confirmed recipient, then approves in shadow mode 11ms
+ ✓ |engine| tests/store.test.ts > actions > suppresses with a visible reason when the work was closed before approval 5ms
+ ✓ |engine| tests/store.test.ts > actions > members cannot approve, assign tasks or cancel 5ms
+ ✓ |engine| tests/store.test.ts > actions > assigns a task to a whole team as one task per member 7ms
+ ✓ |engine| tests/store.test.ts > actions > rejects a task deadline in the past 4ms
+ ✓ |engine| tests/store.test.ts > actions > keeps default flows locked 7ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > sends a first-time visitor to setup 96ms
+ ✓ |ui| tests/app.test.tsx > App > renders the landing page tagline and CTA 86ms
+ ✓ |ui| tests/app.test.tsx > App > renders the style guide route 36ms
+ ✓ |ui| tests/app.test.tsx > App > falls back to a not found page for unknown routes 4ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > asks for a profile once data is loaded 43ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows the coordinator dashboard with engine results 62ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > lists and filters commitments from the URL 26ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > explains a commitment with its evidence timeline 35ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > blocks approval until the recipient is confirmed, then approves in shadow mode 100ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > shows a member only their own work and no approval controls 20ms
+ ✓ |ui| tests/ui.test.tsx > app with real engine data > reports that demo data is not scored 18ms
+
+ Test Files  11 passed (11)
+      Tests  200 passed (200)
+   Start at  23:45:43
+   Duration  12.53s (setup 33%, environment 24%, import 21%, tests 13%, transform 8%, worker 1%)
+

@@ -1,0 +1,5 @@
+id,commitmentId,kind,recipientId,recipientConfirmed,state,version,suppressionReason,updatedAt,body
+d_c_m_03,c_m_03,reminder,p_ben,false,pending_review,1,,2026-10-16T14:00:00.000Z,"Hi Ben, a quick check on ""Send the revised pricing deck to the client"", which was due Fri, 16 Oct 2026, 05:30 GMT-7. I haven't heard back yet. Could you share where it stands, or a new date if it has moved?"
+d_c_m_05,c_m_05,clarify,p_dev,false,pending_review,1,,2026-10-19T05:30:00.000Z,"Hi Dev, you mentioned ""maybe Friday"" for ""Fix the login redirect bug"". Could you confirm a firm date so we can plan around it?"
+d_c_m_18,c_m_18,reminder,p_amir,false,pending_review,1,,2026-10-19T05:30:00.000Z,"Hi Amir, ""Share the homepage mockups"" is past its deadline (Fri, 16 Oct 2026, 23:59 GMT+5:30). Please send an update today, or tell me what is blocking it."
+d_c_m_21,c_m_21,reminder,p_lena,false,pending_review,1,,2026-10-16T14:00:00.000Z,"Hi Lena, ""Send the launch press kit to marketing"" is past its deadline (Thu, 15 Oct 2026, 09:30 BST). I haven't heard back yet. Please send an update today, or tell me what is blocking it."

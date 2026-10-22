@@ -1,0 +1,24 @@
+time,thread,from,timezone,message,role,team,reply_to
+2026-10-11 22:00,Engineering standup,Ben Carter,America/Los_Angeles,Will do.,member,eng,3
+2026-10-12 09:00,Engineering standup,Priya Sharma,Asia/Kolkata,"Ben, can you write the API rate limit docs by Oct 13?",coordinator,ops,
+2026-10-13 10:00,Design reviews,Amir Khan,Asia/Kolkata,I'll share the homepage mockups by Friday.,member,design,
+2026-10-13 11:00,Finance,Rahul Mehta,Asia/Kolkata,I'll draft the vendor contract renewal by Oct 14.,member,ops,
+2026-10-13 22:15,Launch prep,Ben Carter,America/Los_Angeles,"Sure, Friday works.",member,eng,11
+2026-10-14 08:00,Engineering standup,Ben Carter,America/Los_Angeles,Can we push the API rate limit docs to Oct 21? Waiting on the final limits.,member,eng,2
+2026-10-14 09:00,Design reviews,Lena Ortiz,Europe/London,"Happy to take it, I'll have it ready Monday.",member,design,14
+2026-10-14 10:00,Finance,Priya Sharma,Asia/Kolkata,"Rahul, can you send the Q3 budget report to finance by Thursday 5pm?",coordinator,ops,
+2026-10-14 10:20,Finance,Rahul Mehta,Asia/Kolkata,"Sure, will do.",member,ops,9
+2026-10-14 10:30,Launch prep,Priya Sharma,Asia/Kolkata,"Ben, could you send the revised pricing deck to the client by Friday 6pm?",coordinator,ops,
+2026-10-14 11:00,Engineering standup,Dev Patel,Asia/Kolkata,I can maybe fix the login redirect bug Friday.,member,eng,
+2026-10-14 12:00,Design reviews,Priya Sharma,Asia/Kolkata,"Amir, can you prepare the onboarding checklist by Oct 16?",coordinator,ops,
+2026-10-14 12:30,Design reviews,Amir Khan,Asia/Kolkata,"I'm swamped this week, handing this over to Lena.",member,design,13
+2026-10-14 14:00,Launch prep,Priya Sharma,Asia/Kolkata,"Dev, please set up the staging analytics dashboard by Oct 15.",coordinator,ops,
+2026-10-14 14:10,Launch prep,Dev Patel,Asia/Kolkata,On it.,member,eng,15
+2026-10-14 15:00,Launch prep,Priya Sharma,Asia/Kolkata,"Lena, can you send the launch press kit to marketing by Oct 15 2pm?",coordinator,ops,
+2026-10-15 09:00,Engineering standup,Priya Sharma,Asia/Kolkata,"Dev, please review Ben's pull request for the export feature by Oct 16.",coordinator,ops,
+2026-10-15 10:00,Finance,Priya Sharma,Asia/Kolkata,Let's put the vendor contract renewal on hold until next quarter.,coordinator,ops,
+2026-10-15 16:00,Launch prep,Priya Sharma,Asia/Kolkata,"Never mind on the staging analytics dashboard, the client dropped that requirement.",coordinator,ops,
+2026-10-16 09:00,Friday wrap-up,Ben Carter,America/Los_Angeles,Revised pricing deck sent to the client this morning.,member,eng,
+2026-10-16 10:00,Engineering standup,Dev Patel,Asia/Kolkata,"Done, approved the export feature pull request.",member,eng,18
+2026-10-16 18:00,Engineering standup,Dev Patel,Asia/Kolkata,I think Rahul already sent the Q3 budget report.,member,eng,
+2026-10-17 10:00,Design reviews,Amir Khan,Asia/Kolkata,"Still polishing the homepage mockups, need one more day.",member,design,

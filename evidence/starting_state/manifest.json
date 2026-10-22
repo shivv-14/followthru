@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2026-10-17T18:15:56.323Z",
+  "label": "starting-state",
+  "dataset": "Synthetic demo data (not the challenge fixture, not scored)",
+  "synthetic": true,
+  "flags": {
+    "staleSuppression": false,
+    "recipientReview": false,
+    "ai": false
+  },
+  "engineMode": "Rules",
+  "evaluationClock": "2026-10-19T05:30:00.000Z",
+  "gitCommit": "7d4d3e8",
+  "dirtyTree": false,
+  "files": [
+    {
+      "name": "scorecard.md",
+      "bytes": 1210,
+      "sha256": "523408e91115599801a5e972ca196febeb57924ee0b6fa1a2f53696e3f9967de"
+    },
+    {
+      "name": "results.json",
+      "bytes": 24326,
+      "sha256": "56deef64270c35241c0866441f6be90407dc7b1a058ca9718c2bd1ca01b9297c"
+    },
+    {
+      "name": "commitments.csv",
+      "bytes": 1601,
+      "sha256": "633f9132bbd59e844fed2c2f06682c88224110bb066cc5cbcd91faed3c4e3f23"
+    },
+    {
+      "name": "drafts.csv",
+      "bytes": 1116,
+      "sha256": "5a54aed155b6b2654a0e94d1253dd410f8f7bbc9c78030e2608d5ecf9476dc86"
+    },
+    {
+      "name": "suppressions.csv",
+      "bytes": 49,
+      "sha256": "ef9d7c32919fda6dcc3c6ec25537070d9a14d09eb496a007c9fd10ae40665bd3"
+    },
+    {
+      "name": "validation.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "name": "test-report.txt",
+      "bytes": 23041,
+      "sha256": "869e44974fa6bf56c17e5475d82cf63dcca13d82207bf03557436eea807d1173"
+    },
+    {
+      "name": "stale-report.md",
+      "bytes": 677,
+      "sha256": "ef0525300afb234526b1da1f180040e80bcecce3ad3a6a3b0b238333e5de77a1"
+    }
+  ]
+}
