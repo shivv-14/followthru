@@ -7,8 +7,7 @@ import { deadlineState } from '../../engine/deadline'
 import { validateDataset } from '../../schema/validate'
 import demoDataset from '../../mocks/demoDataset.json'
 import { InstallButton } from '../../components/shell/InstallButton'
-import { prefersReducedMotion } from './media'
-import { DeadlineOrbit } from './DeadlineOrbit'
+import { HERO_VIDEO, prefersReducedMotion } from './media'
 
 interface Stat {
   glyph: string
@@ -171,11 +170,23 @@ function Header({ appHref }: { appHref: string }) {
 export function Hero() {
   const { dataset, user } = useEngine()
   const appHref = dataset && user ? '/dashboard' : '/login'
+  const reduced = prefersReducedMotion()
+  const video = useRef<HTMLVideoElement>(null)
+
+  // React does not render the muted attribute, so browsers treat the clip as audible and block autoplay
+  useEffect(() => {
+    const v = video.current
+    if (!v || reduced) return
+    v.muted = true
+    v.play?.()?.catch(() => {})
+  }, [reduced])
 
   return (
     <section className="lh" id="top" aria-labelledby="lh-title">
       <div className="lh-bg" aria-hidden>
-        <DeadlineOrbit />
+        <video ref={video} className="lh-video" autoPlay={!reduced} muted loop playsInline preload={reduced ? 'none' : 'auto'}>
+          <source src={HERO_VIDEO} type="video/mp4" />
+        </video>
       </div>
       <div className="lh-page">
         <Header appHref={appHref} />
@@ -199,12 +210,8 @@ export function Hero() {
             <span className="lh-trust__pill">Fynd × NMIMS Hyderabad · Challenge C14</span>
           </div>
           <h1 className="lh-headline anim-none" id="lh-title">
-            <span>
-              Chase what's <em className="lh-late">late.</em>
-            </span>
-            <span>
-              Never what's <em className="lh-done">done.</em>
-            </span>
+            <span>Chase what's late.</span>
+            <span>Never what's done.</span>
           </h1>
           <p className="lh-sub anim" style={{ ['--d' as string]: '0.28s' }}>
             FollowThru reads your team's conversations, tracks every promise across threads and timezones, and drafts a reminder only when work is really late.

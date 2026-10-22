@@ -1,5 +1,4 @@
 import '../styles/landing.css'
-import '../styles/landing-theme.css'
 import { Hero } from './landing/Hero'
 import { ScrubStory } from './landing/ScrubStory'
 import { MeadowFooter } from './landing/MeadowFooter'
